@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:app="http://schemas.android.com/apk/res-auto" xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/main_menu_settings"
+        android:icon="@drawable/ic_settings_black_24dp"
+        android:title="@string/settings">
+    </item>
+    <item xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/main_menu_new_report"
+        android:icon="@drawable/ic_create_white_24dp"
+        android:title="@string/_new"
+        app:showAsAction="ifRoom">
+    </item>
+</menu>

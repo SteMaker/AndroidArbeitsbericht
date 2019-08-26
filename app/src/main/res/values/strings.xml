@@ -1,0 +1,49 @@
+<resources>
+    <string name="app_name">Arbeitsbericht</string>
+    <string name="reportnr">Reportnr</string>
+    <string name="client">Kunde / Projekt</string>
+    <string name="date">Datum</string>
+    <string name="unfold">Bereich aufklappen</string>
+    <string name="extra">Zusatz</string>
+    <string name="bill_address">Rechnungsadresse</string>
+    <string name="name">Name</string>
+    <string name="street">Strasse / Hausnummer</string>
+    <string name="zip">PLZ</string>
+    <string name="city">Ort</string>
+    <string name="back">Zurück</string>
+    <string name="saved_reports">Gespeicherte Arbeitsberichte</string>
+    <string name="create_new_report">Neuer Bericht</string>
+    <string name="unknown">Unbekannt</string>
+    <string name="send">Senden</string>
+    <string name="_new">Neu</string>
+    <string name="settings">Einstellungen</string>
+    <string name="employee_name">Mitarbeiter</string>
+    <string name="mail_receiver">E-Mail Empfänger</string>
+    <string name="save">Speichern</string>
+    <string name="free_id">Nächste freie Berichtsnr</string>
+    <string name="worktimes">Arbeitszeiten</string>
+    <string name="workitems">Durchgeführte Arbeiten</string>
+    <string name="material">Material</string>
+    <string name="worktime">Arbeitszeit</string>
+    <string name="driveduration">Fahrzeit</string>
+    <string name="distance">Entfernung [km]</string>
+    <string name="del_confirmation">Sind sie sich sicher, dass sie das Element löschen wollen?</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Abbrechen</string>
+    <string name="work_item">Durchgeführte Arbeit</string>
+    <string name="amount">Anzahl</string>
+    <string name="employee_signature">Unterschrift Auftragnehmer</string>
+    <string name="client_signature">Unterschrift Auftraggeber</string>
+    <string name="clear">Löschen</string>
+    <string name="summary">Zusammenfassung</string>
+
+    <item type="id" name="TAG_REPORT_ID"/>
+    <item type="id" name="TAG_CARDVIEW"/>
+    <item type="id" name="TAG_WORKTIME"/>
+    <item type="id" name="TAG_DATETEXTVIEW"/>
+    <item type="id" name="TAG_TIMETEXTVIEW"/>
+    <item type="id" name="TAG_WORKITEM"/>
+    <item type="id" name="TAG_MATERIAL"/>
+
+
+</resources>

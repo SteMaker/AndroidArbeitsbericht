@@ -260,6 +260,23 @@ class ReportEditorActivity : AppCompatActivity(), ConfirmationDialogFragment.Con
         // set a TAG to the card view to link with the work time data
         cV.setTag(R.id.TAG_WORKTIME, wt)
 
+        // In the distance field select the whole text any time it gets clicked, so that
+        // the user is not required to delete but directly overwrites
+        val distET = cV.findViewById<EditText>(R.id.work_time_distance)
+        distET.setSelectAllOnFocus(true);
+        cV.findViewById<EditText>(R.id.work_time_distance).setOnClickListener(object: View.OnClickListener {
+            override fun onClick(v: View) {
+                val et = v as EditText
+                if(et.isFocused()){
+                    et.clearFocus();
+                    et.requestFocus();
+                }else{
+                    et.requestFocus();
+                    et.clearFocus();
+                }
+            }
+        })
+
         val pos = worktimes_content_container.getChildCount()
         Log.d("Arbeitsbericht", "Adding work time card $pos to UI")
         worktimes_content_container.addView(cV, pos)

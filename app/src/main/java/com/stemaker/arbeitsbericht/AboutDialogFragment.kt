@@ -1,12 +1,19 @@
 package com.stemaker.arbeitsbericht
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import androidx.fragment.app.DialogFragment
 import android.webkit.WebView
+import android.content.res.AssetManager
+import android.webkit.WebResourceRequest
+import android.webkit.WebViewClient
+import kotlinx.io.InputStream
+import android.webkit.WebSettings
+import kotlinx.android.synthetic.main.fragment_about_dialog.*
 
 
 class AboutDialogFragment : DialogFragment() {
@@ -20,7 +27,10 @@ class AboutDialogFragment : DialogFragment() {
                 dismiss()
             }
         })
-        v.findViewById<WebView>(R.id.about_webview).loadUrl("file:///android_asset/about.html")
+        Log.d("Arbeitsbericht.AboutDialogFragment.onCreateView", "loading about.html into WebView")
+        val wv = v.findViewById<WebView>(R.id.about_webview)
+        //wv.loadDataWithBaseURL("", "<!DOCTYPE html><html><body><h1>Lizenz</h1></body></html>", "text/html", "UTF-8", "")
+        wv.loadUrl("file:///android_asset/about.html")
         return v
     }
 }

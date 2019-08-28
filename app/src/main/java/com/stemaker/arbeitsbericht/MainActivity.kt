@@ -107,6 +107,11 @@ class MainActivity : AppCompatActivity(), ConfirmationDialogFragment.Confirmatio
                 createNewReport()
                 true
             }
+            R.id.main_menu_about -> {
+                val aboutDialog = AboutDialogFragment()
+                aboutDialog.show(supportFragmentManager, "AboutDialog")
+                true
+            }
             else -> super.onOptionsItemSelected(item)
         }
     }

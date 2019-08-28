@@ -33,7 +33,7 @@
                 <ImageButton
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    app:srcCompat="@android:drawable/arrow_down_float"
+                    android:src="@drawable/ic_arrow_drop_down_black_24dp"
                     android:id="@+id/expand_project_button"
                     android:onClick="onClickExpandProjectButton"
                     android:contentDescription="@string/unfold"
@@ -85,7 +85,8 @@
                 />
                 <ImageButton
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" app:srcCompat="@android:drawable/arrow_down_float"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/ic_arrow_drop_down_black_24dp"
                     android:id="@+id/expand_billdata_button"
                     android:onClick="onClickExpandBillDataButton"
                     android:contentDescription="@string/unfold"
@@ -166,7 +167,7 @@
                 <ImageButton
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        app:srcCompat="@android:drawable/arrow_down_float"
+                        android:src="@drawable/ic_arrow_drop_down_black_24dp"
                         android:id="@+id/expand_worktimes_button"
                         android:onClick="onClickExpandWorktimesButton"
                         android:contentDescription="@string/unfold"
@@ -186,7 +187,7 @@
                         app:layout_constraintRight_toRightOf="parent"
                         app:layout_constraintBottom_toBottomOf="parent"
                         android:paddingRight="20dp"
-                        android:src="@drawable/ic_add_circle_white_24dp"
+                        android:src="@drawable/ic_add_circle_black_24dp"
                         android:onClick="onClickAddWorkTime"
                     />
             </LinearLayout> <!-- End of worktimes_content_container-->
@@ -208,7 +209,7 @@
                 <ImageButton
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        app:srcCompat="@android:drawable/arrow_down_float"
+                        android:src="@drawable/ic_arrow_drop_down_black_24dp"
                         android:id="@+id/expand_workitems_button"
                         android:onClick="onClickExpandWorkitemsButton"
                         android:contentDescription="@string/unfold"
@@ -227,7 +228,7 @@
                     app:layout_constraintRight_toRightOf="parent"
                     app:layout_constraintBottom_toBottomOf="parent"
                     android:paddingRight="20dp"
-                    android:src="@drawable/ic_add_circle_white_24dp"
+                    android:src="@drawable/ic_add_circle_black_24dp"
                     android:onClick="onClickAddWorkItem"
                 />
             </LinearLayout> <!-- End of workitems_content_container-->
@@ -249,7 +250,7 @@
                 <ImageButton
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        app:srcCompat="@android:drawable/arrow_down_float"
+                        android:src="@drawable/ic_arrow_drop_down_black_24dp"
                         android:id="@+id/expand_material_button"
                         android:onClick="onClickExpandMaterialButton"
                         android:contentDescription="@string/unfold"
@@ -268,7 +269,7 @@
                         app:layout_constraintRight_toRightOf="parent"
                         app:layout_constraintBottom_toBottomOf="parent"
                         android:paddingRight="20dp"
-                        android:src="@drawable/ic_add_circle_white_24dp"
+                        android:src="@drawable/ic_add_circle_black_24dp"
                         android:onClick="onClickAddMaterial"
                 />
             </LinearLayout> <!-- End of material_content_container-->

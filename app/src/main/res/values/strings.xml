@@ -36,14 +36,18 @@
     <string name="client_signature">Unterschrift Auftraggeber</string>
     <string name="clear">Löschen</string>
     <string name="summary">Zusammenfassung</string>
+    <string name="about">Über</string>
 
-    <item type="id" name="TAG_REPORT_ID"/>
-    <item type="id" name="TAG_CARDVIEW"/>
-    <item type="id" name="TAG_WORKTIME"/>
-    <item type="id" name="TAG_DATETEXTVIEW"/>
-    <item type="id" name="TAG_TIMETEXTVIEW"/>
-    <item type="id" name="TAG_WORKITEM"/>
-    <item type="id" name="TAG_MATERIAL"/>
+    <item name="TAG_REPORT_ID" type="id" />
+    <item name="TAG_CARDVIEW" type="id" />
+    <item name="TAG_WORKTIME" type="id" />
+    <item name="TAG_DATETEXTVIEW" type="id" />
+    <item name="TAG_TIMETEXTVIEW" type="id" />
+    <item name="TAG_WORKITEM" type="id" />
+    <item name="TAG_MATERIAL" type="id" />
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 
 
 </resources>

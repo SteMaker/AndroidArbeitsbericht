@@ -7,19 +7,11 @@ import android.view.View
 import kotlinx.android.synthetic.main.activity_report_editor.*
 import android.content.Intent
 import android.content.Context
-import android.net.Uri
 import android.view.LayoutInflater
 import androidx.cardview.widget.CardView
 import androidx.fragment.app.DialogFragment
 import android.R.*
-import android.text.Editable
-import android.text.TextWatcher
 import android.widget.*
-import androidx.databinding.adapters.TextViewBindingAdapter.setText
-import androidx.core.app.ComponentActivity
-import androidx.core.app.ComponentActivity.ExtraData
-import androidx.core.content.ContextCompat.getSystemService
-import android.icu.lang.UCharacter.GraphemeClusterBreak.T
 
 
 

@@ -11,4 +11,9 @@
         android:title="@string/_new"
         app:showAsAction="ifRoom">
     </item>
+    <item
+            android:id="@+id/main_menu_about"
+            android:icon="@drawable/ic_assignment_black_24dp"
+            android:title="@string/about">
+    </item>
 </menu>

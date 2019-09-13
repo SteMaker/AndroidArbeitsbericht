@@ -7,16 +7,21 @@
     android:orientation="vertical"
     tools:context=".AboutDialogFragment">
 
-    <WebView
-        android:id="@+id/about_webview"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-    />
+    <FrameLayout
+        android:id="@+id/about_webview_frame"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+        <WebView
+            android:id="@+id/about_webview"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="visible"
+        />
+    </FrameLayout>
     <Button
         android:id="@+id/ok_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/ok"
     />
-
 </LinearLayout>

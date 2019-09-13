@@ -32,7 +32,7 @@ import java.io.File
 import java.io.IOException
 
 
-class SummaryActivity : AppCompatActivity(), PdfPrint.PdfPrintFinishedCallback {
+class SummaryActivity : AppCompatActivity(), PdfPrint.PdfPrintInterface {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -143,7 +143,8 @@ class SummaryActivity : AppCompatActivity(), PdfPrint.PdfPrintFinishedCallback {
     fun createAndSendReport(withPdf: Boolean) {
         val report = StorageHandler.getReport()
         if (withPdf) {
-            val pdfPrint = PdfPrint(this, report)
+            val file = preparePdfFile()
+            val pdfPrint = PdfPrint(this, report, file)
             if(pdfPrint.print()) {
                 Log.d("Arbeitsbericht", "pdf")
             } else {
@@ -151,6 +152,45 @@ class SummaryActivity : AppCompatActivity(), PdfPrint.PdfPrintFinishedCallback {
                 sendMail(null, report)
             }
         }
+    }
+
+    suspend fun queryUserForPdfOverwrite() =
+        withContext(Dispatchers.Main) {}
+
+    fun preparePdfFile(id: String) {
+        val path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS).absolutePath
+        val fileName = "report_${id}.pdf"
+
+        // TODO: We should check if the Documents folder exists and create it if it doesn't
+
+        val file = File(path, fileName)
+        try {
+            if(file.exists()) {
+                Log.d("Arbeitsbericht", "The report did already exist")
+                val newFragment = newConfirmationDialog(activity.getString(R.string.overwrite_confirmation_report))
+                newFragment.show(activity.getSupportFragmentManager(), "dialog")
+
+
+                // TODO: We should have a confirmation dialog in such a case
+                val toast = Toast.makeText(activity, "Vorhandener Bericht wird überschrieben", Toast.LENGTH_LONG)
+                toast.show()
+            } else {
+                file.createNewFile()
+            }
+        } catch(e:SecurityException) {
+            Log.d("Arbeitsbericht", "Permission denied on file ${file.toString()}")
+            val toast = Toast.makeText(activity, "Konnte Berichtsdatei nicht erstellen wegen fehlender Berechtigungen", Toast.LENGTH_LONG)
+            toast.show()
+            return null
+        } catch(e: IOException) {
+            Log.d("Arbeitsbericht", "IOException: Could not create report file ${file.toString()}")
+            val toast = Toast.makeText(activity, "Konnte Berichtsdatei nicht erstellen. Grund unbekannt", Toast.LENGTH_LONG)
+            toast.show()
+            return null
+        }
+
+        return file
+
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, @NonNull permissions: Array<String>, @NonNull grantResults: IntArray) {

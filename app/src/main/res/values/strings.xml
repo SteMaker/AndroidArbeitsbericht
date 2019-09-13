@@ -28,6 +28,7 @@
     <string name="driveduration">Fahrzeit</string>
     <string name="distance">Entfernung [km]</string>
     <string name="del_confirmation">Sind sie sich sicher, dass sie das Element löschen wollen?</string>
+    <string name="overwrite_confirmation_report">Der Bericht existiert bereits als PDF. Soll er überschrieben werden?</string>
     <string name="ok">OK</string>
     <string name="cancel">Abbrechen</string>
     <string name="work_item">Durchgeführte Arbeit</string>
@@ -45,9 +46,5 @@
     <item name="TAG_TIMETEXTVIEW" type="id" />
     <item name="TAG_WORKITEM" type="id" />
     <item name="TAG_MATERIAL" type="id" />
-
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
-
 
 </resources>

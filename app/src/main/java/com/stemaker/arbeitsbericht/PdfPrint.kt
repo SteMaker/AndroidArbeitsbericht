@@ -11,13 +11,16 @@ import android.webkit.WebViewClient
 import android.widget.Toast
 import com.stemaker.arbeitsbericht.Report
 import com.stemaker.arbeitsbericht.HtmlReport
+import com.stemaker.arbeitsbericht.R
+import com.stemaker.arbeitsbericht.newConfirmationDialog
 import java.io.File
 import java.io.IOException
 
-class PdfPrint(val activity: Activity, val report: Report) {
+class PdfPrint(val activity: Activity, val report: Report, val file: File) {
 
-    interface PdfPrintFinishedCallback {
+    interface PdfPrintInterface {
         fun pdfPrintFinishedCallback(pdfFile: File)
+        fun checkPdfFileOverwrite()
     }
 
     val jobName = "pdf_print_" + report.id.toString()
@@ -26,6 +29,16 @@ class PdfPrint(val activity: Activity, val report: Report) {
         .setResolution(PrintAttributes.Resolution("pdf", "pdf", 300, 300))
         .setMinMargins(PrintAttributes.Margins.NO_MARGINS).build()
     val html = HtmlReport.encodeReport(report, true)
+
+    fun getFile() {
+        val path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS).absolutePath
+        val fileName = "report_${report.id.toString()}.pdf"
+
+        // TODO: We should check if the Documents folder exists and create it if it doesn't
+
+        return File(path, fileName)
+
+    }
 
     fun print(): Boolean {
 
@@ -69,11 +82,15 @@ class PdfPrint(val activity: Activity, val report: Report) {
         val path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS).absolutePath
         val fileName = "report_${report.id.toString()}.pdf"
 
+        // TODO: We should check if the Documents folder exists and create it if it doesn't
+
         val file = File(path, fileName)
 
         try {
             if(file.exists()) {
                 Log.d("Arbeitsbericht", "The report did already exist")
+                checkPdfFileOverwrite()
+
                 // TODO: We should have a confirmation dialog in such a case
                 val toast = Toast.makeText(activity, "Vorhandener Bericht wird überschrieben", Toast.LENGTH_LONG)
                 toast.show()
@@ -94,5 +111,15 @@ class PdfPrint(val activity: Activity, val report: Report) {
 
         return file
     }
+
+    fun pdfFileOverwriteOk(ok: Boolean) {
+        if(ok) {
+        val path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS).absolutePath
+        val fileName = "report_${report.id.toString()}.pdf"
+
+        return File(path, fileName)
+
+    }
+
 
 }

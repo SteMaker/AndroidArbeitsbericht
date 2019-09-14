@@ -12,17 +12,13 @@ import androidx.cardview.widget.CardView
 import androidx.fragment.app.DialogFragment
 import android.R.*
 import android.widget.*
+import androidx.appcompat.app.AlertDialog
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 
-
-enum class DelBtnType {
-    WORK_TIME, WORK_ITEM, MATERIAL, NONE
-}
-
-class ReportEditorActivity : AppCompatActivity(), ConfirmationDialogFragment.ConfirmationDialogListener {
-
-    var delBtnPressed: View? = null
-    var delBtnType: DelBtnType = DelBtnType.NONE
+class ReportEditorActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,37 +55,6 @@ class ReportEditorActivity : AppCompatActivity(), ConfirmationDialogFragment.Con
         val intent = Intent(this, SummaryActivity::class.java).apply {}
         startActivity(intent)
     }
-
-    override fun onDialogPositiveClick(dialog: DialogFragment) {
-        when (delBtnType) {
-            DelBtnType.WORK_TIME -> {
-                Log.d("Arbeitsbericht.ReportEditorActivity.onDialogPositiveClick", "deleting work time element")
-                val cV = delBtnPressed!!.getTag(R.id.TAG_CARDVIEW) as CardView
-                StorageHandler.getReport().work_times.remove(cV.getTag(R.id.TAG_WORKTIME))
-                worktimes_content_container.removeView(cV)
-            }
-            DelBtnType.WORK_ITEM -> {
-                Log.d("Arbeitsbericht.ReportEditorActivity.onDialogPositiveClick", "deleting work item element")
-                val cV = delBtnPressed!!.getTag(R.id.TAG_CARDVIEW) as CardView
-                StorageHandler.getReport().work_items.remove(cV.getTag(R.id.TAG_WORKITEM))
-                workitems_content_container.removeView(cV)
-            }
-            DelBtnType.MATERIAL -> {
-                Log.d("Arbeitsbericht.ReportEditorActivity.onDialogPositiveClick", "deleting material element")
-                val cV = delBtnPressed!!.getTag(R.id.TAG_CARDVIEW) as CardView
-                StorageHandler.getReport().material.remove(cV.getTag(R.id.TAG_MATERIAL))
-                material_content_container.removeView(cV)
-            }
-            else -> {
-                Log.d("Arbeitsbericht.ReportEditorActivity.onDialogPositiveClick", "Internal error on deleting item")
-            }
-        }
-    }
-
-    override fun onDialogNegativeClick(dialog: DialogFragment) {
-        Log.d("Arbeitsbericht.ReportEditorActivity.onDialogPositiveClick", "aborting")
-    }
-
 
     fun loadReport() {
         val report = StorageHandler.getReport()
@@ -207,10 +172,17 @@ class ReportEditorActivity : AppCompatActivity(), ConfirmationDialogFragment.Con
     }
 
     fun onClickDelWorkTime(btn: View) {
-        delBtnPressed = btn
-        delBtnType = DelBtnType.WORK_TIME
-        val newFragment = newConfirmationDialog(getString(R.string.del_confirmation))
-        newFragment.show(getSupportFragmentManager(), "dialog")
+        GlobalScope.launch(Dispatchers.Main) {
+            val answer = showConfirmationDialog(getString(R.string.del_confirmation), this@ReportEditorActivity)
+            if(answer == AlertDialog.BUTTON_POSITIVE) {
+                Log.d("Arbeitsbericht.ReportEditorActivity.onClickDelWorkTime", "deleting work time element")
+                val cV = btn.getTag(R.id.TAG_CARDVIEW) as CardView
+                StorageHandler.getReport().work_times.remove(cV.getTag(R.id.TAG_WORKTIME))
+                worktimes_content_container.removeView(cV)
+            } else {
+                Log.d("Arbeitsbericht.ReportEditorActivity.onClickDelWorkTime", "cancelled deleting work time element")
+            }
+        }
     }
 
     fun onClickWorkTimeDate(btn: View) {
@@ -296,10 +268,17 @@ class ReportEditorActivity : AppCompatActivity(), ConfirmationDialogFragment.Con
     }
 
     fun onClickDelWorkItem(btn: View) {
-        delBtnPressed = btn
-        delBtnType = DelBtnType.WORK_ITEM
-        val newFragment = newConfirmationDialog(getString(R.string.del_confirmation))
-        newFragment.show(getSupportFragmentManager(), "dialog")
+        GlobalScope.launch(Dispatchers.Main) {
+            val answer = showConfirmationDialog(getString(R.string.del_confirmation), this@ReportEditorActivity)
+            if (answer == AlertDialog.BUTTON_POSITIVE) {
+                Log.d("Arbeitsbericht.ReportEditorActivity.onClickDelWorkItem", "deleting work item element")
+                val cV = btn.getTag(R.id.TAG_CARDVIEW) as CardView
+                StorageHandler.getReport().work_items.remove(cV.getTag(R.id.TAG_WORKITEM))
+                workitems_content_container.removeView(cV)
+            } else {
+                Log.d("Arbeitsbericht.ReportEditorActivity.onClickDelWorkItem", "cancelled deleting a work item element")
+            }
+        }
     }
 
     fun addWorkItemView(wi: WorkItem) {
@@ -349,10 +328,17 @@ class ReportEditorActivity : AppCompatActivity(), ConfirmationDialogFragment.Con
     }
 
     fun onClickDelMaterial(btn: View) {
-        delBtnPressed = btn
-        delBtnType = DelBtnType.MATERIAL
-        val newFragment = newConfirmationDialog(getString(R.string.del_confirmation))
-        newFragment.show(getSupportFragmentManager(), "dialog")
+        GlobalScope.launch(Dispatchers.Main) {
+            val answer = showConfirmationDialog(getString(R.string.del_confirmation), this@ReportEditorActivity)
+            if(answer == AlertDialog.BUTTON_POSITIVE) {
+                Log.d("Arbeitsbericht.ReportEditorActivity.onDialogPositiveClick", "deleting material element")
+                val cV = btn.getTag(R.id.TAG_CARDVIEW) as CardView
+                StorageHandler.getReport().material.remove(cV.getTag(R.id.TAG_MATERIAL))
+                material_content_container.removeView(cV)
+            } else {
+                Log.d("Arbeitsbericht.ReportEditorActivity.onClickDelMaterial", "Cancelled deleting a material entry")
+            }
+        }
     }
 
     fun addMaterialView(ma: Material) {

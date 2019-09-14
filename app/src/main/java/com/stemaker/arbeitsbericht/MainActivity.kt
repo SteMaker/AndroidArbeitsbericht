@@ -9,9 +9,13 @@ import android.content.Context
 import android.view.*
 import android.widget.ImageButton
 import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import androidx.cardview.widget.CardView
 import androidx.fragment.app.DialogFragment
 import com.google.android.material.card.MaterialCardView
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import java.text.DateFormat
 import java.util.*
 import java.util.Calendar.*
@@ -19,9 +23,7 @@ import java.util.Calendar.*
 const val TAG_ID: Int = 1
 const val TAG_CARDVIEW: Int = 2
 
-class MainActivity : AppCompatActivity(), ConfirmationDialogFragment.ConfirmationDialogListener {
-
-    var delBtnPressed: View? = null
+class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -79,20 +81,17 @@ class MainActivity : AppCompatActivity(), ConfirmationDialogFragment.Confirmatio
     }
 
     fun onClickDelete(btn: View) {
-        delBtnPressed = btn
-        val newFragment = newConfirmationDialog(getString(R.string.del_confirmation))
-        newFragment.show(getSupportFragmentManager(), "dialog")
-    }
-
-    override fun onDialogPositiveClick(dialog: DialogFragment) {
-        Log.d("Arbeitsbericht.ReportEditorActivity.onDialogPositiveClick", "deleting")
-        StorageHandler.deleteReport(delBtnPressed!!.getTag(R.id.TAG_REPORT_ID) as Int, getApplicationContext())
-        val reportListScrollContainer = report_list_scroll_container
-        reportListScrollContainer.removeView(delBtnPressed!!.getTag(R.id.TAG_CARDVIEW) as View)
-    }
-
-    override fun onDialogNegativeClick(dialog: DialogFragment) {
-        Log.d("Arbeitsbericht.ReportEditorActivity.onDialogPositiveClick", "aborting")
+        GlobalScope.launch(Dispatchers.Main) {
+            val answer = showConfirmationDialog(getString(R.string.del_confirmation), this@MainActivity)
+            if(answer == AlertDialog.BUTTON_POSITIVE) {
+                Log.d("Arbeitsbericht.ReportEditorActivity.onClickDelete", "deleting a report")
+                StorageHandler.deleteReport(btn.getTag(R.id.TAG_REPORT_ID) as Int, getApplicationContext())
+                val reportListScrollContainer = report_list_scroll_container
+                reportListScrollContainer.removeView(btn.getTag(R.id.TAG_CARDVIEW) as View)
+            } else {
+                Log.d("Arbeitsbericht.MainActivity.onClickDelete", "Cancelled deleting a report")
+            }
+        }
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {

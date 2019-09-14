@@ -11,17 +11,9 @@ import android.widget.ImageButton
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.cardview.widget.CardView
-import androidx.fragment.app.DialogFragment
-import com.google.android.material.card.MaterialCardView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import java.text.DateFormat
-import java.util.*
-import java.util.Calendar.*
-
-const val TAG_ID: Int = 1
-const val TAG_CARDVIEW: Int = 2
 
 class MainActivity : AppCompatActivity() {
 

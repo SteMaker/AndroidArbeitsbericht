@@ -3,8 +3,6 @@ package com.stemaker.arbeitsbericht
 import android.Manifest
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.R.*
-import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -13,23 +11,20 @@ import android.view.View
 import android.webkit.WebView
 import com.github.gcacace.signaturepad.views.SignaturePad
 import android.graphics.drawable.PictureDrawable
-import android.os.CancellationSignal
 import android.widget.ImageView
 import com.caverock.androidsvg.SVG
-import android.os.Environment
-import android.os.ParcelFileDescriptor
-import android.os.storage.StorageManager
-import android.os.storage.StorageVolume
 import android.print.*
-import android.webkit.WebResourceRequest
-import android.webkit.WebViewClient
 import android.widget.Toast
 import androidx.annotation.NonNull
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.core.net.toFile
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import java.io.File
-import java.io.IOException
+import kotlin.coroutines.Continuation
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 
 class SummaryActivity : AppCompatActivity(), PdfPrint.PdfPrintFinishedCallback {
@@ -125,31 +120,50 @@ class SummaryActivity : AppCompatActivity(), PdfPrint.PdfPrintFinishedCallback {
         }
     }
 
+    var pdfWritePermissionContinuation: Continuation<Boolean>? = null
     fun onClickSend(@Suppress("UNUSED_PARAMETER") sendButton: View) {
         saveSignatures()
 
-        val writeExternalStoragePermission = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
-        // If do not grant write external storage permission.
-        if(writeExternalStoragePermission!= PackageManager.PERMISSION_GRANTED)
-        {
-            // Request user to grant write external storage permission.
-            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE), REQUEST_CODE_WRITE_EXTERNAL_STORAGE_PERMISSION);
-        } else {
-            Log.d("Arbeitsbericht", "Permissions granted")
-            createAndSendReport(true)
+        Log.d("Arbeitsbericht.SummaryActivity.onClickSend", "Entry")
+
+        GlobalScope.launch(Dispatchers.Main) {
+            var withPdf = true
+            val writeExternalStoragePermission = ContextCompat.checkSelfPermission(this@SummaryActivity, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+
+            // If we do not have external storage write permissions
+            if(writeExternalStoragePermission!= PackageManager.PERMISSION_GRANTED) {
+                // Request user to grant write external storage permission.
+                Log.d("Arbeitsbericht.SummaryActivity.onClickSend", "Need to query user for permissions, starting coroutine")
+                ActivityCompat.requestPermissions(
+                    this@SummaryActivity,
+                    arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
+                    REQUEST_CODE_WRITE_EXTERNAL_STORAGE_PERMISSION
+                );
+                withPdf = suspendCoroutine<Boolean> {
+                    Log.d("Arbeitsbericht.SummaryActivity.onClickSend", "Coroutine: suspended")
+                    pdfWritePermissionContinuation = it
+                }
+            }
+            createAndSendReport(withPdf)
         }
     }
 
-    fun createAndSendReport(withPdf: Boolean) {
+    suspend fun createAndSendReport(withPdf: Boolean) {
+        Log.d("Arbeitsbericht.SummaryActivity.createAndSendReport", "Creating report ${if(withPdf) "with PDF" else "without PDF"}")
         val report = StorageHandler.getReport()
         if (withPdf) {
             val pdfPrint = PdfPrint(this, report)
-            if(pdfPrint.print()) {
-                Log.d("Arbeitsbericht", "pdf")
+            val pdfFile = pdfPrint.getFileForPdfGeneration(this@SummaryActivity)
+            if(pdfFile != null) {
+                Log.d("Arbeitsbericht.SummaryActivity.createAndSendReport", "creating pdf")
+                pdfPrint.print(pdfFile)
+                sendMail(pdfFile, report)
             } else {
-                Log.d("Arbeitsbericht", "no pdf")
+                Log.d("Arbeitsbericht.SummaryActivity.createAndSendReport", "dropping pdf generation")
                 sendMail(null, report)
             }
+        } else {
+            sendMail(null, report)
         }
     }
 
@@ -158,12 +172,12 @@ class SummaryActivity : AppCompatActivity(), PdfPrint.PdfPrintFinishedCallback {
         if(requestCode == REQUEST_CODE_WRITE_EXTERNAL_STORAGE_PERMISSION) {
             if(grantResults.size > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 Log.d("Arbeitsbericht", "Access to external storage granted")
-                createAndSendReport(true)
+                pdfWritePermissionContinuation!!.resume(true)
             } else {
                 Log.d("Arbeitsbericht", "Access to external storage denied")
                 val toast = Toast.makeText(this, "Berechtigungen abgelehnt, PDF Bericht kann nicht erstellt werden", Toast.LENGTH_LONG)
                 toast.show()
-                createAndSendReport(false)
+                pdfWritePermissionContinuation!!.resume(false)
             }
         }
     }

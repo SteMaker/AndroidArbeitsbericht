@@ -28,6 +28,7 @@
     <string name="driveduration">Fahrzeit</string>
     <string name="distance">Entfernung [km]</string>
     <string name="del_confirmation">Sind sie sich sicher, dass sie das Element löschen wollen?</string>
+    <string name="overwrite_confirmation">Der Bericht exisitiert bereits als PDF, soll er überschrieben werden?</string>
     <string name="ok">OK</string>
     <string name="cancel">Abbrechen</string>
     <string name="work_item">Durchgeführte Arbeit</string>

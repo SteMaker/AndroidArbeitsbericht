@@ -1,6 +1,7 @@
 package android.print
 
 import android.app.Activity
+import android.content.Context
 import android.os.CancellationSignal
 import android.os.Environment
 import android.os.ParcelFileDescriptor
@@ -9,8 +10,15 @@ import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import com.stemaker.arbeitsbericht.Report
 import com.stemaker.arbeitsbericht.HtmlReport
+import com.stemaker.arbeitsbericht.R
+import com.stemaker.arbeitsbericht.showConfirmationDialog
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import java.io.File
 import java.io.IOException
 
@@ -27,10 +35,7 @@ class PdfPrint(val activity: Activity, val report: Report) {
         .setMinMargins(PrintAttributes.Margins.NO_MARGINS).build()
     val html = HtmlReport.encodeReport(report, true)
 
-    fun print(): Boolean {
-
-        val file = getFileForPdfGeneration()
-        if (file == null) return false
+    fun print(file: File): Boolean {
 
         // Generate a webview including signatures and then print it to pdf
         val wv = WebView(activity)
@@ -65,7 +70,7 @@ class PdfPrint(val activity: Activity, val report: Report) {
         return true
     }
 
-    fun getFileForPdfGeneration(): File? {
+    suspend fun getFileForPdfGeneration(ctx: Context): File? {
         val path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS).absolutePath
         val fileName = "report_${report.id.toString()}.pdf"
 
@@ -74,9 +79,10 @@ class PdfPrint(val activity: Activity, val report: Report) {
         try {
             if(file.exists()) {
                 Log.d("Arbeitsbericht", "The report did already exist")
-                // TODO: We should have a confirmation dialog in such a case
-                val toast = Toast.makeText(activity, "Vorhandener Bericht wird überschrieben", Toast.LENGTH_LONG)
-                toast.show()
+                val answer = showConfirmationDialog("Der Bericht exisitiert bereits als PDF, soll er überschrieben werden?", ctx)
+                if(answer != AlertDialog.BUTTON_POSITIVE) {
+                    return null
+                }
             } else {
                 file.createNewFile()
             }

@@ -47,6 +47,7 @@
     <item name="TAG_DATETEXTVIEW" type="id" />
     <item name="TAG_TIMETEXTVIEW" type="id" />
     <item name="TAG_WORKITEM" type="id" />
+    <item name="TAG_LUMP_SUM" type="id" />
     <item name="TAG_MATERIAL" type="id" />
 
     <!-- TODO: Remove or change this placeholder text -->

@@ -31,18 +31,18 @@ class LumpSumDefinitionActivity : AppCompatActivity() {
         }
     }
 
-    fun onClickAddLumpSumElement(btn: View) {
+    fun onClickAddLumpSumDefinition(btn: View) {
         val configuration = StorageHandler.configuration
-        val ls = LumpSum()
+        val ls: String = ""
         configuration.lumpSums.add(ls)
         addLumpSumView(ls)
     }
 
-    fun addLumpSumView(ls: LumpSum) {
+    fun addLumpSumView(ls: String) {
         // Prepare a lump_sum_layout instance
         val inflater = getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
         val cV = inflater.inflate(R.layout.lump_sum_layout, null) as CardView
-        cV.findViewById<TextView>(R.id.lump_sum_text).setText(ls.lumpSum)
+        cV.findViewById<TextView>(R.id.lump_sum_text).setText(ls)
 
         val btnDel = cV.findViewById<ImageButton>(R.id.lump_sum_del_button)
         btnDel.setTag(R.id.TAG_CARDVIEW, cV)
@@ -54,11 +54,10 @@ class LumpSumDefinitionActivity : AppCompatActivity() {
 
     fun onClickSave(btn: View) {
         Log.d("Arbeitsbericht.LumpSumDefinitionActivity.onClickSave", "saving ${lump_sums_container.getChildCount()} lump-sums ...")
-        val lumpSums = mutableListOf<LumpSum>()
+        val lumpSums = mutableListOf<String>()
         for (pos in 0 until lump_sums_container.getChildCount()) {
             val cV = lump_sums_container.getChildAt(pos) as CardView
-            val name = cV.findViewById<EditText>(R.id.lump_sum_text).text.toString()
-            val lumpSum = LumpSum(name)
+            val lumpSum = cV.findViewById<EditText>(R.id.lump_sum_text).text.toString()
             lumpSums.add(lumpSum)
             Log.d("Arbeitsbericht.LumpSumDefinitionActivity.onClickSave", "saving $pos")
         }
@@ -78,6 +77,5 @@ class LumpSumDefinitionActivity : AppCompatActivity() {
                 Log.d("Arbeitsbericht.LumpSumDefinitionActivity.onClickDelLumpSum", "Cancelled deleting a lump sum element")
             }
         }
-
     }
 }

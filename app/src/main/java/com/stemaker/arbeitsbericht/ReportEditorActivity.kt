@@ -72,6 +72,9 @@ class ReportEditorActivity : AppCompatActivity() {
         report.work_items.forEach {
             addWorkItemView(it)
         }
+        report.lump_sums.forEach {
+            addLumpSumView(it)
+        }
         report.material.forEach {
             addMaterialView(it)
         }
@@ -106,6 +109,15 @@ class ReportEditorActivity : AppCompatActivity() {
                 val wi: WorkItem = v.getTag(R.id.TAG_WORKITEM) as WorkItem
                 wi.item = v.findViewById<TextView>(R.id.work_item_item).getText().toString()
                 StorageHandler.addToWorkItemDictionary(wi.item)
+            }
+        }
+
+        for (i in 0 until lump_sum_content_container.getChildCount()) {
+            val v: View = lump_sum_content_container.getChildAt(i)
+            if (v.getId() == R.id.lump_sum_edit_card_top) {
+                val ls: LumpSum = v.getTag(R.id.TAG_LUMP_SUM) as LumpSum
+                ls.item = v.findViewById<Spinner>(R.id.lump_sum_item).getSelectedItem().toString()
+                Log.d("Arbeitsbericht", "Saved ${ls.item}")
             }
         }
 
@@ -305,6 +317,52 @@ class ReportEditorActivity : AppCompatActivity() {
         val pos = workitems_content_container.getChildCount()
         Log.d("Arbeitsbericht", "Adding work item card $pos to UI")
         workitems_content_container.addView(cV, pos)
+    }
+
+    /********************/
+    /* Lump sum section */
+    /********************/
+    fun onClickExpandLumpSumButton(expandLumpSumButton: View) {
+        if (lump_sum_content_container.getVisibility() == View.GONE) {
+            expandLumpSumButton.rotation = 180.toFloat()
+            lump_sum_content_container.setVisibility(View.VISIBLE)
+        } else {
+            expandLumpSumButton.rotation = 0.toFloat()
+            lump_sum_content_container.setVisibility(View.GONE)
+        }
+    }
+    fun onClickAddLumpSum(btn: View) {
+        val report = StorageHandler.getReport()
+        val ls = LumpSum()
+        report.lump_sums.add(ls)
+        addLumpSumView(ls)
+    }
+
+    fun onClickDelLumpSumItem(btn: View) {
+    }
+
+    fun addLumpSumView(ls: LumpSum) {
+        // Prepare a lump_sum_edit_layout instance
+        val inflater = getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
+        val cV = inflater.inflate(R.layout.lump_sum_edit_layout, null) as CardView
+
+        val spinner = cV.findViewById(R.id.lump_sum_item) as Spinner
+        // Get the string array
+        val lumpSumStrings: List<String> = StorageHandler.configuration.lumpSums.toList()
+        // Create the adapter and set it to the AutoCompleteTextView
+        ArrayAdapter<String>(this, layout.simple_list_item_1, lumpSumStrings).also { adapter ->
+            spinner.setAdapter(adapter)
+        }
+
+        // Fill in the data
+        spinner.setSelection(StorageHandler.configuration.lumpSums.indexOf(ls.item))
+
+        // set a TAG to the card view to link with the lump-sum data
+        cV.setTag(R.id.TAG_LUMP_SUM, ls)
+
+        val pos = lump_sum_content_container.getChildCount()
+        Log.d("Arbeitsbericht", "Adding lump sum card $pos to UI")
+        lump_sum_content_container.addView(cV, pos)
     }
 
     /********************/

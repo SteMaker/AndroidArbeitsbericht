@@ -23,6 +23,10 @@ class WorkItem(var item: String = "") {
 }
 
 @Serializable
+class LumpSum(var item: String = "") {
+}
+
+@Serializable
 class Material(var item: String = "", var amount: Int = 0) {
 }
 
@@ -38,6 +42,7 @@ class Report(val id: Int) {
     var bill_address_city: String = ""
     var work_times = mutableListOf<WorkTime>()
     var work_items = mutableListOf<WorkItem>()
+    var lump_sums = mutableListOf<LumpSum>()
     var material = mutableListOf<Material>()
     var client_signature: String = ""
     var employee_signature: String = ""

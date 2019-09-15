@@ -89,7 +89,12 @@ object StorageHandler {
         Log.d("Arbeitsbericht.StorageHandler.readReportFromFile", "Trying to read from file $filename")
         val fIn = c.openFileInput(filename)
         val isr = InputStreamReader(fIn)
-        return gson.fromJson(isr, Report::class.java)
+        val report = gson.fromJson(isr, Report::class.java)
+        if(report.lump_sums == null) {
+            Log.d("Arbeitsbericht.StorageHandler.readReportFromFile", "Report seems to be old, not having a lump sum, adding it")
+            report.lump_sums = mutableListOf<LumpSum>()
+        }
+        return report
     }
 
     fun saveReportToFile(r: Report, c: Context) {

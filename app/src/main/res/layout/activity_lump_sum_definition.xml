@@ -21,7 +21,7 @@
         android:layout_height="wrap_content"
         android:src="@drawable/ic_add_circle_black_24dp"
         android:id="@+id/add_lump_sum_element_button"
-        android:onClick="onClickAddLumpSumElement"
+        android:onClick="onClickAddLumpSumDefinition"
     />
     <ScrollView
         android:layout_width="match_parent"

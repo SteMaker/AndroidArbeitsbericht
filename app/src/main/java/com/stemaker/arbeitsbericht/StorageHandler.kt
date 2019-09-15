@@ -122,14 +122,14 @@ object StorageHandler {
         }
         catch (e: FileNotFoundException){
             Log.d("Arbeitsbericht.StorageHandler.loadConfigurationFromFile", "No configuration file found, creating a new one")
-            configuration = Configuration(c)
+            configuration = Configuration()
             saveConfigurationToFile(c)
         }
     }
 
     fun saveConfigurationToFile(c: Context) {
         val fOut = c.openFileOutput("configuration.json", MODE_PRIVATE)
-        Log.d("Arbeitsbericht.StorageHandler.saveConfigurationToFile", "currentId = ${configuration.currentId}")
+        Log.d("Arbeitsbericht.StorageHandler.saveConfigurationToFile", "currentId = ${configuration.currentId}; num lump sums = ${configuration.lumpSums.size}")
         val osw = OutputStreamWriter(fOut)
         gson.toJson(configuration, osw)
         osw.close()

@@ -5,6 +5,11 @@
         android:icon="@drawable/ic_settings_black_24dp"
         android:title="@string/settings">
     </item>
+    <item
+        android:id="@+id/main_menu_lump_sums"
+        android:icon="@drawable/ic_bookmark_black_24dp"
+        android:title="@string/lump_sum_define">
+    </item>
     <item xmlns:app="http://schemas.android.com/apk/res-auto"
         android:id="@+id/main_menu_new_report"
         android:icon="@drawable/ic_create_white_24dp"
@@ -12,8 +17,8 @@
         app:showAsAction="ifRoom">
     </item>
     <item
-            android:id="@+id/main_menu_about"
-            android:icon="@drawable/ic_assignment_black_24dp"
-            android:title="@string/about">
+        android:id="@+id/main_menu_about"
+        android:icon="@drawable/ic_assignment_black_24dp"
+        android:title="@string/about">
     </item>
 </menu>

@@ -1,9 +1,16 @@
 package com.stemaker.arbeitsbericht
 
 import android.content.Context
+import kotlinx.serialization.*
 
-class Configuration(c: Context) {
-    var employeeName: String = c.getString(R.string.unknown)
+@Serializable
+class LumpSum(var lumpSum: String = "") {
+}
+
+@Serializable
+class Configuration() {
+    var employeeName: String = ""
     var currentId: Int = 1
     var recvMail: String = ""
+    var lumpSums = mutableListOf<LumpSum>()
 }

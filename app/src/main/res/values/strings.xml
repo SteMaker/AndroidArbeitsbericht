@@ -38,6 +38,8 @@
     <string name="clear">Löschen</string>
     <string name="summary">Zusammenfassung</string>
     <string name="about">Über</string>
+    <string name="lump_sum_define">Pauschalen definieren</string>
+    <string name="lump_sum">Pauschale</string>
 
     <item name="TAG_REPORT_ID" type="id" />
     <item name="TAG_CARDVIEW" type="id" />

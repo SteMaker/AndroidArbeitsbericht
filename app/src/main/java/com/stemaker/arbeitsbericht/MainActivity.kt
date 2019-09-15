@@ -94,6 +94,11 @@ class MainActivity : AppCompatActivity() {
                 startActivity(intent)
                 true
             }
+            R.id.main_menu_lump_sums -> {
+                val intent = Intent(this, LumpSumDefinitionActivity::class.java).apply {}
+                startActivity(intent)
+                true
+            }
             R.id.main_menu_new_report -> {
                 createNewReport()
                 true

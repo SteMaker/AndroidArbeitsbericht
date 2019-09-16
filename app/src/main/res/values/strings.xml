@@ -40,6 +40,7 @@
     <string name="about">Über</string>
     <string name="lump_sum_define">Pauschalen definieren</string>
     <string name="lump_sum">Pauschale</string>
+    <string name="no_lump_sum_defined">Keine Pauschalen bisher definiert. Bitte erst im Menü Einträge anlegen</string>
 
     <item name="TAG_REPORT_ID" type="id" />
     <item name="TAG_CARDVIEW" type="id" />

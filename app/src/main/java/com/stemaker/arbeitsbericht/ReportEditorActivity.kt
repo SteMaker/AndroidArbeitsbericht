@@ -23,6 +23,14 @@ class ReportEditorActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_report_editor)
+
+        // If no lump sums are defined in the configuration yet, then we present a hint
+        // and disable the add button
+        if(StorageHandler.configuration.lumpSums.size == 0) {
+            findViewById<TextView>(R.id.lump_sum_undef_hint).visibility=View.VISIBLE
+            findViewById<ImageButton>(R.id.lump_sum_add_button).visibility=View.GONE
+        }
+
         loadReport()
     }
 
@@ -116,7 +124,13 @@ class ReportEditorActivity : AppCompatActivity() {
             val v: View = lump_sum_content_container.getChildAt(i)
             if (v.getId() == R.id.lump_sum_edit_card_top) {
                 val ls: LumpSum = v.getTag(R.id.TAG_LUMP_SUM) as LumpSum
-                ls.item = v.findViewById<Spinner>(R.id.lump_sum_item).getSelectedItem().toString()
+                val selItem = v.findViewById<Spinner>(R.id.lump_sum_item).getSelectedItem()
+                if(selItem == null) {
+                    Log.d("Arbeitsbericht.ReportEditorActivity.saveReport", "Lump sum is null, replacing with empty string")
+                    ls.item = ""
+                } else {
+                    ls.item = selItem.toString()
+                }
                 Log.d("Arbeitsbericht", "Saved ${ls.item}")
             }
         }
@@ -339,6 +353,17 @@ class ReportEditorActivity : AppCompatActivity() {
     }
 
     fun onClickDelLumpSumItem(btn: View) {
+        GlobalScope.launch(Dispatchers.Main) {
+            val answer = showConfirmationDialog(getString(R.string.del_confirmation), this@ReportEditorActivity)
+            if(answer == AlertDialog.BUTTON_POSITIVE) {
+                Log.d("Arbeitsbericht.ReportEditorActivity.onClickDelLumpSumItem", "deleting lump-sum element")
+                val cV = btn.getTag(R.id.TAG_CARDVIEW) as CardView
+                StorageHandler.getReport().lump_sums.remove(cV.getTag(R.id.TAG_LUMP_SUM))
+                lump_sum_content_container.removeView(cV)
+            } else {
+                Log.d("Arbeitsbericht.ReportEditorActivity.onClickDelLumpSumItem", "Cancelled deleting a lump-sum entry")
+            }
+        }
     }
 
     fun addLumpSumView(ls: LumpSum) {
@@ -348,15 +373,26 @@ class ReportEditorActivity : AppCompatActivity() {
 
         val spinner = cV.findViewById(R.id.lump_sum_item) as Spinner
         // Get the string array
-        val lumpSumStrings: List<String> = StorageHandler.configuration.lumpSums.toList()
+        var lumpSumStrings: List<String> = StorageHandler.configuration.lumpSums.toList()
+        // Add Unbekannt if the element stored in the report doesn't fit any of the pre-defined ones
+        // i.e. it has been deleted
+        if(ls.item != "" && !StorageHandler.configuration.lumpSums.contains(ls.item)) {
+            lumpSumStrings = lumpSumStrings.plus("Entfernt")
+            ls.item = "Entfernt"
+        }
         // Create the adapter and set it to the AutoCompleteTextView
         ArrayAdapter<String>(this, layout.simple_list_item_1, lumpSumStrings).also { adapter ->
             spinner.setAdapter(adapter)
         }
 
         // Fill in the data
-        spinner.setSelection(StorageHandler.configuration.lumpSums.indexOf(ls.item))
+        val idx = lumpSumStrings.indexOf(ls.item)
+        if(idx >= 0) {
+            spinner.setSelection(idx)
+        }
 
+        // set a TAG to the delete button to identify the card view (cV here)
+        cV.findViewById<View>(R.id.lump_sum_item_del_button).setTag(R.id.TAG_CARDVIEW, cV)
         // set a TAG to the card view to link with the lump-sum data
         cV.setTag(R.id.TAG_LUMP_SUM, ls)
 

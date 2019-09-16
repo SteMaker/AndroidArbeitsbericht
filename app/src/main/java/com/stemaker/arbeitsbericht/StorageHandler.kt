@@ -123,6 +123,8 @@ object StorageHandler {
             val fIn = c.openFileInput("configuration.json")
             val isr = InputStreamReader(fIn)
             configuration = gson.fromJson(isr, Configuration::class.java)
+            if(configuration.lumpSums == null)
+                configuration.lumpSums = mutableListOf<String>()
             Log.d("Arbeitsbericht.StorageHandler.loadConfigurationFromFile", "Next ID to be used: ${configuration.currentId}")
         }
         catch (e: FileNotFoundException){

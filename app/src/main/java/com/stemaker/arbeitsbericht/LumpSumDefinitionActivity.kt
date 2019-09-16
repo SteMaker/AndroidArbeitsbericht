@@ -33,7 +33,7 @@ class LumpSumDefinitionActivity : AppCompatActivity() {
 
     fun onClickAddLumpSumDefinition(btn: View) {
         val configuration = StorageHandler.configuration
-        val ls: String = ""
+        val ls: String = "Unbekannt"
         configuration.lumpSums.add(ls)
         addLumpSumView(ls)
     }

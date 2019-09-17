@@ -64,6 +64,19 @@ object HtmlReport {
         }
         html += "</table>"
 
+        // Lump sums
+        html += "<h2>Pauschalen</h2>" +
+                "<table style=\"border: 2px solid black;border-collapse: collapse;\">" +
+                    "<tr>" +
+                        "<th style=\"padding: 15px;font-size:24px;text-align:left;border: 2px solid black;border-collapse: collapse;\">Pauschale</th>" +
+                    "</tr>"
+        rep.lump_sums.forEach {
+            html += "<tr>" +
+                        "<td style=\"padding: 10px;border: 2px solid black;border-collapse: collapse;\"> ${it.item}</td>" +
+                    "</tr>"
+        }
+        html += "</table>"
+
         // Material table
         html += "<h2>Material</h2>" +
                 "<table style=\"border: 2px solid black;border-collapse: collapse;\">" +

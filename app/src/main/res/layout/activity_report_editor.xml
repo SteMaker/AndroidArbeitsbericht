@@ -7,9 +7,14 @@
     android:layout_height="match_parent"
     tools:context=".ReportEditorActivity">
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="0dp"
+        android:layout_weight="1">
         <LinearLayout
             android:id="@+id/toplevel_container"
             android:layout_width="match_parent"
@@ -324,6 +329,8 @@
                         android:onClick="onClickAddMaterial"
                 />
             </LinearLayout> <!-- End of material_content_container-->
+        </LinearLayout> <!-- toplevel_container-->
+    </ScrollView>
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -345,7 +352,5 @@
                         android:onClick="onClickSummary"
                 />
             </LinearLayout> <!-- Bottom buttons -->
-        </LinearLayout> <!-- toplevel_container-->
-    </ScrollView>
-
+    </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

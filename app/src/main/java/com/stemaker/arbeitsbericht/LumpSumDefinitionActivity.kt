@@ -25,14 +25,14 @@ class LumpSumDefinitionActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_lump_sum_definition)
 
-        val lumpSums = StorageHandler.configuration.lumpSums
+        val lumpSums = storageHandler().configuration.lumpSums
         for (ls in lumpSums) {
             addLumpSumView(ls)
         }
     }
 
     fun onClickAddLumpSumDefinition(btn: View) {
-        val configuration = StorageHandler.configuration
+        val configuration = storageHandler().configuration
         val ls: String = "Unbekannt"
         configuration.lumpSums.add(ls)
         addLumpSumView(ls)
@@ -61,8 +61,8 @@ class LumpSumDefinitionActivity : AppCompatActivity() {
             lumpSums.add(lumpSum)
             Log.d("Arbeitsbericht.LumpSumDefinitionActivity.onClickSave", "saving $pos")
         }
-        StorageHandler.configuration.lumpSums = lumpSums
-        StorageHandler.saveConfigurationToFile(getApplicationContext())
+        storageHandler().configuration.lumpSums = lumpSums
+        storageHandler().saveConfigurationToFile(getApplicationContext())
         val intent = Intent(this, MainActivity::class.java).apply {}
         startActivity(intent)
     }

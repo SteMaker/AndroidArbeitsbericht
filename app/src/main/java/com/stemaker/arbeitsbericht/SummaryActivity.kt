@@ -33,12 +33,12 @@ class SummaryActivity : AppCompatActivity(), PdfPrint.PdfPrintFinishedCallback {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_summary)
 
-        val html = HtmlReport.encodeReport(StorageHandler.getReport(), false)
+        val html = HtmlReport.encodeReport(storageHandler().getReport(), false)
         val wv = findViewById(R.id.webview) as WebView
         wv.loadDataWithBaseURL("", html, "text/html", "UTF-8", "")
 
-        if(StorageHandler.getReport().employee_signature != "") {
-            val svg = SVG.getFromString(StorageHandler.getReport().employee_signature)
+        if(storageHandler().getReport().employee_signature != "") {
+            val svg = SVG.getFromString(storageHandler().getReport().employee_signature)
             val pd = PictureDrawable(svg.renderToPicture())
             val sigIV = findViewById<ImageView>(R.id.employee_signature_view)
             sigIV.setImageDrawable(pd)
@@ -47,8 +47,8 @@ class SummaryActivity : AppCompatActivity(), PdfPrint.PdfPrintFinishedCallback {
             val sigPad = findViewById<SignaturePad>(R.id.employee_signature)
             sigPad.visibility = View.VISIBLE
         }
-        if(StorageHandler.getReport().client_signature != "") {
-            val svg = SVG.getFromString(StorageHandler.getReport().client_signature)
+        if(storageHandler().getReport().client_signature != "") {
+            val svg = SVG.getFromString(storageHandler().getReport().client_signature)
             val pd = PictureDrawable(svg.renderToPicture())
             val sigIV = findViewById<ImageView>(R.id.client_signature_view)
             sigIV.setImageDrawable(pd)
@@ -87,7 +87,7 @@ class SummaryActivity : AppCompatActivity(), PdfPrint.PdfPrintFinishedCallback {
         if(sigPad.visibility == View.VISIBLE) {
             sigPad.clear()
         } else {
-            StorageHandler.getReport().employee_signature = ""
+            storageHandler().getReport().employee_signature = ""
             findViewById<ImageView>(R.id.employee_signature_view).visibility = View.GONE
             sigPad.visibility = View.VISIBLE
         }
@@ -101,7 +101,7 @@ class SummaryActivity : AppCompatActivity(), PdfPrint.PdfPrintFinishedCallback {
             sigPad.clear()
         } else {
             Log.d("Arbeitsbericht.SummaryActivity.onClickClearClientSignature", "Re-enabling pad")
-            StorageHandler.getReport().client_signature = ""
+            storageHandler().getReport().client_signature = ""
             findViewById<ImageView>(R.id.client_signature_view).visibility = View.GONE
             sigPad.visibility = View.VISIBLE
         }
@@ -110,12 +110,12 @@ class SummaryActivity : AppCompatActivity(), PdfPrint.PdfPrintFinishedCallback {
     fun saveSignatures() {
         val cSig = findViewById(R.id.client_signature) as SignaturePad
         if(!cSig.isEmpty) {
-            StorageHandler.getReport().client_signature = cSig.getSignatureSvg()
+            storageHandler().getReport().client_signature = cSig.getSignatureSvg()
             Log.d("Arbeitsbericht", "Saving client signature")
         }
         val eSig = findViewById(R.id.employee_signature) as SignaturePad
         if(!eSig.isEmpty) {
-            StorageHandler.getReport().employee_signature = eSig.getSignatureSvg()
+            storageHandler().getReport().employee_signature = eSig.getSignatureSvg()
             Log.d("Arbeitsbericht", "Saving employee signature")
         }
     }
@@ -150,7 +150,7 @@ class SummaryActivity : AppCompatActivity(), PdfPrint.PdfPrintFinishedCallback {
 
     suspend fun createAndSendReport(withPdf: Boolean) {
         Log.d("Arbeitsbericht.SummaryActivity.createAndSendReport", "Creating report ${if(withPdf) "with PDF" else "without PDF"}")
-        val report = StorageHandler.getReport()
+        val report = storageHandler().getReport()
         if (withPdf) {
             val pdfPrint = PdfPrint(this, report)
             val pdfFile = pdfPrint.getFileForPdfGeneration(this@SummaryActivity)
@@ -183,9 +183,9 @@ class SummaryActivity : AppCompatActivity(), PdfPrint.PdfPrintFinishedCallback {
     }
 
     fun sendMail(pdfFile: File?, report: Report) {
-        val subj = "Arbeitsbericht von ${StorageHandler.configuration.employeeName}: Kunde: ${report.client_name}, Berichtsnr: ${report.id}"
+        val subj = "Arbeitsbericht von ${storageHandler().configuration.employeeName}: Kunde: ${report.client_name}, Berichtsnr: ${report.id}"
         val emailIntent = Intent(Intent.ACTION_SENDTO)
-        emailIntent.data = Uri.parse("mailto:" + StorageHandler.configuration.recvMail)
+        emailIntent.data = Uri.parse("mailto:" + storageHandler().configuration.recvMail)
         emailIntent.putExtra(Intent.EXTRA_SUBJECT, subj)
         emailIntent.putExtra(Intent.EXTRA_TEXT, HtmlReport.encodeReport(report, true))
         if(pdfFile != null) {
@@ -204,7 +204,7 @@ class SummaryActivity : AppCompatActivity(), PdfPrint.PdfPrintFinishedCallback {
 
     override fun pdfPrintFinishedCallback(pdfFile: File) {
         Log.d("Arbeitsbericht", "Print finished")
-        sendMail(pdfFile, StorageHandler.getReport())
+        sendMail(pdfFile, storageHandler().getReport())
     }
 
     companion object {

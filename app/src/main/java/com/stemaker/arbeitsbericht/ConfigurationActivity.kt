@@ -12,7 +12,7 @@ class ConfigurationActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_configuration)
 
-        val cfg = StorageHandler.configuration
+        val cfg = storageHandler().configuration
         findViewById<EditText>(R.id.config_employee_name).setText(cfg.employeeName)
         findViewById<EditText>(R.id.config_next_id).setText(cfg.currentId.toString())
         findViewById<EditText>(R.id.config_mail_receiver).setText(cfg.recvMail)
@@ -20,11 +20,11 @@ class ConfigurationActivity : AppCompatActivity() {
     }
 
     fun onClickSave(@Suppress("UNUSED_PARAMETER") saveButton: View) {
-        val cfg = StorageHandler.configuration
+        val cfg = storageHandler().configuration
         cfg.employeeName = findViewById<EditText>(R.id.config_employee_name).getText().toString()
         cfg.currentId = findViewById<EditText>(R.id.config_next_id).getText().toString().toInt()
         cfg.recvMail = findViewById<EditText>(R.id.config_mail_receiver).getText().toString()
-        StorageHandler.saveConfigurationToFile(getApplicationContext())
+        storageHandler().saveConfigurationToFile(getApplicationContext())
         val intent = Intent(this, MainActivity::class.java).apply {}
         startActivity(intent)
     }

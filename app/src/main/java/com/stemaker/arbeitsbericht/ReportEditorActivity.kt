@@ -9,7 +9,6 @@ import android.content.Intent
 import android.content.Context
 import android.view.LayoutInflater
 import androidx.cardview.widget.CardView
-import androidx.fragment.app.DialogFragment
 import android.R.*
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
@@ -22,15 +21,25 @@ class ReportEditorActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Log.d("Arbeitsbericht.ReportEditorActivity.onCreate", "start")
         setContentView(R.layout.activity_report_editor)
 
         // If no lump sums are defined in the configuration yet, then we present a hint
         // and disable the add button
-        if(StorageHandler.configuration.lumpSums.size == 0) {
+        if(storageHandler().configuration.lumpSums.size == 0) {
             findViewById<TextView>(R.id.lump_sum_undef_hint).visibility=View.VISIBLE
             findViewById<ImageButton>(R.id.lump_sum_add_button).visibility=View.GONE
         }
 
+        if(savedInstanceState != null) {
+            Log.d("Arbeitsbericht.ReportEditorActivity.onCreate", "restoring active report ${savedInstanceState.getInt("activeReport").toString()}")
+            storageHandler().selectReportById(savedInstanceState.getInt("activeReport"))
+        }
+
+    }
+
+    override fun onResume() {
+        super.onResume()
         loadReport()
     }
 
@@ -54,6 +63,11 @@ class ReportEditorActivity : AppCompatActivity() {
         saveAndBackToMain()
     }
 
+    override fun onSaveInstanceState(outState: Bundle?) {
+        super.onSaveInstanceState(outState)
+        outState?.putInt("activeReport", storageHandler().activeReport.id)
+    }
+
     override fun onPause() {
         super.onPause()
         saveReport()
@@ -65,7 +79,7 @@ class ReportEditorActivity : AppCompatActivity() {
     }
 
     fun loadReport() {
-        val report = StorageHandler.getReport()
+        val report = storageHandler().getReport()
 
         findViewById<EditText>(R.id.client_name).setText(report.client_name)
         findViewById<EditText>(R.id.client_extra1).setText(report.client_extra1)
@@ -89,7 +103,7 @@ class ReportEditorActivity : AppCompatActivity() {
     }
 
     fun saveReport() {
-        val report = StorageHandler.getReport()
+        val report = storageHandler().getReport()
 
         report.client_name = findViewById<EditText>(R.id.client_name).getText().toString()
         if (report.client_name == "") report.client_name = getString(R.string.unknown)
@@ -116,7 +130,7 @@ class ReportEditorActivity : AppCompatActivity() {
             if (v.getId() == R.id.work_item_card_top) {
                 val wi: WorkItem = v.getTag(R.id.TAG_WORKITEM) as WorkItem
                 wi.item = v.findViewById<TextView>(R.id.work_item_item).getText().toString()
-                StorageHandler.addToWorkItemDictionary(wi.item)
+                storageHandler().addToWorkItemDictionary(wi.item)
             }
         }
 
@@ -140,14 +154,14 @@ class ReportEditorActivity : AppCompatActivity() {
             if (v.getId() == R.id.material_card_top) {
                 val ma: Material = v.getTag(R.id.TAG_MATERIAL) as Material
                 ma.item = v.findViewById<TextView>(R.id.material_item).getText().toString()
-                StorageHandler.addToMaterialDictionary(ma.item)
+                storageHandler().addToMaterialDictionary(ma.item)
                 ma.amount = v.findViewById<TextView>(R.id.material_amount).getText().toString().toInt()
             }
         }
 
-        StorageHandler.saveReportToFile(report, getApplicationContext())
-        StorageHandler.saveMaterialDictionaryToFile(getApplicationContext())
-        StorageHandler.saveWorkItemDictionaryToFile(getApplicationContext())
+        storageHandler().saveReportToFile(report, getApplicationContext())
+        storageHandler().saveMaterialDictionaryToFile(getApplicationContext())
+        storageHandler().saveWorkItemDictionaryToFile(getApplicationContext())
     }
 
     /*******************/
@@ -190,7 +204,7 @@ class ReportEditorActivity : AppCompatActivity() {
     }
 
     fun onClickAddWorkTime(@Suppress("UNUSED_PARAMETER") btn: View) {
-        val report = StorageHandler.getReport()
+        val report = storageHandler().getReport()
         val wt = WorkTime()
         report.work_times.add(wt)
         addWorkTimeView(wt)
@@ -203,7 +217,7 @@ class ReportEditorActivity : AppCompatActivity() {
             if(answer == AlertDialog.BUTTON_POSITIVE) {
                 Log.d("Arbeitsbericht.ReportEditorActivity.onClickDelWorkTime", "deleting work time element")
                 val cV = btn.getTag(R.id.TAG_CARDVIEW) as CardView
-                StorageHandler.getReport().work_times.remove(cV.getTag(R.id.TAG_WORKTIME))
+                storageHandler().getReport().work_times.remove(cV.getTag(R.id.TAG_WORKTIME))
                 worktimes_content_container.removeView(cV)
             } else {
                 Log.d("Arbeitsbericht.ReportEditorActivity.onClickDelWorkTime", "cancelled deleting work time element")
@@ -286,7 +300,7 @@ class ReportEditorActivity : AppCompatActivity() {
     }
 
     fun onClickAddWorkItem(@Suppress("UNUSED_PARAMETER") btn: View) {
-        val report = StorageHandler.getReport()
+        val report = storageHandler().getReport()
         val wi = WorkItem()
         report.work_items.add(wi)
         addWorkItemView(wi)
@@ -299,7 +313,7 @@ class ReportEditorActivity : AppCompatActivity() {
             if (answer == AlertDialog.BUTTON_POSITIVE) {
                 Log.d("Arbeitsbericht.ReportEditorActivity.onClickDelWorkItem", "deleting work item element")
                 val cV = btn.getTag(R.id.TAG_CARDVIEW) as CardView
-                StorageHandler.getReport().work_items.remove(cV.getTag(R.id.TAG_WORKITEM))
+                storageHandler().getReport().work_items.remove(cV.getTag(R.id.TAG_WORKITEM))
                 workitems_content_container.removeView(cV)
             } else {
                 Log.d("Arbeitsbericht.ReportEditorActivity.onClickDelWorkItem", "cancelled deleting a work item element")
@@ -315,7 +329,7 @@ class ReportEditorActivity : AppCompatActivity() {
         // Fill in the data
         val textView = cV.findViewById(R.id.work_item_item) as AutoCompleteTextView
         // Get the string array
-        val workItemStrings: List<String> = StorageHandler.workItemDictionary.items.toList()
+        val workItemStrings: List<String> = storageHandler().workItemDictionary.items.toList()
         // Create the adapter and set it to the AutoCompleteTextView
         ArrayAdapter<String>(this, layout.simple_list_item_1, workItemStrings).also { adapter ->
             textView.setAdapter(adapter)
@@ -346,7 +360,7 @@ class ReportEditorActivity : AppCompatActivity() {
         }
     }
     fun onClickAddLumpSum(btn: View) {
-        val report = StorageHandler.getReport()
+        val report = storageHandler().getReport()
         val ls = LumpSum()
         report.lump_sums.add(ls)
         addLumpSumView(ls)
@@ -358,7 +372,7 @@ class ReportEditorActivity : AppCompatActivity() {
             if(answer == AlertDialog.BUTTON_POSITIVE) {
                 Log.d("Arbeitsbericht.ReportEditorActivity.onClickDelLumpSumItem", "deleting lump-sum element")
                 val cV = btn.getTag(R.id.TAG_CARDVIEW) as CardView
-                StorageHandler.getReport().lump_sums.remove(cV.getTag(R.id.TAG_LUMP_SUM))
+                storageHandler().getReport().lump_sums.remove(cV.getTag(R.id.TAG_LUMP_SUM))
                 lump_sum_content_container.removeView(cV)
             } else {
                 Log.d("Arbeitsbericht.ReportEditorActivity.onClickDelLumpSumItem", "Cancelled deleting a lump-sum entry")
@@ -373,10 +387,10 @@ class ReportEditorActivity : AppCompatActivity() {
 
         val spinner = cV.findViewById(R.id.lump_sum_item) as Spinner
         // Get the string array
-        var lumpSumStrings: List<String> = StorageHandler.configuration.lumpSums.toList()
+        var lumpSumStrings: List<String> = storageHandler().configuration.lumpSums.toList()
         // Add Unbekannt if the element stored in the report doesn't fit any of the pre-defined ones
         // i.e. it has been deleted
-        if(ls.item != "" && !StorageHandler.configuration.lumpSums.contains(ls.item)) {
+        if(ls.item != "" && !storageHandler().configuration.lumpSums.contains(ls.item)) {
             lumpSumStrings = lumpSumStrings.plus("Entfernt")
             ls.item = "Entfernt"
         }
@@ -415,7 +429,7 @@ class ReportEditorActivity : AppCompatActivity() {
     }
 
     fun onClickAddMaterial(@Suppress("UNUSED_PARAMETER") btn: View) {
-        val report = StorageHandler.getReport()
+        val report = storageHandler().getReport()
         val ma = Material()
         report.material.add(ma)
         addMaterialView(ma)
@@ -427,7 +441,7 @@ class ReportEditorActivity : AppCompatActivity() {
             if(answer == AlertDialog.BUTTON_POSITIVE) {
                 Log.d("Arbeitsbericht.ReportEditorActivity.onDialogPositiveClick", "deleting material element")
                 val cV = btn.getTag(R.id.TAG_CARDVIEW) as CardView
-                StorageHandler.getReport().material.remove(cV.getTag(R.id.TAG_MATERIAL))
+                storageHandler().getReport().material.remove(cV.getTag(R.id.TAG_MATERIAL))
                 material_content_container.removeView(cV)
             } else {
                 Log.d("Arbeitsbericht.ReportEditorActivity.onClickDelMaterial", "Cancelled deleting a material entry")
@@ -442,7 +456,7 @@ class ReportEditorActivity : AppCompatActivity() {
 
         val textView = cV.findViewById(R.id.material_item) as AutoCompleteTextView
         // Get the string array
-        val materialStrings: List<String> = StorageHandler.materialDictionary.items.toList()
+        val materialStrings: List<String> = storageHandler().materialDictionary.items.toList()
         // Create the adapter and set it to the AutoCompleteTextView
         ArrayAdapter<String>(this, layout.simple_list_item_1, materialStrings).also { adapter ->
             textView.setAdapter(adapter)

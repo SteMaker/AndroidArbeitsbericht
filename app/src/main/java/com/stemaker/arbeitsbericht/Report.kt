@@ -4,7 +4,7 @@ import java.util.*
 import kotlinx.serialization.*
 
 @Serializable
-class WorkTime(var date: String = "", var employee: String = StorageHandler.configuration.employeeName,
+class WorkTime(var date: String = "", var employee: String = storageHandler().configuration.employeeName,
     var duration: String = "00:00", var driveTime: String = "00:00", var distance: Int = 0) {
     init {
         if(date == "") {

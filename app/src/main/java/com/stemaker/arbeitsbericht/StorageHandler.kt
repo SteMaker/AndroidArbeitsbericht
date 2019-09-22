@@ -11,8 +11,15 @@ import com.google.gson.stream.JsonWriter
 import java.io.*
 import java.util.*
 
+fun storageHandler(): StorageHandler {
+    if(!StorageHandler.inited) {
+        StorageHandler.myInit()
+    }
+    return StorageHandler
+}
+
 object StorageHandler {
-    var inited = 0
+    var inited: Boolean = false
     var gson = Gson()
     var reports = mutableListOf<Int>()
     lateinit var activeReport: Report
@@ -22,9 +29,12 @@ object StorageHandler {
     lateinit var workItemDictionary: WorkItemDictionary
     var workItemDictionaryChanged: Boolean = false
 
-    fun myInit(c: Context) {
-        if(inited == 0) {
+    fun myInit() {
+        val c: Context = ArbeitsberichtApp.appContext
+        if(inited == false) {
+            inited = true
             // Read the configuration
+            Log.d("Arbeitsbericht.StorageHandler.myInit", "start")
             loadConfigurationFromFile(c)
             Log.d("Arbeitsbericht.StorageHandler.myInit", "Next free ID is ${configuration.currentId}")
 
@@ -57,7 +67,7 @@ object StorageHandler {
             // Read the list of work items
             readWorkItemDictionaryFromFile(c)
 
-            inited = 1
+            Log.d("Arbeitsbericht.StorageHandler.myInit", "done")
         }
     }
 
@@ -81,7 +91,8 @@ object StorageHandler {
         saveConfigurationToFile(c)
     }
 
-    fun selectReportById(id: Int, c: Context) {
+    fun selectReportById(id: Int, c: Context = ArbeitsberichtApp.appContext) {
+        Log.d("Arbeitsbericht.StorageHandler.selectReportById", c.toString())
         activeReport = readReportFromFile(reportIdToReportFile(id), c)
     }
 

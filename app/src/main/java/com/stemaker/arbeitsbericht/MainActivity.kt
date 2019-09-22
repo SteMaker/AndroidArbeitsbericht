@@ -20,12 +20,11 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        StorageHandler.myInit(getApplicationContext())
         val reportListScrollContainer = report_list_scroll_container
-        val reportIds = StorageHandler.getListOfReports()
+        val reportIds = storageHandler().getListOfReports()
         reportIds.forEach {
             // Get the active report
-            val rep: Report = StorageHandler.getReportById(it, getApplicationContext())
+            val rep: Report = storageHandler().getReportById(it, getApplicationContext())
             Log.d("Arbeitsbericht", "Report with ID: ${rep.id} from ${rep.create_date}")
             // Prepare a report_card_layout instance
             val inflater = getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
@@ -55,7 +54,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun createNewReport() {
-        StorageHandler.createNewReportAndSelect(getApplicationContext())
+        storageHandler().createNewReportAndSelect(getApplicationContext())
         val intent = Intent(this, ReportEditorActivity::class.java).apply {}
         startActivity(intent)
     }
@@ -67,7 +66,7 @@ class MainActivity : AppCompatActivity() {
     fun onClickReport(reportCard: View) {
         val id: String = reportCard.findViewById<TextView>(R.id.report_card_id).getText() as String
         Log.d("Arbeitsbericht", "Clicked report with id ${id}")
-        StorageHandler.selectReportById(id.toInt(), getApplicationContext())
+        storageHandler().selectReportById(id.toInt(), getApplicationContext())
         val intent = Intent(this, ReportEditorActivity::class.java).apply {}
         startActivity(intent)
     }
@@ -77,7 +76,7 @@ class MainActivity : AppCompatActivity() {
             val answer = showConfirmationDialog(getString(R.string.del_confirmation), this@MainActivity)
             if(answer == AlertDialog.BUTTON_POSITIVE) {
                 Log.d("Arbeitsbericht.ReportEditorActivity.onClickDelete", "deleting a report")
-                StorageHandler.deleteReport(btn.getTag(R.id.TAG_REPORT_ID) as Int, getApplicationContext())
+                storageHandler().deleteReport(btn.getTag(R.id.TAG_REPORT_ID) as Int, getApplicationContext())
                 val reportListScrollContainer = report_list_scroll_container
                 reportListScrollContainer.removeView(btn.getTag(R.id.TAG_CARDVIEW) as View)
             } else {

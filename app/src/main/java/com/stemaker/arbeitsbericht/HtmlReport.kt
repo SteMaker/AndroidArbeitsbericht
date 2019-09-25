@@ -91,6 +91,11 @@ object HtmlReport {
                     "</tr>"
         }
         html += "</table>"
+        rep.photos.forEach {
+            Log.d("Arbeitsbericht.html", it.file)
+            html += "<img src=\"file://${it.file}\">"
+            html += "${it.description}"
+        }
         if(inclSignatures) {
             // Employee signature
             html += "<h2>Unterschrift Auftragnehmer</h2>"

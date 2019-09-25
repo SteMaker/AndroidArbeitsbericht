@@ -105,19 +105,13 @@ class ReportEditorActivity : AppCompatActivity() {
     }
 
     fun onClickSummary(@Suppress("UNUSED_PARAMETER") btn: View) {
+        saveReport()
         val intent = Intent(this, SummaryActivity::class.java).apply {}
         startActivity(intent)
     }
 
     fun loadReports() {
         val report = storageHandler().getReport()
-
-        findViewById<EditText>(R.id.client_name).setText(report.client_name)
-        findViewById<EditText>(R.id.client_extra1).setText(report.client_extra1)
-        findViewById<EditText>(R.id.bill_address_name).setText(if (report.bill_address_name == "") report.client_name else report.bill_address_name)
-        findViewById<EditText>(R.id.bill_address_street).setText(report.bill_address_street)
-        findViewById<EditText>(R.id.bill_address_zip).setText(report.bill_address_zip)
-        findViewById<EditText>(R.id.bill_address_city).setText(report.bill_address_city)
 
         report.work_times.forEach {
             addWorkTimeView(it)
@@ -138,6 +132,13 @@ class ReportEditorActivity : AppCompatActivity() {
 
     fun updateReports() {
         val report = storageHandler().getReport()
+
+        findViewById<EditText>(R.id.client_name).setText(report.client_name)
+        findViewById<EditText>(R.id.client_extra1).setText(report.client_extra1)
+        findViewById<EditText>(R.id.bill_address_name).setText(if (report.bill_address_name == "") report.client_name else report.bill_address_name)
+        findViewById<EditText>(R.id.bill_address_street).setText(report.bill_address_street)
+        findViewById<EditText>(R.id.bill_address_zip).setText(report.bill_address_zip)
+        findViewById<EditText>(R.id.bill_address_city).setText(report.bill_address_city)
 
         for (i in 0 until worktimes_content_container.getChildCount()) {
             val cV: View = worktimes_content_container.getChildAt(i)
@@ -284,7 +285,7 @@ class ReportEditorActivity : AppCompatActivity() {
         val report = storageHandler().getReport()
         val wt = WorkTime()
         report.work_times.add(wt)
-        addWorkTimeView(wt)
+        addWorkTimeView(wt, true)
 
     }
 
@@ -317,7 +318,7 @@ class ReportEditorActivity : AppCompatActivity() {
         newFragment.show(supportFragmentManager, "timePicker")
     }
 
-    fun addWorkTimeView(wt: WorkTime) {
+    fun addWorkTimeView(wt: WorkTime, doUpdate: Boolean = false) {
         // Prepare a work_time_layout instance
         val inflater = getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
         val cV = inflater.inflate(R.layout.work_time_layout, null) as CardView
@@ -353,6 +354,9 @@ class ReportEditorActivity : AppCompatActivity() {
         val pos = worktimes_content_container.getChildCount()
         Log.d("Arbeitsbericht", "Adding work time card $pos to UI")
         worktimes_content_container.addView(cV, pos)
+
+        if(doUpdate) updateWorkTimeView(cV)
+
     }
 
     fun updateWorkTimeView(cV: CardView) {
@@ -383,7 +387,7 @@ class ReportEditorActivity : AppCompatActivity() {
         val report = storageHandler().getReport()
         val wi = WorkItem()
         report.work_items.add(wi)
-        addWorkItemView(wi)
+        addWorkItemView(wi, true)
 
     }
 
@@ -401,7 +405,7 @@ class ReportEditorActivity : AppCompatActivity() {
         }
     }
 
-    fun addWorkItemView(wi: WorkItem) {
+    fun addWorkItemView(wi: WorkItem, doUpdate: Boolean = false) {
         // Prepare a work_time_layout instance
         val inflater = getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
         val cV = inflater.inflate(R.layout.work_item_layout, null) as CardView
@@ -415,6 +419,9 @@ class ReportEditorActivity : AppCompatActivity() {
         val pos = workitems_content_container.getChildCount()
         Log.d("Arbeitsbericht", "Adding work item card $pos to UI")
         workitems_content_container.addView(cV, pos)
+
+        if(doUpdate) updateWorkItemView(cV)
+
     }
 
     fun updateWorkItemView(cV: CardView) {
@@ -450,7 +457,7 @@ class ReportEditorActivity : AppCompatActivity() {
         val report = storageHandler().getReport()
         val ls = LumpSum()
         report.lump_sums.add(ls)
-        addLumpSumView(ls)
+        addLumpSumView(ls, true)
     }
 
     fun onClickDelLumpSumItem(btn: View) {
@@ -467,7 +474,7 @@ class ReportEditorActivity : AppCompatActivity() {
         }
     }
 
-    fun addLumpSumView(ls: LumpSum) {
+    fun addLumpSumView(ls: LumpSum, doUpdate: Boolean = false) {
         // Prepare a lump_sum_edit_layout instance
         val inflater = getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
         val cV = inflater.inflate(R.layout.lump_sum_edit_layout, null) as CardView
@@ -480,6 +487,9 @@ class ReportEditorActivity : AppCompatActivity() {
         val pos = lump_sum_content_container.getChildCount()
         Log.d("Arbeitsbericht", "Adding lump sum card $pos to UI")
         lump_sum_content_container.addView(cV, pos)
+
+        if(doUpdate) updateLumpSumView(cV)
+
     }
 
     fun updateLumpSumView(cV: CardView) {
@@ -523,7 +533,7 @@ class ReportEditorActivity : AppCompatActivity() {
         val report = storageHandler().getReport()
         val ma = Material()
         report.material.add(ma)
-        addMaterialView(ma)
+        addMaterialView(ma, true)
     }
 
     fun onClickDelMaterial(btn: View) {
@@ -540,7 +550,7 @@ class ReportEditorActivity : AppCompatActivity() {
         }
     }
 
-    fun addMaterialView(ma: Material) {
+    fun addMaterialView(ma: Material, doUpdate: Boolean = false) {
         // Prepare a material_layout instance
         val inflater = getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
         val cV = inflater.inflate(R.layout.material_layout, null) as CardView
@@ -553,6 +563,9 @@ class ReportEditorActivity : AppCompatActivity() {
         val pos = material_content_container.getChildCount()
         Log.d("Arbeitsbericht", "Adding material card $pos to UI")
         material_content_container.addView(cV, pos)
+
+        if(doUpdate) updateMaterialView(cV)
+
     }
 
     fun updateMaterialView(cV: CardView) {
@@ -589,7 +602,7 @@ class ReportEditorActivity : AppCompatActivity() {
         val report = storageHandler().getReport()
         val photo = Photo()
         report.photos.add(photo)
-        addPhotoView(photo)
+        addPhotoView(photo, true)
     }
 
     fun onClickDelPhoto(btn: View) {
@@ -657,7 +670,7 @@ class ReportEditorActivity : AppCompatActivity() {
             imgV.setImageBitmap(bitmap)}
     }
 
-    fun addPhotoView(photo: Photo) {
+    fun addPhotoView(photo: Photo, doUpdate: Boolean = false) {
         Log.d("Arbeitsbericht.ReportEditorActivity.addPhotoView", "called")
         // Prepare a single_photo_layout instance
         val inflater = getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
@@ -673,6 +686,8 @@ class ReportEditorActivity : AppCompatActivity() {
         val pos = photo_content_container.getChildCount()
         Log.d("Arbeitsbericht", "Adding photo card $pos to UI")
         photo_content_container.addView(cV, pos)
+
+        if(doUpdate) updatePhotoView(cV)
     }
 
     fun updatePhotoView(cV: CardView) {

@@ -10,15 +10,37 @@ import android.content.Context
 import android.view.LayoutInflater
 import androidx.cardview.widget.CardView
 import android.R.*
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.net.Uri
+import android.os.Environment
+import android.provider.MediaStore
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
+import androidx.core.content.FileProvider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.io.IOException
+import java.io.File
+import java.text.SimpleDateFormat
+import java.util.*
+import androidx.databinding.adapters.TextViewBindingAdapter.setText
+import android.view.ViewTreeObserver
+import android.widget.TextView
+import androidx.core.app.ComponentActivity
+import androidx.core.app.ComponentActivity.ExtraData
+import androidx.core.content.ContextCompat.getSystemService
+import android.icu.lang.UCharacter.GraphemeClusterBreak.T
+
+
 
 
 class ReportEditorActivity : AppCompatActivity() {
 
+    /*****************/
+    /* General stuff */
+    /*****************/
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Log.d("Arbeitsbericht.ReportEditorActivity.onCreate", "start")
@@ -26,26 +48,40 @@ class ReportEditorActivity : AppCompatActivity() {
 
         // If no lump sums are defined in the configuration yet, then we present a hint
         // and disable the add button
-        if(storageHandler().configuration.lumpSums.size == 0) {
-            findViewById<TextView>(R.id.lump_sum_undef_hint).visibility=View.VISIBLE
-            findViewById<ImageButton>(R.id.lump_sum_add_button).visibility=View.GONE
+        if (storageHandler().configuration.lumpSums.size == 0) {
+            findViewById<TextView>(R.id.lump_sum_undef_hint).visibility = View.VISIBLE
+            findViewById<ImageButton>(R.id.lump_sum_add_button).visibility = View.GONE
         }
 
-        if(savedInstanceState != null) {
+        if (savedInstanceState != null) {
             Log.d("Arbeitsbericht.ReportEditorActivity.onCreate", "restoring active report ${savedInstanceState.getInt("activeReport").toString()}")
             storageHandler().selectReportById(savedInstanceState.getInt("activeReport"))
         }
+        loadReports()
+    }
 
+    override fun onStart() {
+        Log.d("Arbeitsbericht.ReportEditorActivity.onStart", "called")
+        super.onStart()
     }
 
     override fun onResume() {
+        Log.d("Arbeitsbericht.ReportEditorActivity.onResume", "called")
         super.onResume()
-        loadReport()
+        updateReports()
     }
 
-    /*****************/
-    /* General stuff */
-    /*****************/
+    override fun onPause() {
+        Log.d("Arbeitsbericht.ReportEditorActivity.onPause", "called")
+        super.onPause()
+    }
+
+    override fun onStop() {
+        Log.d("Arbeitsbericht.ReportEditorActivity.onStop", "called")
+        super.onStop()
+        saveReport()
+    }
+
     fun saveAndBackToMain() {
         saveReport()
         val intent = Intent(this, MainActivity::class.java).apply {}
@@ -68,17 +104,12 @@ class ReportEditorActivity : AppCompatActivity() {
         outState?.putInt("activeReport", storageHandler().activeReport.id)
     }
 
-    override fun onPause() {
-        super.onPause()
-        saveReport()
-    }
-
     fun onClickSummary(@Suppress("UNUSED_PARAMETER") btn: View) {
         val intent = Intent(this, SummaryActivity::class.java).apply {}
         startActivity(intent)
     }
 
-    fun loadReport() {
+    fun loadReports() {
         val report = storageHandler().getReport()
 
         findViewById<EditText>(R.id.client_name).setText(report.client_name)
@@ -99,6 +130,44 @@ class ReportEditorActivity : AppCompatActivity() {
         }
         report.material.forEach {
             addMaterialView(it)
+        }
+        report.photos.forEach {
+            addPhotoView(it)
+        }
+    }
+
+    fun updateReports() {
+        val report = storageHandler().getReport()
+
+        for (i in 0 until worktimes_content_container.getChildCount()) {
+            val cV: View = worktimes_content_container.getChildAt(i)
+            if (cV.getId() == R.id.work_time_card_top) {
+                updateWorkTimeView(cV as CardView)
+            }
+        }
+        for (i in 0 until workitems_content_container.getChildCount()) {
+            val cV: View = workitems_content_container.getChildAt(i)
+            if (cV.getId() == R.id.work_item_card_top) {
+                updateWorkItemView(cV as CardView)
+            }
+        }
+        for (i in 0 until lump_sum_content_container.getChildCount()) {
+            val cV: View = lump_sum_content_container.getChildAt(i)
+            if (cV.getId() == R.id.lump_sum_edit_card_top) {
+                updateLumpSumView(cV as CardView)
+            }
+        }
+        for (i in 0 until material_content_container.getChildCount()) {
+            val cV: View = material_content_container.getChildAt(i)
+            if (cV.getId() == R.id.material_card_top) {
+                updateMaterialView(cV as CardView)
+            }
+        }
+        for (i in 0 until photo_content_container.getChildCount()) {
+            val cV: View = photo_content_container.getChildAt(i)
+            if (cV.getId() == R.id.photo_card_top) {
+                updatePhotoView(cV as CardView)
+            }
         }
     }
 
@@ -139,7 +208,7 @@ class ReportEditorActivity : AppCompatActivity() {
             if (v.getId() == R.id.lump_sum_edit_card_top) {
                 val ls: LumpSum = v.getTag(R.id.TAG_LUMP_SUM) as LumpSum
                 val selItem = v.findViewById<Spinner>(R.id.lump_sum_item).getSelectedItem()
-                if(selItem == null) {
+                if (selItem == null) {
                     Log.d("Arbeitsbericht.ReportEditorActivity.saveReport", "Lump sum is null, replacing with empty string")
                     ls.item = ""
                 } else {
@@ -156,6 +225,14 @@ class ReportEditorActivity : AppCompatActivity() {
                 ma.item = v.findViewById<TextView>(R.id.material_item).getText().toString()
                 storageHandler().addToMaterialDictionary(ma.item)
                 ma.amount = v.findViewById<TextView>(R.id.material_amount).getText().toString().toInt()
+            }
+        }
+
+        for (i in 0 until photo_content_container.getChildCount()) {
+            val v: View = photo_content_container.getChildAt(i)
+            if (v.getId() == R.id.photo_card_top) {
+                val photo: Photo = v.getTag(R.id.TAG_PHOTO) as Photo
+                photo.description = v.findViewById<TextView>(R.id.photo_description).getText().toString()
             }
         }
 
@@ -214,7 +291,7 @@ class ReportEditorActivity : AppCompatActivity() {
     fun onClickDelWorkTime(btn: View) {
         GlobalScope.launch(Dispatchers.Main) {
             val answer = showConfirmationDialog(getString(R.string.del_confirmation), this@ReportEditorActivity)
-            if(answer == AlertDialog.BUTTON_POSITIVE) {
+            if (answer == AlertDialog.BUTTON_POSITIVE) {
                 Log.d("Arbeitsbericht.ReportEditorActivity.onClickDelWorkTime", "deleting work time element")
                 val cV = btn.getTag(R.id.TAG_CARDVIEW) as CardView
                 storageHandler().getReport().work_times.remove(cV.getTag(R.id.TAG_WORKTIME))
@@ -245,18 +322,10 @@ class ReportEditorActivity : AppCompatActivity() {
         val inflater = getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
         val cV = inflater.inflate(R.layout.work_time_layout, null) as CardView
 
-        // Fill in the data
-        val tvDate = cV.findViewById<TextView>(R.id.work_time_date)
-        tvDate.setText(wt.date)
-        cV.findViewById<TextView>(R.id.work_time_employee).setText(wt.employee)
-        cV.findViewById<TextView>(R.id.work_time_work_duration).setText(wt.duration)
-        cV.findViewById<TextView>(R.id.work_time_drive_duration).setText(wt.driveTime)
-        cV.findViewById<EditText>(R.id.work_time_distance).setText(wt.distance.toString())
-
         // set a TAG to the delete button to identify the card view (cV here)
         cV.findViewById<View>(R.id.work_time_del_button).setTag(R.id.TAG_CARDVIEW, cV)
         // set TAGs to the work time dialog buttons to identify the respective TextView
-        cV.findViewById<View>(R.id.work_time_date_change).setTag(R.id.TAG_DATETEXTVIEW, tvDate)
+        cV.findViewById<View>(R.id.work_time_date_change).setTag(R.id.TAG_DATETEXTVIEW, cV.findViewById<TextView>(R.id.work_time_date))
         cV.findViewById<View>(R.id.work_time_work_duration_change)
             .setTag(R.id.TAG_TIMETEXTVIEW, cV.findViewById<TextView>(R.id.work_time_work_duration))
         cV.findViewById<View>(R.id.work_time_drive_duration_change)
@@ -268,13 +337,13 @@ class ReportEditorActivity : AppCompatActivity() {
         // the user is not required to delete but directly overwrites
         val distET = cV.findViewById<EditText>(R.id.work_time_distance)
         distET.setSelectAllOnFocus(true);
-        cV.findViewById<EditText>(R.id.work_time_distance).setOnClickListener(object: View.OnClickListener {
+        cV.findViewById<EditText>(R.id.work_time_distance).setOnClickListener(object : View.OnClickListener {
             override fun onClick(v: View) {
                 val et = v as EditText
-                if(et.isFocused()){
+                if (et.isFocused()) {
                     et.clearFocus();
                     et.requestFocus();
-                }else{
+                } else {
                     et.requestFocus();
                     et.clearFocus();
                 }
@@ -284,6 +353,17 @@ class ReportEditorActivity : AppCompatActivity() {
         val pos = worktimes_content_container.getChildCount()
         Log.d("Arbeitsbericht", "Adding work time card $pos to UI")
         worktimes_content_container.addView(cV, pos)
+    }
+
+    fun updateWorkTimeView(cV: CardView) {
+        val wt = cV.getTag(R.id.TAG_WORKTIME) as WorkTime
+
+        // Fill in the data
+        cV.findViewById<TextView>(R.id.work_time_date).setText(wt.date)
+        cV.findViewById<TextView>(R.id.work_time_employee).setText(wt.employee)
+        cV.findViewById<TextView>(R.id.work_time_work_duration).setText(wt.duration)
+        cV.findViewById<TextView>(R.id.work_time_drive_duration).setText(wt.driveTime)
+        cV.findViewById<EditText>(R.id.work_time_distance).setText(wt.distance.toString())
     }
 
     /**********************/
@@ -326,16 +406,6 @@ class ReportEditorActivity : AppCompatActivity() {
         val inflater = getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
         val cV = inflater.inflate(R.layout.work_item_layout, null) as CardView
 
-        // Fill in the data
-        val textView = cV.findViewById(R.id.work_item_item) as AutoCompleteTextView
-        // Get the string array
-        val workItemStrings: List<String> = storageHandler().workItemDictionary.items.toList()
-        // Create the adapter and set it to the AutoCompleteTextView
-        ArrayAdapter<String>(this, layout.simple_list_item_1, workItemStrings).also { adapter ->
-            textView.setAdapter(adapter)
-        }
-
-        textView.setText(wi.item)
 
         // set a TAG to the delete button to identify the card view (cV here)
         cV.findViewById<View>(R.id.work_item_del_button).setTag(R.id.TAG_CARDVIEW, cV)
@@ -346,6 +416,22 @@ class ReportEditorActivity : AppCompatActivity() {
         Log.d("Arbeitsbericht", "Adding work item card $pos to UI")
         workitems_content_container.addView(cV, pos)
     }
+
+    fun updateWorkItemView(cV: CardView) {
+        val wi: WorkItem = cV.getTag(R.id.TAG_WORKITEM) as WorkItem
+
+        // Fill in the data
+        val textView = cV.findViewById(R.id.work_item_item) as AutoCompleteTextView
+        // Get the string array
+        val workItemStrings: List<String> = storageHandler().workItemDictionary.items.toList()
+        // Create the adapter and set it to the AutoCompleteTextView
+        ArrayAdapter<String>(this, layout.simple_list_item_1, workItemStrings).also { adapter ->
+            textView.setAdapter(adapter)
+        }
+
+        textView.setText(wi.item)
+    }
+
 
     /********************/
     /* Lump sum section */
@@ -359,6 +445,7 @@ class ReportEditorActivity : AppCompatActivity() {
             lump_sum_content_container.setVisibility(View.GONE)
         }
     }
+
     fun onClickAddLumpSum(btn: View) {
         val report = storageHandler().getReport()
         val ls = LumpSum()
@@ -369,7 +456,7 @@ class ReportEditorActivity : AppCompatActivity() {
     fun onClickDelLumpSumItem(btn: View) {
         GlobalScope.launch(Dispatchers.Main) {
             val answer = showConfirmationDialog(getString(R.string.del_confirmation), this@ReportEditorActivity)
-            if(answer == AlertDialog.BUTTON_POSITIVE) {
+            if (answer == AlertDialog.BUTTON_POSITIVE) {
                 Log.d("Arbeitsbericht.ReportEditorActivity.onClickDelLumpSumItem", "deleting lump-sum element")
                 val cV = btn.getTag(R.id.TAG_CARDVIEW) as CardView
                 storageHandler().getReport().lump_sums.remove(cV.getTag(R.id.TAG_LUMP_SUM))
@@ -385,12 +472,25 @@ class ReportEditorActivity : AppCompatActivity() {
         val inflater = getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
         val cV = inflater.inflate(R.layout.lump_sum_edit_layout, null) as CardView
 
+        // set a TAG to the delete button to identify the card view (cV here)
+        cV.findViewById<View>(R.id.lump_sum_item_del_button).setTag(R.id.TAG_CARDVIEW, cV)
+        // set a TAG to the card view to link with the lump-sum data
+        cV.setTag(R.id.TAG_LUMP_SUM, ls)
+
+        val pos = lump_sum_content_container.getChildCount()
+        Log.d("Arbeitsbericht", "Adding lump sum card $pos to UI")
+        lump_sum_content_container.addView(cV, pos)
+    }
+
+    fun updateLumpSumView(cV: CardView) {
+        val ls: LumpSum = cV.getTag(R.id.TAG_LUMP_SUM) as LumpSum
+
         val spinner = cV.findViewById(R.id.lump_sum_item) as Spinner
         // Get the string array
         var lumpSumStrings: List<String> = storageHandler().configuration.lumpSums.toList()
         // Add Unbekannt if the element stored in the report doesn't fit any of the pre-defined ones
         // i.e. it has been deleted
-        if(ls.item != "" && !storageHandler().configuration.lumpSums.contains(ls.item)) {
+        if (ls.item != "" && !storageHandler().configuration.lumpSums.contains(ls.item)) {
             lumpSumStrings = lumpSumStrings.plus("Entfernt")
             ls.item = "Entfernt"
         }
@@ -401,18 +501,9 @@ class ReportEditorActivity : AppCompatActivity() {
 
         // Fill in the data
         val idx = lumpSumStrings.indexOf(ls.item)
-        if(idx >= 0) {
+        if (idx >= 0) {
             spinner.setSelection(idx)
         }
-
-        // set a TAG to the delete button to identify the card view (cV here)
-        cV.findViewById<View>(R.id.lump_sum_item_del_button).setTag(R.id.TAG_CARDVIEW, cV)
-        // set a TAG to the card view to link with the lump-sum data
-        cV.setTag(R.id.TAG_LUMP_SUM, ls)
-
-        val pos = lump_sum_content_container.getChildCount()
-        Log.d("Arbeitsbericht", "Adding lump sum card $pos to UI")
-        lump_sum_content_container.addView(cV, pos)
     }
 
     /********************/
@@ -438,7 +529,7 @@ class ReportEditorActivity : AppCompatActivity() {
     fun onClickDelMaterial(btn: View) {
         GlobalScope.launch(Dispatchers.Main) {
             val answer = showConfirmationDialog(getString(R.string.del_confirmation), this@ReportEditorActivity)
-            if(answer == AlertDialog.BUTTON_POSITIVE) {
+            if (answer == AlertDialog.BUTTON_POSITIVE) {
                 Log.d("Arbeitsbericht.ReportEditorActivity.onDialogPositiveClick", "deleting material element")
                 val cV = btn.getTag(R.id.TAG_CARDVIEW) as CardView
                 storageHandler().getReport().material.remove(cV.getTag(R.id.TAG_MATERIAL))
@@ -454,6 +545,19 @@ class ReportEditorActivity : AppCompatActivity() {
         val inflater = getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
         val cV = inflater.inflate(R.layout.material_layout, null) as CardView
 
+        // set a TAG to the delete button to identify the card view (cV here)
+        cV.findViewById<View>(R.id.material_del_button).setTag(R.id.TAG_CARDVIEW, cV)
+        // set a TAG to the card view to link with the work time data
+        cV.setTag(R.id.TAG_MATERIAL, ma)
+
+        val pos = material_content_container.getChildCount()
+        Log.d("Arbeitsbericht", "Adding material card $pos to UI")
+        material_content_container.addView(cV, pos)
+    }
+
+    fun updateMaterialView(cV: CardView) {
+        val ma: Material = cV.getTag(R.id.TAG_MATERIAL) as Material
+
         val textView = cV.findViewById(R.id.material_item) as AutoCompleteTextView
         // Get the string array
         val materialStrings: List<String> = storageHandler().materialDictionary.items.toList()
@@ -465,15 +569,132 @@ class ReportEditorActivity : AppCompatActivity() {
         // Fill in the data
         textView.setText(ma.item)
         cV.findViewById<EditText>(R.id.material_amount).setText(ma.amount.toString())
-
-        // set a TAG to the delete button to identify the card view (cV here)
-        cV.findViewById<View>(R.id.material_del_button).setTag(R.id.TAG_CARDVIEW, cV)
-        // set a TAG to the card view to link with the work time data
-        cV.setTag(R.id.TAG_MATERIAL, ma)
-
-        val pos = material_content_container.getChildCount()
-        Log.d("Arbeitsbericht", "Adding material card $pos to UI")
-        material_content_container.addView(cV, pos)
     }
 
+
+    /********************/
+    /* Photo section */
+    /********************/
+    fun onClickExpandPhotoButton(expandPhotoButton: View) {
+        if (photo_content_container.getVisibility() == View.GONE) {
+            expandPhotoButton.rotation = 180.toFloat()
+            photo_content_container.setVisibility(View.VISIBLE)
+        } else {
+            expandPhotoButton.rotation = 0.toFloat()
+            photo_content_container.setVisibility(View.GONE)
+        }
+    }
+
+    fun onClickAddPhoto(@Suppress("UNUSED_PARAMETER") btn: View) {
+        val report = storageHandler().getReport()
+        val photo = Photo()
+        report.photos.add(photo)
+        addPhotoView(photo)
+    }
+
+    fun onClickDelPhoto(btn: View) {
+        GlobalScope.launch(Dispatchers.Main) {
+            val answer = showConfirmationDialog(getString(R.string.del_confirmation), this@ReportEditorActivity)
+            if (answer == AlertDialog.BUTTON_POSITIVE) {
+                Log.d("Arbeitsbericht.ReportEditorActivity.onDialogPositiveClick", "deleting photo element")
+                val cV = btn.getTag(R.id.TAG_CARDVIEW) as CardView
+                storageHandler().getReport().photos.remove(cV.getTag(R.id.TAG_PHOTO))
+                photo_content_container.removeView(cV)
+            } else {
+                Log.d("Arbeitsbericht.ReportEditorActivity.onClickDelMaterial", "Cancelled deleting a photo entry")
+            }
+        }
+    }
+
+    val REQUEST_TAKE_PHOTO = 1
+    var cardViewWaitingForPhoto: CardView? = null
+    fun onClickTakePhoto(btn: View) {
+        Intent(MediaStore.ACTION_IMAGE_CAPTURE).also { takePictureIntent ->
+            // Ensure that there's a camera activity to handle the intent
+            takePictureIntent.resolveActivity(packageManager)?.also {
+                // Create the File where the photo should go
+                val photoFile: File? = try {
+                    createImageFile()
+                } catch (ex: IOException) {
+                    // TODO: Error occurred while creating the File
+                    null
+                }
+                // Continue only if the File was successfully created
+                photoFile?.also {
+                    val photo: Photo = btn.getTag(R.id.TAG_PHOTO) as Photo
+                    photo.file = photoFile.absolutePath
+                    val photoURI: Uri = FileProvider.getUriForFile(this, "com.android.stemaker.arbeitsbericht.fileprovider", it)
+                    Log.d("Arbeitsbericht.ReportEditorActivity.onClickTakePhoto", "Photofile: ${photo.file}, PhotoURI: ${photoURI}")
+                    takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
+                    cardViewWaitingForPhoto = btn.getTag(R.id.TAG_CARDVIEW) as CardView
+                    startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO)
+                }
+            }
+        }
+
+    }
+
+    @Throws(IOException::class)
+    private fun createImageFile(): File {
+        // Create an image file name
+        val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())
+        val storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+        return File.createTempFile("Arbeitsbericht_${timeStamp}", ".jpg", storageDir)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if (requestCode == REQUEST_TAKE_PHOTO && resultCode == RESULT_OK && data != null) {
+            val imageBitmap = data.extras.get("data") as Bitmap
+            cardViewWaitingForPhoto!!.findViewById<ImageView>(R.id.photo_file)!!.setImageBitmap(imageBitmap)
+        }
+
+    }
+
+
+    private fun setPic(file: String, imgV: ImageView) {
+        Log.d("Arbeitsbericht.ReportEditorActivity.setPic", "imageView: ${file}")
+        BitmapFactory.decodeFile(file)?.also { bitmap ->
+            imgV.setImageBitmap(bitmap)}
+    }
+
+    fun addPhotoView(photo: Photo) {
+        Log.d("Arbeitsbericht.ReportEditorActivity.addPhotoView", "called")
+        // Prepare a single_photo_layout instance
+        val inflater = getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
+        val cV = inflater.inflate(R.layout.single_photo_layout, null) as CardView
+
+        // set a TAG to the delete button to identify the card view (cV here)
+        cV.findViewById<View>(R.id.del_photo_button).setTag(R.id.TAG_CARDVIEW, cV)
+        // set a TAG to the card view to link with the work time data
+        cV.setTag(R.id.TAG_PHOTO, photo)
+        cV.findViewById<ImageButton>(R.id.take_photo_button).setTag(R.id.TAG_PHOTO, photo)
+        cV.findViewById<ImageButton>(R.id.take_photo_button).setTag(R.id.TAG_CARDVIEW, cV)
+
+        val pos = photo_content_container.getChildCount()
+        Log.d("Arbeitsbericht", "Adding photo card $pos to UI")
+        photo_content_container.addView(cV, pos)
+    }
+
+    fun updatePhotoView(cV: CardView) {
+        val photo: Photo = cV.getTag(R.id.TAG_PHOTO) as Photo
+
+        // Fill in the data
+        cV.findViewById<AutoCompleteTextView>(R.id.photo_description).setText(photo.description)
+
+        /*
+        // We need to postpone defining the picture to show in the ImageView because the width and height are not yet known
+        if(photo.file != "") {
+            val imgV = cV.findViewById(R.id.photo_file) as ImageView
+            val vto = imgV.viewTreeObserver
+            vto.addOnPreDrawListener(object : ViewTreeObserver.OnPreDrawListener {
+                override fun onPreDraw(): Boolean {
+                    imgV.viewTreeObserver.removeOnPreDrawListener(this)
+                    setPic(photo.file, imgV)
+                    return true
+                }
+            })
+        }*/
+        val imgV = cV.findViewById(R.id.photo_file) as ImageView
+        setPic(photo.file, imgV)
+    }
 }

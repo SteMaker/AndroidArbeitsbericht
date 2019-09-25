@@ -105,6 +105,10 @@ object StorageHandler {
             Log.d("Arbeitsbericht.StorageHandler.readReportFromFile", "Report seems to be old, not having a lump sum, adding it")
             report.lump_sums = mutableListOf<LumpSum>()
         }
+        if(report.photos == null) {
+            Log.d("Arbeitsbericht.StorageHandler.readReportFromFile", "Report seems to be old, not having photos, adding it")
+            report.photos = mutableListOf<Photo>()
+        }
         return report
     }
 

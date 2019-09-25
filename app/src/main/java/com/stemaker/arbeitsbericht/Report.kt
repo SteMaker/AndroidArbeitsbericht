@@ -31,6 +31,10 @@ class Material(var item: String = "", var amount: Int = 0) {
 }
 
 @Serializable
+class Photo(var file: String = "", var description: String = "") {
+}
+
+@Serializable
 class Report(val id: Int) {
     var client_name: String = ""
     var client_extra1: String = ""
@@ -44,6 +48,7 @@ class Report(val id: Int) {
     var work_items = mutableListOf<WorkItem>()
     var lump_sums = mutableListOf<LumpSum>()
     var material = mutableListOf<Material>()
+    var photos = mutableListOf<Photo>()
     var client_signature: String = ""
     var employee_signature: String = ""
 

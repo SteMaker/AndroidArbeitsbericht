@@ -28,7 +28,8 @@ object HtmlReport {
                         "<td style=\"padding: 10px;border: 2px solid black;border-collapse: collapse;\"></td>" +
                         "<td style=\"padding: 10px;border: 2px solid black;border-collapse: collapse;\">${rep.bill_address_zip} ${rep.bill_address_city}</td>" +
                     "</tr>" +
-                "</table>"
+                "</table><hr>"
+
 
         // Work times table
         html += "<h2>Arbeits-/fahrzeiten und Fahrstrecken</h2>" +
@@ -49,7 +50,7 @@ object HtmlReport {
                         "<td style=\"padding: 10px;border: 2px solid black;border-collapse: collapse;\"> ${it.distance.toString()}</td>" +
                     "</tr>"
         }
-        html += "</table>"
+        html += "</table><hr>"
 
         // Work items table
         html += "<h2>Durchgeführte Arbeiten</h2>" +
@@ -62,7 +63,7 @@ object HtmlReport {
                         "<td style=\"padding: 10px;border: 2px solid black;border-collapse: collapse;\"> ${it.item}</td>" +
                     "</tr>"
         }
-        html += "</table>"
+        html += "</table><hr>"
 
         // Lump sums
         html += "<h2>Pauschalen</h2>" +
@@ -75,7 +76,7 @@ object HtmlReport {
                         "<td style=\"padding: 10px;border: 2px solid black;border-collapse: collapse;\"> ${it.item}</td>" +
                     "</tr>"
         }
-        html += "</table>"
+        html += "</table><hr>"
 
         // Material table
         html += "<h2>Material</h2>" +
@@ -90,11 +91,15 @@ object HtmlReport {
                         "<td style=\"padding: 10px;border: 2px solid black;border-collapse: collapse;\"> ${it.amount.toString()}</td>" +
                     "</tr>"
         }
-        html += "</table>"
-        rep.photos.forEach {
-            Log.d("Arbeitsbericht.html", it.file)
-            html += "<img src=\"file://${it.file}\">"
-            html += "${it.description}"
+        html += "</table><hr>"
+        if(rep.photos.size != 0) {
+            html += "<h2>Fotos</h2>"
+            rep.photos.forEach {
+                Log.d("Arbeitsbericht.html", it.file)
+                html += "<img src=\"file://${it.file}\">"
+                html += "${it.description}"
+            }
+            html += "<hr>"
         }
         if(inclSignatures) {
             // Employee signature

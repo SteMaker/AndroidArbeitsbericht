@@ -665,29 +665,7 @@ class ReportEditorActivity : AppCompatActivity() {
 
 
     private fun setPic(file: String, imgV: ImageView) {
-        Log.d("Arbeitsbericht.ReportEditorActivity.setPic", "imageView: ${file}, ${imgV.getLayoutParams().width} ${imgV.getLayoutParams().height}")
-        // Get the dimensions of the View
-        val targetW: Int = (imgV.getLayoutParams().width * getResources().getDisplayMetrics().density).toInt()
-        val targetH: Int = (imgV.getLayoutParams().height * getResources().getDisplayMetrics().density).toInt()
-
-        val bmOptions = BitmapFactory.Options().apply {
-            // Get the dimensions of the bitmap
-            inJustDecodeBounds = true
-
-            val photoW: Int = outWidth
-            val photoH: Int = outHeight
-
-            // Determine how much to scale down the image
-            val scaleFactor: Int = Math.min(photoW / targetW, photoH / targetH)
-
-            // Decode the image file into a Bitmap sized to fill the View
-            inJustDecodeBounds = false
-            inSampleSize = scaleFactor
-            inPurgeable = true
-        }
-        BitmapFactory.decodeFile(file, bmOptions)?.also { bitmap ->
-            imgV.setImageBitmap(bitmap)
-        }
+        GlideApp.with(this).load(file).into(imgV)
     }
 
     fun addPhotoView(photo: Photo, doUpdate: Boolean = false) {

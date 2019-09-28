@@ -15,6 +15,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
+/* TODO: We should have an ability to send the configuration, report and photo files to some (e.g. cloud) share
+   TODO: In the ReportEditorActivity the toplevel containers should be CardViews to follow a more generic layout
+   TODO: Add the ability to collapse the signature pads to have the whole screen for the actual html report
+   TODO: Remove the buttons from the ReportEditorActivity and SummaryActivity and put them in the header
+*/
+
 class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -72,6 +78,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun onClickDelete(btn: View) {
+        // TODO: We should delete the related photo files as well
         GlobalScope.launch(Dispatchers.Main) {
             val answer = showConfirmationDialog(getString(R.string.del_confirmation), this@MainActivity)
             if(answer == AlertDialog.BUTTON_POSITIVE) {

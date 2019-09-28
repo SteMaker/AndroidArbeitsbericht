@@ -606,6 +606,7 @@ class ReportEditorActivity : AppCompatActivity() {
     }
 
     fun onClickDelPhoto(btn: View) {
+        // TODO: We should delete the file as well
         GlobalScope.launch(Dispatchers.Main) {
             val answer = showConfirmationDialog(getString(R.string.del_confirmation), this@ReportEditorActivity)
             if (answer == AlertDialog.BUTTON_POSITIVE) {
@@ -617,6 +618,14 @@ class ReportEditorActivity : AppCompatActivity() {
                 Log.d("Arbeitsbericht.ReportEditorActivity.onClickDelMaterial", "Cancelled deleting a photo entry")
             }
         }
+    }
+
+    fun onClickPhoto(imgV: View) {
+        Log.d("Arbeitsbericht", "Image clicked")
+        val file = (imgV.getTag(R.id.TAG_PHOTO) as Photo).file
+        val photoView = ImageViewFragment(file)
+        photoView.show(supportFragmentManager, "PhotoView")
+
     }
 
     val REQUEST_TAKE_PHOTO = 1
@@ -657,12 +666,15 @@ class ReportEditorActivity : AppCompatActivity() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (requestCode == REQUEST_TAKE_PHOTO && resultCode == RESULT_OK && data != null) {
-            val imageBitmap = data.extras.get("data") as Bitmap
-            cardViewWaitingForPhoto!!.findViewById<ImageView>(R.id.photo_file)!!.setImageBitmap(imageBitmap)
+            try {
+                val file: String = (cardViewWaitingForPhoto!!.getTag(R.id.TAG_PHOTO) as Photo).file
+                val imgV: ImageView = cardViewWaitingForPhoto!!.findViewById<ImageView>(R.id.photo_file)!!
+                setPic(file, imgV)
+            } catch(e: NullPointerException) {
+                Log.e("Arbeitsbericht.ReportEditorActivity.onActivityResult","Internal error: cardViewWaitingForPhoto couldn't be resolved")
+            }
         }
-
     }
-
 
     private fun setPic(file: String, imgV: ImageView) {
         GlideApp.with(this).load(file).into(imgV)
@@ -680,6 +692,7 @@ class ReportEditorActivity : AppCompatActivity() {
         cV.setTag(R.id.TAG_PHOTO, photo)
         cV.findViewById<ImageButton>(R.id.take_photo_button).setTag(R.id.TAG_PHOTO, photo)
         cV.findViewById<ImageButton>(R.id.take_photo_button).setTag(R.id.TAG_CARDVIEW, cV)
+        cV.findViewById<ImageView>(R.id.photo_file).setTag(R.id.TAG_PHOTO, photo)
 
         val pos = photo_content_container.getChildCount()
         Log.d("Arbeitsbericht", "Adding photo card $pos to UI")

@@ -8,13 +8,6 @@ import android.view.ViewGroup
 import android.widget.Button
 import androidx.fragment.app.DialogFragment
 import android.webkit.WebView
-import android.content.res.AssetManager
-import android.webkit.WebResourceRequest
-import android.webkit.WebViewClient
-import kotlinx.io.InputStream
-import android.webkit.WebSettings
-import kotlinx.android.synthetic.main.fragment_about_dialog.*
-
 
 class AboutDialogFragment : DialogFragment() {
 

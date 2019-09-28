@@ -46,6 +46,7 @@
                 android:layout_width="100dp"
                 android:layout_height="100dp"
                 android:src="@drawable/ic_camera_black_24dp"
+                android:onClick="onClickPhoto"
             />
         </LinearLayout>
         <com.google.android.material.textfield.TextInputLayout

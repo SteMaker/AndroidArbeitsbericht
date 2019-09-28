@@ -54,8 +54,4 @@
     <item name="TAG_MATERIAL" type="id" />
     <item name="TAG_PHOTO" type="id" />
 
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
-
-
 </resources>

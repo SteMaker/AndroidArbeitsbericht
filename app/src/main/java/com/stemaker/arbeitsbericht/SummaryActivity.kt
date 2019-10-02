@@ -37,6 +37,7 @@ class SummaryActivity : AppCompatActivity(), PdfPrint.PdfPrintFinishedCallback {
         val wv = findViewById(R.id.webview) as WebView
         wv.loadDataWithBaseURL("", html, "text/html", "UTF-8", "")
 
+        /*
         if(storageHandler().getReport().employee_signature != "") {
             val svg = SVG.getFromString(storageHandler().getReport().employee_signature)
             val pd = PictureDrawable(svg.renderToPicture())
@@ -57,6 +58,8 @@ class SummaryActivity : AppCompatActivity(), PdfPrint.PdfPrintFinishedCallback {
             val sigPad = findViewById<SignaturePad>(R.id.client_signature)
             sigPad.visibility = View.VISIBLE
         }
+
+         */
     }
 
     fun saveAndBackToMain() {
@@ -84,6 +87,7 @@ class SummaryActivity : AppCompatActivity(), PdfPrint.PdfPrintFinishedCallback {
     fun onClickClearEmployeeSignature(@Suppress("UNUSED_PARAMETER") btn: View) {
         Log.d("Arbeitsbericht.SummaryActivity.onClickClearEmployeeSignature", "called")
         val sigPad = findViewById<SignaturePad>(R.id.employee_signature)
+/*
         if(sigPad.visibility == View.VISIBLE) {
             sigPad.clear()
         } else {
@@ -91,11 +95,14 @@ class SummaryActivity : AppCompatActivity(), PdfPrint.PdfPrintFinishedCallback {
             findViewById<ImageView>(R.id.employee_signature_view).visibility = View.GONE
             sigPad.visibility = View.VISIBLE
         }
+
+ */
     }
 
     fun onClickClearClientSignature(@Suppress("UNUSED_PARAMETER") btn: View) {
         Log.d("Arbeitsbericht.SummaryActivity.onClickClearClientSignature", "called")
         val sigPad = findViewById<SignaturePad>(R.id.client_signature)
+        /*
         if(sigPad.visibility == View.VISIBLE) {
             Log.d("Arbeitsbericht.SummaryActivity.onClickClearClientSignature", "Clearing pad")
             sigPad.clear()
@@ -105,9 +112,12 @@ class SummaryActivity : AppCompatActivity(), PdfPrint.PdfPrintFinishedCallback {
             findViewById<ImageView>(R.id.client_signature_view).visibility = View.GONE
             sigPad.visibility = View.VISIBLE
         }
+
+         */
     }
 
     fun saveSignatures() {
+        /*
         val cSig = findViewById(R.id.client_signature) as SignaturePad
         if(!cSig.isEmpty) {
             storageHandler().getReport().client_signature = cSig.getSignatureSvg()
@@ -118,6 +128,8 @@ class SummaryActivity : AppCompatActivity(), PdfPrint.PdfPrintFinishedCallback {
             storageHandler().getReport().employee_signature = eSig.getSignatureSvg()
             Log.d("Arbeitsbericht", "Saving employee signature")
         }
+
+         */
     }
 
     var pdfWritePermissionContinuation: Continuation<Boolean>? = null
@@ -182,8 +194,8 @@ class SummaryActivity : AppCompatActivity(), PdfPrint.PdfPrintFinishedCallback {
         }
     }
 
-    fun sendMail(pdfFile: File?, report: Report) {
-        val subj = "Arbeitsbericht von ${storageHandler().configuration.employeeName}: Kunde: ${report.client_name}, Berichtsnr: ${report.id}"
+    fun sendMail(pdfFile: File?, report: ReportData) {
+        val subj = "Arbeitsbericht von ${storageHandler().configuration.employeeName}: Kunde: ${report.project.name}, Berichtsnr: ${report.id}"
         val emailIntent = Intent(Intent.ACTION_SENDTO)
         emailIntent.data = Uri.parse("mailto:" + storageHandler().configuration.recvMail)
         emailIntent.putExtra(Intent.EXTRA_SUBJECT, subj)

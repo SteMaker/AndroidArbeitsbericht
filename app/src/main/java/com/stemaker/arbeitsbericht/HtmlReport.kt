@@ -4,7 +4,8 @@ import android.util.Log
 
 object HtmlReport {
 
-    fun encodeReport(rep: Report, inclSignatures: Boolean = true): String {
+    fun encodeReport(rep: ReportData, inclSignatures: Boolean = true): String {
+        /*
         Log.d("Arbeitsbericht.HtmlReport.encodeReport", "Generating HTML report for ID:${rep.id}, Name: ${rep.client_name}")
         var html: String =
                 "<!DOCTYPE html>" +
@@ -122,7 +123,10 @@ object HtmlReport {
             }
         }
         html += "</body></html>"
+
         return html
+         */
+        return ""
     }
 }
 

@@ -22,7 +22,7 @@ object StorageHandler {
     var inited: Boolean = false
     var gson = Gson()
     var reports = mutableListOf<Int>()
-    lateinit var activeReport: Report
+    lateinit var activeReport: ReportData
     lateinit var configuration: Configuration
     lateinit var materialDictionary: MaterialDictionary
     var materialDictionaryChanged: Boolean = false
@@ -46,10 +46,10 @@ object StorageHandler {
                 val exp = Regex("report[0-9]{8}.rpt")
                 if (exp.matches(repFile)) {
                     Log.d("Arbeitsbericht.StorageHandler.myInit", "Found file $repFile matching the expected pattern")
-                    val rep: Report = readReportFromFile(repFile, c)
-                    reports.add(rep.id)
-                    if (rep.id > maxId)
-                        maxId = rep.id
+                    val rep: ReportData = readReportFromFile(repFile, c)
+                    reports.add(rep.id.value!!)
+                    if (rep.id.value!! > maxId)
+                        maxId = rep.id.value!!
                 } else {
                     Log.d("Arbeitsbericht.StorageHandler.myInit", "Found file $repFile not matching the expected pattern")
                 }
@@ -75,17 +75,18 @@ object StorageHandler {
         return reports
     }
 
-    fun getReportById(reportId: Int, c: Context): Report {
+    fun getReportById(reportId: Int, c: Context): ReportData {
         return readReportFromFile("report${reportId.toString().padStart(8, '0')}.rpt", c)
     }
 
-    fun getReport(): Report {
+    fun getReport(): ReportData {
         return activeReport
     }
 
     fun createNewReportAndSelect(c: Context) {
-        val rep = Report(configuration.currentId)
-        reports.add(rep.id)
+        val repSer = ReportDataSerialized(configuration.currentId)
+        val rep = ReportData(repSer)
+        reports.add(rep.id.value!!)
         activeReport = rep
         configuration.currentId += 1
         saveConfigurationToFile(c)
@@ -96,29 +97,33 @@ object StorageHandler {
         activeReport = readReportFromFile(reportIdToReportFile(id), c)
     }
 
-    fun readReportFromFile(filename: String, c: Context) : Report {
+    fun readReportFromFile(filename: String, c: Context) : ReportData {
         Log.d("Arbeitsbericht.StorageHandler.readReportFromFile", "Trying to read from file $filename")
         val fIn = c.openFileInput(filename)
         val isr = InputStreamReader(fIn)
-        val report = gson.fromJson(isr, Report::class.java)
-        if(report.lump_sums == null) {
+        val reportSer = gson.fromJson(isr, ReportDataSerialized::class.java)
+        /*
+        if(reportSer.lump_sums == null) {
             Log.d("Arbeitsbericht.StorageHandler.readReportFromFile", "Report seems to be old, not having a lump sum, adding it")
-            report.lump_sums = mutableListOf<LumpSum>()
+            reportSer.lump_sums = mutableListOf<LumpSum>()
         }
-        if(report.photos == null) {
+        if(reportSer.photos == null) {
             Log.d("Arbeitsbericht.StorageHandler.readReportFromFile", "Report seems to be old, not having photos, adding it")
-            report.photos = mutableListOf<Photo>()
+            reportSer.photos = mutableListOf<Photo>()
         }
-        return report
+        */
+        return ReportData(reportSer)
     }
 
-    fun saveReportToFile(r: Report, c: Context) {
+    fun saveReportToFile(r: ReportData, c: Context) {
         r.updateLastChangeDate()
-        val fn = reportIdToReportFile(r.id)
+        val repSer = ReportDataSerialized()
+        repSer.copyFromReport(r)
+        val fn = reportIdToReportFile(repSer.id)
         val fOut = c.openFileOutput(fn, MODE_PRIVATE)
         Log.d("Arbeitsbericht.StorageHandler.saveReportToFile", "Saved to file $fn")
         val osw = OutputStreamWriter(fOut)
-        gson.toJson(r, osw)
+        gson.toJson(repSer, osw)
         osw.close()
     }
 

@@ -11,6 +11,10 @@ import android.widget.ImageButton
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.cardview.widget.CardView
+import androidx.databinding.DataBindingUtil
+import com.stemaker.arbeitsbericht.databinding.ActivityMainBinding
+import com.stemaker.arbeitsbericht.databinding.FragmentProjectEditorBinding
+import com.stemaker.arbeitsbericht.databinding.ReportCardLayoutBinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -22,34 +26,37 @@ import kotlinx.coroutines.launch
 */
 
 class MainActivity : AppCompatActivity() {
+    lateinit var topBinding: ActivityMainBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+
+        topBinding = DataBindingUtil.setContentView(this, R.layout.activity_main)
+        topBinding.lifecycleOwner = this
+        // Nothing to bind right now topBinding.... = ...!!
+
         val reportListScrollContainer = report_list_scroll_container
         val reportIds = storageHandler().getListOfReports()
         reportIds.forEach {
-            // Get the active report
-            val rep: Report = storageHandler().getReportById(it, getApplicationContext())
+            // Get the respective report
+            val rep: ReportData = storageHandler().getReportById(it, getApplicationContext())
             Log.d("Arbeitsbericht", "Report with ID: ${rep.id} from ${rep.create_date}")
             // Prepare a report_card_layout instance
             val inflater = getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
-            val cV = inflater.inflate(R.layout.report_card_layout, null) as CardView
-            // Fill in the data
-            cV.findViewById<TextView>(R.id.report_card_client).setText(rep.client_name.toString())
-            cV.findViewById<TextView>(R.id.report_card_create_date).setText("Erstellt: " + rep.create_date)
-            cV.findViewById<TextView>(R.id.report_card_change_date).setText("Letzte Änderung: " + rep.change_date)
-            cV.findViewById<TextView>(R.id.report_card_id).setText(rep.id.toString())
+            val reportBinding: ReportCardLayoutBinding = DataBindingUtil.inflate(inflater, R.layout.report_card_layout, null, false)
+            // Bind in the data
+            reportBinding.reportData = rep
 
             // Assign the report ID as tag to the button to know which one to delete
-            val btnDel = cV.findViewById<ImageButton>(R.id.report_card_del_button)
-            btnDel.setTag(R.id.TAG_REPORT_ID, rep.id)
-            btnDel.setTag(R.id.TAG_CARDVIEW, cV)
+            val btnDel = reportBinding.root.findViewById<ImageButton>(R.id.report_card_del_button)
+            btnDel.setTag(R.id.TAG_REPORT_ID, rep.id.value)
+            btnDel.setTag(R.id.TAG_CARDVIEW, reportBinding.root)
+            reportBinding.root.setTag(R.id.TAG_REPORT_ID, it)
 
             // Add The card to the scrollview
             val pos = reportListScrollContainer.getChildCount()
             Log.d("Arbeitsbericht", "Adding report card $pos to UI")
-            reportListScrollContainer.addView(cV, pos)
+            reportListScrollContainer.addView(reportBinding.root, pos)
         }
     }
 
@@ -70,9 +77,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun onClickReport(reportCard: View) {
-        val id: String = reportCard.findViewById<TextView>(R.id.report_card_id).getText() as String
+        val id: Int = reportCard.getTag(R.id.TAG_REPORT_ID) as Int
         Log.d("Arbeitsbericht", "Clicked report with id ${id}")
-        storageHandler().selectReportById(id.toInt(), getApplicationContext())
+        storageHandler().selectReportById(id, getApplicationContext())
         val intent = Intent(this, ReportEditorActivity::class.java).apply {}
         startActivity(intent)
     }

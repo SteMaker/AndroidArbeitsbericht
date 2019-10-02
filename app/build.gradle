@@ -26,6 +26,9 @@ android {
             versionNameSuffix = 'alpha03'
         }
     }
+    dataBinding {
+        enabled true
+    }
 }
 
 dependencies {

@@ -1,7 +1,9 @@
 <resources>
     <string name="app_name">Arbeitsbericht</string>
-    <string name="reportnr">Reportnr</string>
-    <string name="client">Kunde / Projekt</string>
+    <string name="reportid">Berichtsnr: %1$s</string>
+    <string name="creationdate">Erstellt am: %1$s</string>
+    <string name="changedate">Letzte Änderung am: %1$s</string>
+    <string name="client_project">Kunde / Projekt</string>
     <string name="date">Datum</string>
     <string name="unfold">Bereich aufklappen</string>
     <string name="extra">Zusatz</string>
@@ -53,5 +55,8 @@
     <item name="TAG_LUMP_SUM" type="id" />
     <item name="TAG_MATERIAL" type="id" />
     <item name="TAG_PHOTO" type="id" />
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 
 </resources>

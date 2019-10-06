@@ -29,6 +29,11 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                 />
+                <fragment android:name="com.stemaker.arbeitsbericht.WorkTimeEditorFragment"
+                        android:id="@+id/work_time_editor_fragment"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        />
             </LinearLayout>
         </ScrollView>
             <LinearLayout

@@ -31,7 +31,8 @@ var myTestText: String = "A"
 
 class ReportEditorActivity : AppCompatActivity(),
     ProjectEditorFragment.OnProjectEditorInteractionListener,
-    BillEditorFragment.OnBillEditorInteractionListener {
+    BillEditorFragment.OnBillEditorInteractionListener,
+    WorkTimeEditorFragment.OnWorkTimeEditorInteractionListener {
 
     lateinit var topBinding : ActivityReportEditorBinding
     //var clientHeadBinding : ReportEditorSectionLayoutBinding? = null
@@ -146,5 +147,9 @@ class ReportEditorActivity : AppCompatActivity(),
 
     override fun getBillData(): BillData {
         return storageHandler().getReport().bill
+    }
+
+    override fun getWorkTimeContainerData(): WorkTimeContainerData {
+        return storageHandler().getReport().workTimeContainer
     }
 }

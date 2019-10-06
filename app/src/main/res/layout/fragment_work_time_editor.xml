@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".WorkTimeEditorFragment">
+    <data>
+        <variable name="work_time_container_data" type="com.stemaker.arbeitsbericht.WorkTimeContainerData"/>
+    </data>
+    <LinearLayout
+        android:id="@+id/work_time_content_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/cardview_light_background"
+        android:orientation="vertical"
+        android:visibility="gone">
+        <ImageButton
+            android:id="@+id/work_time_add_button"
+            android:layout_width="50dp"
+            android:layout_height="wrap_content"
+            android:paddingRight="20dp"
+            android:src="@drawable/ic_add_circle_black_24dp"
+            android:onClick="onClickAddWorkTime"
+        />
+    </LinearLayout> <!-- End of worktimes_content_container-->
+</layout>

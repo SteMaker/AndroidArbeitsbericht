@@ -6,10 +6,9 @@ import android.content.Context.MODE_PRIVATE
 import android.util.Log
 import android.widget.Toast
 import com.google.gson.Gson
-import com.google.gson.stream.JsonReader
-import com.google.gson.stream.JsonWriter
+import org.apache.commons.io.IOUtils
 import java.io.*
-import java.util.*
+import java.nio.charset.StandardCharsets
 
 fun storageHandler(): StorageHandler {
     if(!StorageHandler.inited) {
@@ -84,8 +83,8 @@ object StorageHandler {
     }
 
     fun createNewReportAndSelect(c: Context) {
-        val repSer = ReportDataSerialized(configuration.currentId)
-        val rep = ReportData(repSer)
+        val rep = ReportData.createReport(configuration.currentId)
+        Log.d("Arbeitsbericht.StorageHandler.createNewReportAndSelect", "Created new report with ID ${rep.id.value!!}")
         reports.add(rep.id.value!!)
         activeReport = rep
         configuration.currentId += 1
@@ -97,11 +96,48 @@ object StorageHandler {
         activeReport = readReportFromFile(reportIdToReportFile(id), c)
     }
 
-    fun readReportFromFile(filename: String, c: Context) : ReportData {
-        Log.d("Arbeitsbericht.StorageHandler.readReportFromFile", "Trying to read from file $filename")
-        val fIn = c.openFileInput(filename)
-        val isr = InputStreamReader(fIn)
-        val reportSer = gson.fromJson(isr, ReportDataSerialized::class.java)
+    private fun readStringFromFile(fileName: String, context: Context): String {
+        var ret = ""
+        try {
+            val inputStream = context.openFileInput(fileName)
+
+            if (inputStream != null) {
+                val inputStreamReader = InputStreamReader(inputStream)
+                val bufferedReader = BufferedReader(inputStreamReader)
+                var receiveString: String? = ""
+                val stringBuilder = StringBuilder()
+
+                receiveString = bufferedReader.readLine()
+                while (receiveString != null) {
+                    stringBuilder.append(receiveString)
+                    receiveString = bufferedReader.readLine()
+                }
+
+                inputStream.close()
+                ret = stringBuilder.toString()
+            }
+        } catch (e: FileNotFoundException) {
+            Log.e("login activity", "File not found: $e")
+        } catch (e: IOException) {
+            Log.e("login activity", "Can not read file: $e")
+        }
+        return ret
+    }
+
+    private fun writeStringToFile(fileName: String, data: String, context: Context) {
+        try {
+            val outputStreamWriter = OutputStreamWriter(context.openFileOutput(fileName, Context.MODE_PRIVATE))
+            outputStreamWriter.write(data)
+            outputStreamWriter.close()
+        } catch (e: IOException) {
+            Log.e("Exception", "File write failed: $e")
+        }
+    }
+
+    private fun readReportFromFile(fileName: String, c: Context) : ReportData {
+        Log.d("Arbeitsbericht.StorageHandler.readReportFromFile", "Trying to read from file $fileName")
+        val jsonString = readStringFromFile(fileName, c)
+        val rep = ReportData.getReportFromJson(jsonString)
         /*
         if(reportSer.lump_sums == null) {
             Log.d("Arbeitsbericht.StorageHandler.readReportFromFile", "Report seems to be old, not having a lump sum, adding it")
@@ -112,19 +148,15 @@ object StorageHandler {
             reportSer.photos = mutableListOf<Photo>()
         }
         */
-        return ReportData(reportSer)
+        return rep
     }
 
     fun saveReportToFile(r: ReportData, c: Context) {
         r.updateLastChangeDate()
-        val repSer = ReportDataSerialized()
-        repSer.copyFromReport(r)
-        val fn = reportIdToReportFile(repSer.id)
-        val fOut = c.openFileOutput(fn, MODE_PRIVATE)
-        Log.d("Arbeitsbericht.StorageHandler.saveReportToFile", "Saved to file $fn")
-        val osw = OutputStreamWriter(fOut)
-        gson.toJson(repSer, osw)
-        osw.close()
+        val jsonString = ReportData.getJsonFromReport(r)
+        val fileName = reportIdToReportFile(r.id.value!!)
+        writeStringToFile(fileName, jsonString, c)
+        Log.d("Arbeitsbericht.StorageHandler.saveReportToFile", "Saved to file $fileName")
     }
 
     fun reportIdToReportFile(id: Int): String {

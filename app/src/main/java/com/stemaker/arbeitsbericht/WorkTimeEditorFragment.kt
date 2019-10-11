@@ -8,8 +8,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.LinearLayout
-import androidx.databinding.DataBindingUtil
 import com.stemaker.arbeitsbericht.databinding.FragmentWorkTimeEditorBinding
+import com.stemaker.arbeitsbericht.databinding.WorkTimeLayoutBinding
 
 class WorkTimeEditorFragment : ReportEditorSectionFragment(),
     ReportEditorSectionFragment.OnExpandChange {
@@ -30,7 +30,7 @@ class WorkTimeEditorFragment : ReportEditorSectionFragment(),
         // Inflate the layout for this fragment
         Log.d("Arbeitsbericht","WorkTimeEditorFragment.onCreateView called")
         val root = super.onCreateView(inflater, container, savedInstanceState)
-        dataBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_work_time_editor, null, false)
+        dataBinding = FragmentWorkTimeEditorBinding.inflate(inflater, container,false)
         root!!.findViewById<LinearLayout>(R.id.section_container).addView(dataBinding.root)
 
         setHeadline("Arbeitszeiten")
@@ -38,10 +38,12 @@ class WorkTimeEditorFragment : ReportEditorSectionFragment(),
         dataBinding.lifecycleOwner = this
         dataBinding.workTimeContainerData = workTimeContainerData!!
 
+        storageHandler().getReport()
+
         dataBinding.root.findViewById<ImageButton>(R.id.work_time_add_button).setOnClickListener(object: View.OnClickListener {
             override fun onClick(btn: View) {
                 val wt = storageHandler().getReport().addWorkTime()
-                //addWorkTimeView(wt, true) // TODO
+                addWorkTimeView(wt)
             }
         })
 
@@ -66,11 +68,20 @@ class WorkTimeEditorFragment : ReportEditorSectionFragment(),
         dataBinding.root.findViewById<LinearLayout>(R.id.work_time_content_container).setVisibility(if(vis) View.VISIBLE else View.GONE)
     }
 
-    fun onClickAddWorkTime(btn: View) {
-        Log.d("Arbeitsbericht", "Clicked")
-    }
-
     interface OnWorkTimeEditorInteractionListener {
         fun getWorkTimeContainerData(): WorkTimeContainerData
     }
+
+    fun addWorkTimeView(wt: WorkTimeData) {
+        val inflater = layoutInflater
+        Log.d("Arbeitsbericht.WorkTimeEditorFragment.addWorkTimeView", "inflater is ${inflater.toString()}")
+        val container = dataBinding.root.findViewById<LinearLayout>(R.id.work_time_content_container) as LinearLayout
+        val workTimeDataBinding: WorkTimeLayoutBinding = WorkTimeLayoutBinding.inflate(inflater, null, false)
+        workTimeDataBinding.workTime = wt
+
+        val pos = container.getChildCount()
+        Log.d("Arbeitsbericht", "Adding work time card $pos to UI")
+        container.addView(workTimeDataBinding.root, pos)
+    }
+
 }

@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView
+<layout
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:card_view="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:card_view="http://schemas.android.com/apk/res-auto">
+    <data>
+        <variable name="work_time" type="com.stemaker.arbeitsbericht.WorkTimeData"/>
+    </data>
+<androidx.cardview.widget.CardView
     android:id="@+id/work_time_card_top"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -39,7 +42,7 @@
                         android:id="@+id/work_time_date"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="01.01.0001"
+                        android:text="@={work_time.date}"
                         android:paddingRight="10dp"
                 />
                 <ImageButton
@@ -58,6 +61,7 @@
                     android:id="@+id/work_time_employee"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:text="@={work_time.employee}"
                     android:inputType="textPersonName"
                     android:hint="@string/employee_name"
                 />
@@ -84,7 +88,7 @@
                         android:id="@+id/work_time_work_duration"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="00:00"
+                        android:text="@={work_time.duration}"
                         android:paddingRight="10dp"
                 />
                 <ImageButton
@@ -111,7 +115,7 @@
                         android:id="@+id/work_time_drive_duration"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="00:00"
+                        android:text="@={work_time.driveTime}"
                         android:paddingRight="10dp"
                 />
                 <ImageButton
@@ -145,3 +149,4 @@
     </LinearLayout>
 
 </androidx.cardview.widget.CardView>
+</layout>

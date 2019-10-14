@@ -2,7 +2,6 @@
 <layout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context=".ReportEditorActivity">
     <data>
     </data>
@@ -30,10 +29,15 @@
                     android:layout_height="wrap_content"
                 />
                 <fragment android:name="com.stemaker.arbeitsbericht.WorkTimeEditorFragment"
-                        android:id="@+id/work_time_editor_fragment"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        />
+                    android:id="@+id/work_time_editor_fragment"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                />
+                <fragment android:name="com.stemaker.arbeitsbericht.WorkItemEditorFragment"
+                    android:id="@+id/work_item_editor_fragment"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                />
             </LinearLayout>
         </ScrollView>
             <LinearLayout

@@ -1,6 +1,6 @@
 package com.stemaker.arbeitsbericht
 
-import android.util.Log
+import com.stemaker.arbeitsbericht.data.ReportData
 
 object HtmlReport {
 

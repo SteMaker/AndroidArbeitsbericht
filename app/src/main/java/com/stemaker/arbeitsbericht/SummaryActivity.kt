@@ -10,14 +10,12 @@ import android.util.Log
 import android.view.View
 import android.webkit.WebView
 import com.github.gcacace.signaturepad.views.SignaturePad
-import android.graphics.drawable.PictureDrawable
-import android.widget.ImageView
-import com.caverock.androidsvg.SVG
 import android.print.*
 import android.widget.Toast
 import androidx.annotation.NonNull
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.stemaker.arbeitsbericht.data.ReportData
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch

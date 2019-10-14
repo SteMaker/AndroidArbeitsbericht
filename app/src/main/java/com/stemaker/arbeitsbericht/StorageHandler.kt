@@ -6,9 +6,8 @@ import android.content.Context.MODE_PRIVATE
 import android.util.Log
 import android.widget.Toast
 import com.google.gson.Gson
-import org.apache.commons.io.IOUtils
+import com.stemaker.arbeitsbericht.data.ReportData
 import java.io.*
-import java.nio.charset.StandardCharsets
 
 fun storageHandler(): StorageHandler {
     if(!StorageHandler.inited) {
@@ -157,6 +156,10 @@ object StorageHandler {
         val fileName = reportIdToReportFile(r.id.value!!)
         writeStringToFile(fileName, jsonString, c)
         Log.d("Arbeitsbericht.StorageHandler.saveReportToFile", "Saved to file $fileName")
+
+        for(wi in r.workItemContainer.items) {
+            addToWorkItemDictionary(wi.item.value!!)
+        }
     }
 
     fun reportIdToReportFile(id: Int): String {
@@ -194,7 +197,7 @@ object StorageHandler {
         osw.close()
     }
 
-    fun readMaterialDictionaryFromFile(c: Context) {
+    private fun readMaterialDictionaryFromFile(c: Context) {
         Log.d("Arbeitsbericht.StorageHandler.readMaterialDictionaryFromFile", "")
         if(materialDictionaryChanged) {
             Log.w("Arbeitsbericht.StorageHandler.readMaterialDictionaryFromFile", "Unexpected that we have a pending material dictionary update while we want to read it")
@@ -212,7 +215,7 @@ object StorageHandler {
         }
     }
 
-    fun saveMaterialDictionaryToFile(c: Context) {
+    private fun saveMaterialDictionaryToFile(c: Context) {
         if(materialDictionaryChanged) {
             Log.d("Arbeitsbericht.StorageHandler.saveMaterialDictionaryToFile", "saving")
             val fOut = c.openFileOutput("material_dictionary.json", MODE_PRIVATE)
@@ -229,7 +232,7 @@ object StorageHandler {
         }
     }
 
-    fun readWorkItemDictionaryFromFile(c: Context) {
+    private fun readWorkItemDictionaryFromFile(c: Context) {
         Log.d("Arbeitsbericht.StorageHandler.readWorkItemDictionaryFromFile", "")
         if(workItemDictionaryChanged) {
             Log.w("Arbeitsbericht.StorageHandler.readWorkItemDictionaryFromFile", "Unexpected that we have a pending work item dictionary update while we want to read it")
@@ -247,7 +250,7 @@ object StorageHandler {
         }
     }
 
-    fun saveWorkItemDictionaryToFile(c: Context) {
+    private fun saveWorkItemDictionaryToFile(c: Context) {
         if(workItemDictionaryChanged) {
             Log.d("Arbeitsbericht.StorageHandler.saveWorkItemDictionaryToFile", "saving")
             val fOut = c.openFileOutput("workitem_dictionary.json", MODE_PRIVATE)
@@ -258,7 +261,7 @@ object StorageHandler {
         }
     }
 
-    fun addToWorkItemDictionary(item: String) {
+    private fun addToWorkItemDictionary(item: String) {
         if(workItemDictionary.items.add(item)) {
             workItemDictionaryChanged = true
         }

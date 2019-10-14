@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context=".ProjectEditorFragment">
     <data>
-        <variable name="project_data" type="com.stemaker.arbeitsbericht.ProjectData"/>
+        <variable name="project_data" type="com.stemaker.arbeitsbericht.data.ProjectData"/>
     </data>
 
         <LinearLayout

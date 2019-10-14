@@ -11,14 +11,10 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
-import com.stemaker.arbeitsbericht.ReportData
+import com.stemaker.arbeitsbericht.data.ReportData
 import com.stemaker.arbeitsbericht.HtmlReport
 import com.stemaker.arbeitsbericht.R
 import com.stemaker.arbeitsbericht.showConfirmationDialog
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import java.io.File
 import java.io.IOException
 

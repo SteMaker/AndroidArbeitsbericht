@@ -8,12 +8,10 @@ import kotlinx.android.synthetic.main.activity_main.*
 import android.content.Context
 import android.view.*
 import android.widget.ImageButton
-import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
-import androidx.cardview.widget.CardView
 import androidx.databinding.DataBindingUtil
+import com.stemaker.arbeitsbericht.data.ReportData
 import com.stemaker.arbeitsbericht.databinding.ActivityMainBinding
-import com.stemaker.arbeitsbericht.databinding.FragmentProjectEditorBinding
 import com.stemaker.arbeitsbericht.databinding.ReportCardLayoutBinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope

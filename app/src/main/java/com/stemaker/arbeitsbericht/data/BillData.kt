@@ -1,0 +1,19 @@
+package com.stemaker.arbeitsbericht.data
+
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+
+class BillData() : ViewModel() {
+    val name = MutableLiveData<String>().apply { value = ""}
+    val street = MutableLiveData<String>().apply { value = ""}
+    val zip = MutableLiveData<String>().apply { value = ""}
+    val city = MutableLiveData<String>().apply { value = ""}
+
+    fun copyFromSerialized(b: BillDataSerialized) {
+        name.value = b.name
+        street.value = b.street
+        zip.value = b.zip
+        city.value = b.city
+    }
+
+}

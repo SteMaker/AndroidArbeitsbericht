@@ -4,38 +4,22 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.View
-import kotlinx.android.synthetic.main.activity_report_editor.*
 import android.content.Intent
-import android.content.Context
-import android.view.LayoutInflater
-import androidx.cardview.widget.CardView
 import android.R.*
-import android.net.Uri
-import android.os.Environment
-import android.provider.MediaStore
-import android.widget.*
-import androidx.appcompat.app.AlertDialog
-import androidx.core.content.FileProvider
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import kotlinx.io.IOException
-import java.io.File
-import java.text.SimpleDateFormat
-import java.util.*
-import android.widget.TextView
 import androidx.databinding.DataBindingUtil
+import com.stemaker.arbeitsbericht.data.BillData
+import com.stemaker.arbeitsbericht.data.ProjectData
+import com.stemaker.arbeitsbericht.data.WorkItemContainerData
+import com.stemaker.arbeitsbericht.data.WorkTimeContainerData
 import com.stemaker.arbeitsbericht.databinding.ActivityReportEditorBinding
-
-var myTestText: String = "A"
 
 class ReportEditorActivity : AppCompatActivity(),
     ProjectEditorFragment.OnProjectEditorInteractionListener,
     BillEditorFragment.OnBillEditorInteractionListener,
-    WorkTimeEditorFragment.OnWorkTimeEditorInteractionListener {
+    WorkTimeEditorFragment.OnWorkTimeEditorInteractionListener,
+    WorkItemEditorFragment.OnWorkItemEditorInteractionListener {
 
     lateinit var topBinding : ActivityReportEditorBinding
-    //var clientHeadBinding : ReportEditorSectionLayoutBinding? = null
     /*****************/
     /* General stuff */
     /*****************/
@@ -44,10 +28,7 @@ class ReportEditorActivity : AppCompatActivity(),
         Log.d("Arbeitsbericht.ReportEditorActivity.onCreate", "start")
 
         topBinding = DataBindingUtil.setContentView(this, R.layout.activity_report_editor)
-/*        val csc = findViewById<View>(R.id.client_section_container)
-        clientHeadBinding = DataBindingUtil.getBinding(csc)
-        clientHeadBinding?.reslHeadlineText = "Projekt / Kunde"
-*/
+
         // If no lump sums are defined in the configuration yet, then we present a hint
         // and disable the add button
         /*
@@ -133,8 +114,6 @@ class ReportEditorActivity : AppCompatActivity(),
         //report.client_extra1 = findViewById<EditText>(R.id.client_extra1).getText().toString()
 
         storageHandler().saveReportToFile(report, getApplicationContext())
-        storageHandler().saveMaterialDictionaryToFile(getApplicationContext())
-        storageHandler().saveWorkItemDictionaryToFile(getApplicationContext())
     }
 
     fun onClickExpandContentButton(expandProjectButton: View) {
@@ -152,4 +131,9 @@ class ReportEditorActivity : AppCompatActivity(),
     override fun getWorkTimeContainerData(): WorkTimeContainerData {
         return storageHandler().getReport().workTimeContainer
     }
+
+    override fun getWorkItemContainerData(): WorkItemContainerData {
+        return storageHandler().getReport().workItemContainer
+    }
+
 }

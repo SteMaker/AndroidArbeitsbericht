@@ -2,23 +2,24 @@
 <layout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    tools:context=".WorkTimeEditorFragment">
+    tools:context=".WorkItemEditorFragment">
     <data>
-        <variable name="work_time_container_data" type="com.stemaker.arbeitsbericht.data.WorkTimeContainerData"/>
+        <variable name="work_item_container_data" type="com.stemaker.arbeitsbericht.data.WorkItemContainerData"/>
     </data>
+
     <LinearLayout
-        android:id="@+id/work_time_content_container"
+        android:id="@+id/work_item_content_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@color/cardview_light_background"
         android:orientation="vertical"
         android:visibility="gone">
         <ImageButton
-            android:id="@+id/work_time_add_button"
+            android:id="@+id/work_item_add_button"
             android:layout_width="50dp"
             android:layout_height="wrap_content"
             android:paddingRight="20dp"
             android:src="@drawable/ic_add_circle_black_24dp"
         />
-    </LinearLayout> <!-- End of worktimes_content_container-->
+    </LinearLayout> <!-- End of work_item_content_container-->
 </layout>

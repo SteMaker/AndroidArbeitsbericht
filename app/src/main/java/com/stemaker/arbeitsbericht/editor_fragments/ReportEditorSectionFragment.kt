@@ -1,4 +1,4 @@
-package com.stemaker.arbeitsbericht
+package com.stemaker.arbeitsbericht.editor_fragments
 
 import android.content.Context
 import android.os.Bundle
@@ -9,6 +9,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.TextView
+import com.stemaker.arbeitsbericht.R
 
 abstract class ReportEditorSectionFragment : Fragment() {
     private var listener: OnExpandChange? = null

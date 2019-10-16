@@ -5,10 +5,10 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.content.Intent
-import android.R.*
 import androidx.databinding.DataBindingUtil
 import com.stemaker.arbeitsbericht.data.*
 import com.stemaker.arbeitsbericht.databinding.ActivityReportEditorBinding
+import com.stemaker.arbeitsbericht.editor_fragments.*
 
 class ReportEditorActivity : AppCompatActivity(),
     ProjectEditorFragment.OnProjectEditorInteractionListener,
@@ -39,7 +39,7 @@ class ReportEditorActivity : AppCompatActivity(),
 
         if (savedInstanceState != null) {
             Log.d("Arbeitsbericht.ReportEditorActivity.onCreate", "restoring active report ${savedInstanceState.getInt("activeReport").toString()}")
-            storageHandler().selectReportById(savedInstanceState.getInt("activeReport"))
+            StorageHandler.selectReportById(savedInstanceState.getInt("activeReport"))
         }
         loadReports()
     }
@@ -67,7 +67,7 @@ class ReportEditorActivity : AppCompatActivity(),
     }
 
     fun saveAndBackToMain() {
-        Log.d("Arbeitsbericht", "Kundenname ist ${storageHandler().getReport().project.name.value}")
+        Log.d("Arbeitsbericht", "Kundenname ist ${StorageHandler.getReport().project.name.value}")
         saveReport()
         val intent = Intent(this, MainActivity::class.java).apply {}
         Log.d("Arbeitsbericht", "Switching to main activity")
@@ -86,7 +86,7 @@ class ReportEditorActivity : AppCompatActivity(),
 
     override fun onSaveInstanceState(outState: Bundle?) {
         super.onSaveInstanceState(outState)
-        outState?.putInt("activeReport", storageHandler().activeReport.id.value!!)
+        outState?.putInt("activeReport", StorageHandler.activeReport.id.value!!)
     }
 
     fun onClickSummary(@Suppress("UNUSED_PARAMETER") btn: View) {
@@ -96,24 +96,24 @@ class ReportEditorActivity : AppCompatActivity(),
     }
 
     fun loadReports() {
-        val report = storageHandler().getReport()
+        val report = StorageHandler.getReport()
     }
 
     fun updateReports() {
-        val report = storageHandler().getReport()
+        val report = StorageHandler.getReport()
 
         //findViewById<EditText>(R.id.client_name).setText(report.client_name)
         //findViewById<EditText>(R.id.client_extra1).setText(report.client_extra1)
     }
 
     fun saveReport() {
-        val report = storageHandler().getReport()
+        val report = StorageHandler.getReport()
 
         //report.client_name = findViewById<EditText>(R.id.client_name).getText().toString()
         //if (report.client_name == "") report.client_name = getString(R.string.unknown)
         //report.client_extra1 = findViewById<EditText>(R.id.client_extra1).getText().toString()
 
-        storageHandler().saveReportToFile(report, getApplicationContext())
+        StorageHandler.saveReportToFile(report, getApplicationContext())
     }
 
     fun onClickExpandContentButton(expandProjectButton: View) {
@@ -121,30 +121,30 @@ class ReportEditorActivity : AppCompatActivity(),
     }
 
     override fun getProjectData(): ProjectData {
-        return storageHandler().getReport().project
+        return StorageHandler.getReport().project
     }
 
     override fun getBillData(): BillData {
-        return storageHandler().getReport().bill
+        return StorageHandler.getReport().bill
     }
 
     override fun getWorkTimeContainerData(): WorkTimeContainerData {
-        return storageHandler().getReport().workTimeContainer
+        return StorageHandler.getReport().workTimeContainer
     }
 
     override fun getWorkItemContainerData(): WorkItemContainerData {
-        return storageHandler().getReport().workItemContainer
+        return StorageHandler.getReport().workItemContainer
     }
 
     override fun getMaterialContainerData(): MaterialContainerData {
-        return storageHandler().getReport().materialContainer
+        return StorageHandler.getReport().materialContainer
     }
 
     override fun getLumpSumContainerData(): LumpSumContainerData {
-        return storageHandler().getReport().lumpSumContainer
+        return StorageHandler.getReport().lumpSumContainer
     }
 
     override fun getPhotoContainerData(): PhotoContainerData {
-        return storageHandler().getReport().photoContainer
+        return StorageHandler.getReport().photoContainer
     }
 }

@@ -12,9 +12,8 @@ import android.webkit.WebViewClient
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import com.stemaker.arbeitsbericht.data.ReportData
-import com.stemaker.arbeitsbericht.HtmlReport
-import com.stemaker.arbeitsbericht.R
-import com.stemaker.arbeitsbericht.showConfirmationDialog
+import com.stemaker.arbeitsbericht.helpers.HtmlReport
+import com.stemaker.arbeitsbericht.helpers.showConfirmationDialog
 import java.io.File
 import java.io.IOException
 
@@ -75,7 +74,8 @@ class PdfPrint(val activity: Activity, val report: ReportData) {
         try {
             if(file.exists()) {
                 Log.d("Arbeitsbericht", "The report did already exist")
-                val answer = showConfirmationDialog("Der Bericht exisitiert bereits als PDF, soll er überschrieben werden?", ctx)
+                val answer =
+                    showConfirmationDialog("Der Bericht exisitiert bereits als PDF, soll er überschrieben werden?", ctx)
                 if(answer != AlertDialog.BUTTON_POSITIVE) {
                     return null
                 }

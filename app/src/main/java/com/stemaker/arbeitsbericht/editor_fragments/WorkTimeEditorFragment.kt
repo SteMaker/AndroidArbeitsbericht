@@ -1,4 +1,4 @@
-package com.stemaker.arbeitsbericht
+package com.stemaker.arbeitsbericht.editor_fragments
 
 import android.content.Context
 import android.os.Bundle
@@ -9,11 +9,14 @@ import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.LinearLayout
 import androidx.appcompat.app.AlertDialog
-import androidx.cardview.widget.CardView
+import com.stemaker.arbeitsbericht.helpers.DatePickerFragment
+import com.stemaker.arbeitsbericht.R
+import com.stemaker.arbeitsbericht.helpers.TimePickerFragment
 import com.stemaker.arbeitsbericht.data.WorkTimeContainerData
 import com.stemaker.arbeitsbericht.data.WorkTimeData
 import com.stemaker.arbeitsbericht.databinding.FragmentWorkTimeEditorBinding
 import com.stemaker.arbeitsbericht.databinding.WorkTimeLayoutBinding
+import com.stemaker.arbeitsbericht.helpers.showConfirmationDialog
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -108,7 +111,8 @@ class WorkTimeEditorFragment : ReportEditorSectionFragment(),
         workTimeDataBinding.root.findViewById<ImageButton>(R.id.work_time_del_button).setOnClickListener(object: View.OnClickListener {
             override fun onClick(btn: View) {
                 GlobalScope.launch(Dispatchers.Main) {
-                    val answer = showConfirmationDialog(getString(R.string.del_confirmation), btn.context)
+                    val answer =
+                        showConfirmationDialog(getString(R.string.del_confirmation), btn.context)
                     if (answer == AlertDialog.BUTTON_POSITIVE) {
                         Log.d("Arbeitsbericht.WorkTimeEditorFragment.work_time_del_button.onClick", "deleting work time element")
                         container.removeView(workTimeDataBinding.root)

@@ -1,4 +1,4 @@
-package com.stemaker.arbeitsbericht
+package com.stemaker.arbeitsbericht.editor_fragments
 
 import android.content.Context
 import android.os.Bundle
@@ -6,20 +6,15 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ArrayAdapter
-import android.widget.AutoCompleteTextView
 import android.widget.ImageButton
 import android.widget.LinearLayout
 import androidx.appcompat.app.AlertDialog
-import androidx.cardview.widget.CardView
+import com.stemaker.arbeitsbericht.R
 import com.stemaker.arbeitsbericht.data.WorkItemContainerData
 import com.stemaker.arbeitsbericht.data.WorkItemData
-import com.stemaker.arbeitsbericht.data.WorkTimeContainerData
-import com.stemaker.arbeitsbericht.data.WorkTimeData
 import com.stemaker.arbeitsbericht.databinding.FragmentWorkItemEditorBinding
-import com.stemaker.arbeitsbericht.databinding.FragmentWorkTimeEditorBinding
 import com.stemaker.arbeitsbericht.databinding.WorkItemLayoutBinding
-import com.stemaker.arbeitsbericht.databinding.WorkTimeLayoutBinding
+import com.stemaker.arbeitsbericht.helpers.showConfirmationDialog
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -97,7 +92,8 @@ class WorkItemEditorFragment : ReportEditorSectionFragment(),
         workItemDataBinding.root.findViewById<ImageButton>(R.id.work_item_del_button).setOnClickListener(object: View.OnClickListener {
             override fun onClick(btn: View) {
                 GlobalScope.launch(Dispatchers.Main) {
-                    val answer = showConfirmationDialog(getString(R.string.del_confirmation), btn.context)
+                    val answer =
+                        showConfirmationDialog(getString(R.string.del_confirmation), btn.context)
                     if (answer == AlertDialog.BUTTON_POSITIVE) {
                         Log.d("Arbeitsbericht.WorkItemEditorFragment.work_item_del_button.onClick", "deleting work item element")
                         container.removeView(workItemDataBinding.root)

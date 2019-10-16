@@ -2,7 +2,7 @@
 <layout
         xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
-        tools:context=".LumpSumEditorFragment">
+        tools:context=".editor_fragments.LumpSumEditorFragment">
     <data>
         <variable name="material_container_data" type="com.stemaker.arbeitsbericht.data.MaterialContainerData"/>
     </data>

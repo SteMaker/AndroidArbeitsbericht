@@ -1,4 +1,4 @@
-package com.stemaker.arbeitsbericht
+package com.stemaker.arbeitsbericht.editor_fragments
 
 import android.content.Context
 import android.os.Bundle
@@ -6,15 +6,15 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ArrayAdapter
-import android.widget.AutoCompleteTextView
 import android.widget.ImageButton
 import android.widget.LinearLayout
 import androidx.appcompat.app.AlertDialog
+import com.stemaker.arbeitsbericht.R
 import com.stemaker.arbeitsbericht.data.LumpSumContainerData
 import com.stemaker.arbeitsbericht.data.LumpSumData
 import com.stemaker.arbeitsbericht.databinding.FragmentLumpSumEditorBinding
 import com.stemaker.arbeitsbericht.databinding.LumpSumEditLayoutBinding
+import com.stemaker.arbeitsbericht.helpers.showConfirmationDialog
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -92,7 +92,8 @@ class LumpSumEditorFragment : ReportEditorSectionFragment(),
         lumpSumDataBinding.root.findViewById<ImageButton>(R.id.lump_sum_del_button).setOnClickListener(object: View.OnClickListener {
             override fun onClick(btn: View) {
                 GlobalScope.launch(Dispatchers.Main) {
-                    val answer = showConfirmationDialog(getString(R.string.del_confirmation), btn.context)
+                    val answer =
+                        showConfirmationDialog(getString(R.string.del_confirmation), btn.context)
                     if (answer == AlertDialog.BUTTON_POSITIVE) {
                         Log.d("Arbeitsbericht.LumpSumEditorFragment.lump_sum_del_button.onClick", "deleting work item element")
                         container.removeView(lumpSumDataBinding.root)

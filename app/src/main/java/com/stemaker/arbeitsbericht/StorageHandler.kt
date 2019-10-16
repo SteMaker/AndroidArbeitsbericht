@@ -188,6 +188,8 @@ object StorageHandler {
     }
 
     fun saveConfigurationToFile(c: Context) {
+        configuration.materialDictionary = materialDictionary
+        configuration.workItemDictionary = workItemDictionary
         val fOut = c.openFileOutput("configuration.json", MODE_PRIVATE)
         Log.d("Arbeitsbericht.StorageHandler.saveConfigurationToFile", "currentId = ${configuration.currentId}; num lump sums = ${configuration.lumpSums.size}")
         val osw = OutputStreamWriter(fOut)

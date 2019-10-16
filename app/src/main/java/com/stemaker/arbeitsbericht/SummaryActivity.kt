@@ -16,6 +16,7 @@ import androidx.annotation.NonNull
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.stemaker.arbeitsbericht.data.ReportData
+import com.stemaker.arbeitsbericht.helpers.HtmlReport
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch

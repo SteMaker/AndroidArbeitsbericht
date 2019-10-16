@@ -1,4 +1,4 @@
-package com.stemaker.arbeitsbericht
+package com.stemaker.arbeitsbericht.helpers
 
 import com.stemaker.arbeitsbericht.data.ReportData
 

@@ -1,4 +1,4 @@
-package com.stemaker.arbeitsbericht
+package com.stemaker.arbeitsbericht.editor_fragments
 
 import android.app.Activity.RESULT_OK
 import android.content.Context
@@ -15,12 +15,14 @@ import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
 import androidx.appcompat.app.AlertDialog
-import androidx.cardview.widget.CardView
 import androidx.core.content.FileProvider
+import com.stemaker.arbeitsbericht.helpers.ImageViewFragment
+import com.stemaker.arbeitsbericht.R
 import com.stemaker.arbeitsbericht.data.PhotoContainerData
 import com.stemaker.arbeitsbericht.data.PhotoData
 import com.stemaker.arbeitsbericht.databinding.FragmentPhotoEditorBinding
 import com.stemaker.arbeitsbericht.databinding.PhotoLayoutBinding
+import com.stemaker.arbeitsbericht.helpers.showConfirmationDialog
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -107,7 +109,8 @@ class PhotoEditorFragment : ReportEditorSectionFragment(),
         photoDataBinding.root.findViewById<ImageButton>(R.id.photo_del_button).setOnClickListener(object: View.OnClickListener {
             override fun onClick(btn: View) {
                 GlobalScope.launch(Dispatchers.Main) {
-                    val answer = showConfirmationDialog(getString(R.string.del_confirmation), btn.context)
+                    val answer =
+                        showConfirmationDialog(getString(R.string.del_confirmation), btn.context)
                     if (answer == AlertDialog.BUTTON_POSITIVE) {
                         Log.d("Arbeitsbericht.PhotoEditorFragment.photo_del_button.onClick", "deleting work item element")
                         container.removeView(photoDataBinding.root)

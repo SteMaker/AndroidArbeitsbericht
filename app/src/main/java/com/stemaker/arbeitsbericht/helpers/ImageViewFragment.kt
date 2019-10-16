@@ -1,4 +1,4 @@
-package com.stemaker.arbeitsbericht
+package com.stemaker.arbeitsbericht.helpers
 
 import android.os.Bundle
 import android.util.Log
@@ -7,6 +7,8 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.DialogFragment
 import android.widget.ImageView
+import com.stemaker.arbeitsbericht.GlideApp
+import com.stemaker.arbeitsbericht.R
 
 class ImageViewFragment(val file: String) : DialogFragment() {
 

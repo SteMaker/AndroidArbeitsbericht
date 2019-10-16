@@ -1,4 +1,4 @@
-package com.stemaker.arbeitsbericht
+package com.stemaker.arbeitsbericht.editor_fragments
 
 import android.content.Context
 import android.os.Bundle
@@ -8,11 +8,12 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import androidx.databinding.DataBindingUtil
+import com.stemaker.arbeitsbericht.R
 import com.stemaker.arbeitsbericht.data.ProjectData
 import com.stemaker.arbeitsbericht.databinding.FragmentProjectEditorBinding
 
 class ProjectEditorFragment : ReportEditorSectionFragment(),
-                              ReportEditorSectionFragment.OnExpandChange {
+    ReportEditorSectionFragment.OnExpandChange {
     private var listener: OnProjectEditorInteractionListener? = null
     var projectData: ProjectData? = null
     lateinit var dataBinding: FragmentProjectEditorBinding

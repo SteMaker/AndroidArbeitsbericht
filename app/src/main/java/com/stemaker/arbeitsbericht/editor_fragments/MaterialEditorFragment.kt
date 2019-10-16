@@ -1,4 +1,4 @@
-package com.stemaker.arbeitsbericht
+package com.stemaker.arbeitsbericht.editor_fragments
 
 import android.content.Context
 import android.os.Bundle
@@ -6,15 +6,15 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ArrayAdapter
-import android.widget.AutoCompleteTextView
 import android.widget.ImageButton
 import android.widget.LinearLayout
 import androidx.appcompat.app.AlertDialog
+import com.stemaker.arbeitsbericht.R
 import com.stemaker.arbeitsbericht.data.MaterialContainerData
 import com.stemaker.arbeitsbericht.data.MaterialData
 import com.stemaker.arbeitsbericht.databinding.FragmentMaterialEditorBinding
 import com.stemaker.arbeitsbericht.databinding.MaterialLayoutBinding
+import com.stemaker.arbeitsbericht.helpers.showConfirmationDialog
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -92,7 +92,8 @@ class MaterialEditorFragment : ReportEditorSectionFragment(),
         materialDataBinding.root.findViewById<ImageButton>(R.id.material_del_button).setOnClickListener(object: View.OnClickListener {
             override fun onClick(btn: View) {
                 GlobalScope.launch(Dispatchers.Main) {
-                    val answer = showConfirmationDialog(getString(R.string.del_confirmation), btn.context)
+                    val answer =
+                        showConfirmationDialog(getString(R.string.del_confirmation), btn.context)
                     if (answer == AlertDialog.BUTTON_POSITIVE) {
                         Log.d("Arbeitsbericht.MaterialEditorFragment.material_del_button.onClick", "deleting material element")
                         container.removeView(materialDataBinding.root)

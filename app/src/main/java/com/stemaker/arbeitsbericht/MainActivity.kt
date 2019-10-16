@@ -13,6 +13,7 @@ import androidx.databinding.DataBindingUtil
 import com.stemaker.arbeitsbericht.data.ReportData
 import com.stemaker.arbeitsbericht.databinding.ActivityMainBinding
 import com.stemaker.arbeitsbericht.databinding.ReportCardLayoutBinding
+import com.stemaker.arbeitsbericht.helpers.showConfirmationDialog
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch

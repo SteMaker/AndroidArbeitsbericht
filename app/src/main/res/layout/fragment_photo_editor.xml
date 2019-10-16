@@ -2,7 +2,7 @@
 <layout
         xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
-        tools:context=".WorkItemEditorFragment">
+        tools:context=".editor_fragments.WorkItemEditorFragment">
     <data>
         <variable name="photo_container_data" type="com.stemaker.arbeitsbericht.data.PhotoContainerData"/>
     </data>

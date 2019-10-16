@@ -92,6 +92,7 @@ class WorkItemEditorFragment : ReportEditorSectionFragment(),
         val container = dataBinding.root.findViewById<LinearLayout>(R.id.work_item_content_container) as LinearLayout
         val workItemDataBinding: WorkItemLayoutBinding = WorkItemLayoutBinding.inflate(inflater, null, false)
         workItemDataBinding.workItem = wi
+        workItemDataBinding.workItemContainer = workItemContainerData
         workItemDataBinding.lifecycleOwner = activity
         workItemDataBinding.root.findViewById<ImageButton>(R.id.work_item_del_button).setOnClickListener(object: View.OnClickListener {
             override fun onClick(btn: View) {
@@ -107,14 +108,6 @@ class WorkItemEditorFragment : ReportEditorSectionFragment(),
                 }
             }
         })
-
-        val textView = workItemDataBinding.root.findViewById(R.id.work_item_item) as AutoCompleteTextView
-        // Get the string array
-        val workItemStrings: List<String> = storageHandler().workItemDictionary.items.toList()
-        // Create the adapter and set it to the AutoCompleteTextView
-        ArrayAdapter<String>(container.context, android.R.layout.simple_list_item_1, workItemStrings).also { adapter ->
-            textView.setAdapter(adapter)
-        }
 
         val pos = container.getChildCount()
         Log.d("Arbeitsbericht", "Adding work item card $pos to UI")

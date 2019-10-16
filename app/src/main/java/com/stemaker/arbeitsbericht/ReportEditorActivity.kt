@@ -7,17 +7,17 @@ import android.view.View
 import android.content.Intent
 import android.R.*
 import androidx.databinding.DataBindingUtil
-import com.stemaker.arbeitsbericht.data.BillData
-import com.stemaker.arbeitsbericht.data.ProjectData
-import com.stemaker.arbeitsbericht.data.WorkItemContainerData
-import com.stemaker.arbeitsbericht.data.WorkTimeContainerData
+import com.stemaker.arbeitsbericht.data.*
 import com.stemaker.arbeitsbericht.databinding.ActivityReportEditorBinding
 
 class ReportEditorActivity : AppCompatActivity(),
     ProjectEditorFragment.OnProjectEditorInteractionListener,
     BillEditorFragment.OnBillEditorInteractionListener,
     WorkTimeEditorFragment.OnWorkTimeEditorInteractionListener,
-    WorkItemEditorFragment.OnWorkItemEditorInteractionListener {
+    WorkItemEditorFragment.OnWorkItemEditorInteractionListener,
+    MaterialEditorFragment.OnMaterialEditorInteractionListener,
+    LumpSumEditorFragment.OnLumpSumEditorInteractionListener,
+    PhotoEditorFragment.OnPhotoEditorInteractionListener {
 
     lateinit var topBinding : ActivityReportEditorBinding
     /*****************/
@@ -136,4 +136,15 @@ class ReportEditorActivity : AppCompatActivity(),
         return storageHandler().getReport().workItemContainer
     }
 
+    override fun getMaterialContainerData(): MaterialContainerData {
+        return storageHandler().getReport().materialContainer
+    }
+
+    override fun getLumpSumContainerData(): LumpSumContainerData {
+        return storageHandler().getReport().lumpSumContainer
+    }
+
+    override fun getPhotoContainerData(): PhotoContainerData {
+        return storageHandler().getReport().photoContainer
+    }
 }

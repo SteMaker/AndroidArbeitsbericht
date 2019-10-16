@@ -135,6 +135,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:inputType="numberDecimal"
+                        android:selectAllOnFocus="true"
                         app:textInt="@={work_time.distance}"
                         android:hint="@string/distance"/>
             </com.google.android.material.textfield.TextInputLayout>

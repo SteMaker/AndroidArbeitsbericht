@@ -38,6 +38,21 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                 />
+                <fragment android:name="com.stemaker.arbeitsbericht.LumpSumEditorFragment"
+                    android:id="@+id/lump_sum_editor_fragment"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                />
+                <fragment android:name="com.stemaker.arbeitsbericht.MaterialEditorFragment"
+                    android:id="@+id/material_editor_fragment"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                />
+                <fragment android:name="com.stemaker.arbeitsbericht.PhotoEditorFragment"
+                    android:id="@+id/photo_editor_fragment"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                />
             </LinearLayout>
         </ScrollView>
             <LinearLayout

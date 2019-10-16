@@ -1,8 +1,80 @@
 package com.stemaker.arbeitsbericht.data
 
-import android.util.Log
 import com.stemaker.arbeitsbericht.*
 import kotlinx.serialization.Serializable
+
+@Serializable
+class PhotoContainerDataSerialized() {
+    val items = mutableListOf<PhotoDataSerialized>()
+
+    fun copyFromData(p: PhotoContainerData) {
+        items.clear()
+        for(i in 0 until p.items.size) {
+            val item = PhotoDataSerialized()
+            item.copyFromData(p.items[i])
+            items.add(item)
+        }
+    }
+}
+
+@Serializable
+class PhotoDataSerialized() {
+    var file: String = ""
+    var description: String = ""
+
+    fun copyFromData(p: PhotoData) {
+        file = p.file.value!!
+        description = p.description.value!!
+    }
+}
+
+@Serializable
+class LumpSumDataSerialized() {
+    var item: String = ""
+
+    fun copyFromData(l: LumpSumData) {
+        item = l.item.value!!
+    }
+}
+
+@Serializable
+class LumpSumContainerDataSerialized() {
+    val items = mutableListOf<LumpSumDataSerialized>()
+
+    fun copyFromData(l: LumpSumContainerData) {
+        items.clear()
+        for(i in 0 until l.items.size) {
+            val item = LumpSumDataSerialized()
+            item.copyFromData(l.items[i])
+            items.add(item)
+        }
+    }
+}
+
+@Serializable
+class MaterialDataSerialized() {
+    var item: String = ""
+    var amount: Int = 0
+
+    fun copyFromData(w: MaterialData) {
+        item = w.item.value!!
+        amount = w.amount.value!!
+    }
+}
+
+@Serializable
+class MaterialContainerDataSerialized() {
+    val items = mutableListOf<MaterialDataSerialized>()
+
+    fun copyFromData(m: MaterialContainerData) {
+        items.clear()
+        for(i in 0 until m.items.size) {
+            val item = MaterialDataSerialized()
+            item.copyFromData(m.items[i])
+            items.add(item)
+        }
+    }
+}
 
 @Serializable
 class WorkItemDataSerialized() {
@@ -96,6 +168,9 @@ class ReportDataSerialized() {
     var bill = BillDataSerialized()
     val workTimeContainer = WorkTimeContainerDataSerialized()
     val workItemContainer = WorkItemContainerDataSerialized()
+    val materialContainer = MaterialContainerDataSerialized()
+    val lumpSumContainer = LumpSumContainerDataSerialized()
+    val photoContainer = PhotoContainerDataSerialized()
 
     fun copyFromData(r: ReportData) {
         id = r.id.value!!
@@ -105,6 +180,9 @@ class ReportDataSerialized() {
         bill.copyFromData(r.bill)
         workTimeContainer.copyFromData(r.workTimeContainer)
         workItemContainer.copyFromData(r.workItemContainer)
+        materialContainer.copyFromData(r.materialContainer)
+        lumpSumContainer.copyFromData(r.lumpSumContainer)
+        photoContainer.copyFromData(r.photoContainer)
     }
 
 }

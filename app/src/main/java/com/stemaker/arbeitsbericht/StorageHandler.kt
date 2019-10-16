@@ -22,10 +22,16 @@ object StorageHandler {
     var reports = mutableListOf<Int>()
     lateinit var activeReport: ReportData
     lateinit var configuration: Configuration
-    lateinit var materialDictionary: MaterialDictionary
-    var materialDictionaryChanged: Boolean = false
-    lateinit var workItemDictionary: WorkItemDictionary
-    var workItemDictionaryChanged: Boolean = false
+
+    private var _materialDictionary = mutableSetOf<String>()
+    val materialDictionary: Set<String>
+        get() = _materialDictionary
+    private var materialDictionaryChanged: Boolean = false
+
+    private var _workItemDictionary = mutableSetOf<String>()
+    val workItemDictionary: Set<String>
+        get() = _workItemDictionary
+    private var workItemDictionaryChanged: Boolean = false
 
     fun myInit() {
         val c: Context = ArbeitsberichtApp.appContext
@@ -59,11 +65,6 @@ object StorageHandler {
                 val toast = Toast.makeText(c, "Fehler bei der aktuellen laufenden Nummer", Toast.LENGTH_LONG)
                 toast.show()
             }
-
-            // Read the list of material items
-            readMaterialDictionaryFromFile(c)
-            // Read the list of work items
-            readWorkItemDictionaryFromFile(c)
 
             Log.d("Arbeitsbericht.StorageHandler.myInit", "done")
         }
@@ -103,7 +104,7 @@ object StorageHandler {
             if (inputStream != null) {
                 val inputStreamReader = InputStreamReader(inputStream)
                 val bufferedReader = BufferedReader(inputStreamReader)
-                var receiveString: String? = ""
+                var receiveString: String?
                 val stringBuilder = StringBuilder()
 
                 receiveString = bufferedReader.readLine()
@@ -137,16 +138,6 @@ object StorageHandler {
         Log.d("Arbeitsbericht.StorageHandler.readReportFromFile", "Trying to read from file $fileName")
         val jsonString = readStringFromFile(fileName, c)
         val rep = ReportData.getReportFromJson(jsonString)
-        /*
-        if(reportSer.lump_sums == null) {
-            Log.d("Arbeitsbericht.StorageHandler.readReportFromFile", "Report seems to be old, not having a lump sum, adding it")
-            reportSer.lump_sums = mutableListOf<LumpSum>()
-        }
-        if(reportSer.photos == null) {
-            Log.d("Arbeitsbericht.StorageHandler.readReportFromFile", "Report seems to be old, not having photos, adding it")
-            reportSer.photos = mutableListOf<Photo>()
-        }
-        */
         return rep
     }
 
@@ -159,6 +150,15 @@ object StorageHandler {
 
         for(wi in r.workItemContainer.items) {
             addToWorkItemDictionary(wi.item.value!!)
+        }
+        for(m in r.materialContainer.items) {
+            addToMaterialDictionary(m.item.value!!)
+        }
+
+        if(materialDictionaryChanged || workItemDictionaryChanged) {
+            saveConfigurationToFile(c)
+            materialDictionaryChanged = false
+            workItemDictionaryChanged = false
         }
     }
 
@@ -178,8 +178,6 @@ object StorageHandler {
             val fIn = c.openFileInput("configuration.json")
             val isr = InputStreamReader(fIn)
             configuration = gson.fromJson(isr, Configuration::class.java)
-            if(configuration.lumpSums == null)
-                configuration.lumpSums = mutableListOf<String>()
             Log.d("Arbeitsbericht.StorageHandler.loadConfigurationFromFile", "Next ID to be used: ${configuration.currentId}")
         }
         catch (e: FileNotFoundException){
@@ -197,72 +195,14 @@ object StorageHandler {
         osw.close()
     }
 
-    private fun readMaterialDictionaryFromFile(c: Context) {
-        Log.d("Arbeitsbericht.StorageHandler.readMaterialDictionaryFromFile", "")
-        if(materialDictionaryChanged) {
-            Log.w("Arbeitsbericht.StorageHandler.readMaterialDictionaryFromFile", "Unexpected that we have a pending material dictionary update while we want to read it")
-            saveMaterialDictionaryToFile(c)
-        }
-        try {
-            val fIn = c.openFileInput("material_dictionary.json")
-            val isr = InputStreamReader(fIn)
-            materialDictionary = gson.fromJson(isr, MaterialDictionary::class.java)
-        }
-        catch (e: FileNotFoundException){
-            Log.d("Arbeitsbericht.StorageHandler.readMaterialDictionary", "No material dictionary file found, creating a new one")
-            materialDictionary = MaterialDictionary()
-            saveMaterialDictionaryToFile(c)
-        }
-    }
-
-    private fun saveMaterialDictionaryToFile(c: Context) {
-        if(materialDictionaryChanged) {
-            Log.d("Arbeitsbericht.StorageHandler.saveMaterialDictionaryToFile", "saving")
-            val fOut = c.openFileOutput("material_dictionary.json", MODE_PRIVATE)
-            val osw = OutputStreamWriter(fOut)
-            gson.toJson(materialDictionary, osw)
-            osw.close()
-            materialDictionaryChanged = false
-        }
-    }
-
-    fun addToMaterialDictionary(item: String) {
-        if(materialDictionary.items.add(item)) {
+    private fun addToMaterialDictionary(item: String) {
+        if(_materialDictionary.add(item)) {
             materialDictionaryChanged = true
         }
     }
 
-    private fun readWorkItemDictionaryFromFile(c: Context) {
-        Log.d("Arbeitsbericht.StorageHandler.readWorkItemDictionaryFromFile", "")
-        if(workItemDictionaryChanged) {
-            Log.w("Arbeitsbericht.StorageHandler.readWorkItemDictionaryFromFile", "Unexpected that we have a pending work item dictionary update while we want to read it")
-            saveWorkItemDictionaryToFile(c)
-        }
-        try {
-            val fIn = c.openFileInput("workitem_dictionary.json")
-            val isr = InputStreamReader(fIn)
-            workItemDictionary = gson.fromJson(isr, WorkItemDictionary::class.java)
-        }
-        catch (e: FileNotFoundException){
-            Log.d("Arbeitsbericht.StorageHandler.readWorkItemDictionary", "No workItem dictionary file found, creating a new one")
-            workItemDictionary = WorkItemDictionary()
-            saveWorkItemDictionaryToFile(c)
-        }
-    }
-
-    private fun saveWorkItemDictionaryToFile(c: Context) {
-        if(workItemDictionaryChanged) {
-            Log.d("Arbeitsbericht.StorageHandler.saveWorkItemDictionaryToFile", "saving")
-            val fOut = c.openFileOutput("workitem_dictionary.json", MODE_PRIVATE)
-            val osw = OutputStreamWriter(fOut)
-            gson.toJson(workItemDictionary, osw)
-            osw.close()
-            workItemDictionaryChanged = false
-        }
-    }
-
     private fun addToWorkItemDictionary(item: String) {
-        if(workItemDictionary.items.add(item)) {
+        if(_workItemDictionary.add(item)) {
             workItemDictionaryChanged = true
         }
     }

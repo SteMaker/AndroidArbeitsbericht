@@ -23,6 +23,9 @@ class ReportData private constructor(val __id: Int = 0): ViewModel() {
     var bill = BillData()
     val workTimeContainer = WorkTimeContainerData()
     val workItemContainer = WorkItemContainerData()
+    val materialContainer = MaterialContainerData()
+    val lumpSumContainer = LumpSumContainerData()
+    val photoContainer = PhotoContainerData()
 
     init {
         _id.value = __id
@@ -38,6 +41,9 @@ class ReportData private constructor(val __id: Int = 0): ViewModel() {
         bill.copyFromSerialized(r.bill)
         workTimeContainer.copyFromSerialized(r.workTimeContainer)
         workItemContainer.copyFromSerialized(r.workItemContainer)
+        materialContainer.copyFromSerialized(r.materialContainer)
+        lumpSumContainer.copyFromSerialized(r.lumpSumContainer)
+        photoContainer.copyFromSerialized(r.photoContainer)
     }
 
     private fun getCurrentDate(): String {

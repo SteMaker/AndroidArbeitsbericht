@@ -24,13 +24,34 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical">
-        <Spinner
-            android:id="@+id/lump_sum_item"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:selectionList="@{lump_sum_container.list}"
-            app:selectedItem="@={lump_sum.item}">
-        </Spinner>
+            android:orientation="horizontal">
+            <Spinner
+                android:id="@+id/lump_sum_item"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="2"
+                app:selectionList="@{lump_sum_container.list}"
+                app:selectedItem="@={lump_sum.item}">
+            </Spinner>
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/lump_sum_amount"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="numberDecimal"
+                    android:selectAllOnFocus="true"
+                    app:textInt="@={lump_sum.amount}"
+                    android:hint="@string/amount"
+                />
+            </com.google.android.material.textfield.TextInputLayout>
+        </LinearLayout>
+
         <ImageButton
                 android:id="@+id/lump_sum_del_button"
                 android:layout_width="50dp"

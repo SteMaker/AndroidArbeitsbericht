@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:card_view="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/work_item_card_top"
+    android:id="@+id/report_card_top"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     card_view:cardCornerRadius="4dp"
@@ -22,7 +22,8 @@
             android:id="@+id/resh_headline_container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:clickable="true">
             <TextView
                 android:layout_width="0dp"
                 android:layout_weight="1"
@@ -35,15 +36,13 @@
                 android:layout_marginBottom="8dp"
                 android:textSize="26sp"
             />
-            <ImageButton
+            <ImageView
                 android:layout_width="100dp"
                 android:layout_height="50dp"
                 android:src="@drawable/ic_expand_more_black_24dp"
-                android:id="@+id/resh_expand_content_button"
-                android:onClick="onClickExpandContentButton"
+                android:id="@+id/resh_expand_content_pic"
                 android:layout_gravity="right"
                 android:background="#00000000"
-                android:contentDescription="@string/unfold"
             />
         </LinearLayout> <!-- End of resh_headline_container -->
     </LinearLayout>

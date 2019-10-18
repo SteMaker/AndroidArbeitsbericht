@@ -11,11 +11,14 @@ import android.view.View
 import android.webkit.WebView
 import com.github.gcacace.signaturepad.views.SignaturePad
 import android.print.*
+import android.widget.ImageView
 import android.widget.Toast
 import androidx.annotation.NonNull
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.databinding.DataBindingUtil
 import com.stemaker.arbeitsbericht.data.ReportData
+import com.stemaker.arbeitsbericht.databinding.ActivitySummaryBinding
 import com.stemaker.arbeitsbericht.helpers.HtmlReport
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -27,38 +30,29 @@ import kotlin.coroutines.suspendCoroutine
 
 
 class SummaryActivity : AppCompatActivity(), PdfPrint.PdfPrintFinishedCallback {
+    lateinit var binding: ActivitySummaryBinding
+    val signatureData = storageHandler().getReport().signatureData
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_summary)
+        binding = DataBindingUtil.setContentView(this, R.layout.activity_summary)
+        binding.lifecycleOwner = this
+        binding.signature = signatureData
+
+        if(signatureData.employeeSignatureSvg.value == "") {
+            findViewById<SignaturePad>(R.id.employee_signature).visibility = View.VISIBLE
+        } else {
+            findViewById<ImageView>(R.id.employee_signature_view).visibility = View.VISIBLE
+        }
+        if(signatureData.clientSignatureSvg.value == "") {
+            findViewById<SignaturePad>(R.id.client_signature).visibility = View.VISIBLE
+        } else {
+            findViewById<ImageView>(R.id.client_signature_view).visibility = View.VISIBLE
+        }
 
         val html = HtmlReport.encodeReport(storageHandler().getReport(), false)
         val wv = findViewById(R.id.webview) as WebView
         wv.loadDataWithBaseURL("", html, "text/html", "UTF-8", "")
-
-        /*
-        if(storageHandler().getReport().employee_signature != "") {
-            val svg = SVG.getFromString(storageHandler().getReport().employee_signature)
-            val pd = PictureDrawable(svg.renderToPicture())
-            val sigIV = findViewById<ImageView>(R.id.employee_signature_view)
-            sigIV.setImageDrawable(pd)
-            sigIV.visibility = View.VISIBLE
-        } else {
-            val sigPad = findViewById<SignaturePad>(R.id.employee_signature)
-            sigPad.visibility = View.VISIBLE
-        }
-        if(storageHandler().getReport().client_signature != "") {
-            val svg = SVG.getFromString(storageHandler().getReport().client_signature)
-            val pd = PictureDrawable(svg.renderToPicture())
-            val sigIV = findViewById<ImageView>(R.id.client_signature_view)
-            sigIV.setImageDrawable(pd)
-            sigIV.visibility = View.VISIBLE
-        } else {
-            val sigPad = findViewById<SignaturePad>(R.id.client_signature)
-            sigPad.visibility = View.VISIBLE
-        }
-
-         */
     }
 
     fun saveAndBackToMain() {
@@ -73,69 +67,49 @@ class SummaryActivity : AppCompatActivity(), PdfPrint.PdfPrintFinishedCallback {
         saveAndBackToMain()
     }
 
-    override fun onPause() {
-        super.onPause()
-        saveSignatures()
-    }
-
     fun onClickBack(@Suppress("UNUSED_PARAMETER") backButton: View) {
         Log.d("Arbeitsbericht.ReportEditorActivity.onClickBack", "called")
         saveAndBackToMain()
     }
 
+    override fun onPause() {
+        super.onPause()
+        saveSignatures()
+    }
+
     fun onClickClearEmployeeSignature(@Suppress("UNUSED_PARAMETER") btn: View) {
         Log.d("Arbeitsbericht.SummaryActivity.onClickClearEmployeeSignature", "called")
-        val sigPad = findViewById<SignaturePad>(R.id.employee_signature)
-/*
-        if(sigPad.visibility == View.VISIBLE) {
-            sigPad.clear()
-        } else {
-            storageHandler().getReport().employee_signature = ""
-            findViewById<ImageView>(R.id.employee_signature_view).visibility = View.GONE
-            sigPad.visibility = View.VISIBLE
-        }
-
- */
+        val pad = findViewById<SignaturePad>(R.id.employee_signature)
+        pad.visibility = View.VISIBLE
+        pad.clear()
+        findViewById<ImageView>(R.id.employee_signature_view).visibility = View.GONE
     }
 
     fun onClickClearClientSignature(@Suppress("UNUSED_PARAMETER") btn: View) {
         Log.d("Arbeitsbericht.SummaryActivity.onClickClearClientSignature", "called")
-        val sigPad = findViewById<SignaturePad>(R.id.client_signature)
-        /*
-        if(sigPad.visibility == View.VISIBLE) {
-            Log.d("Arbeitsbericht.SummaryActivity.onClickClearClientSignature", "Clearing pad")
-            sigPad.clear()
-        } else {
-            Log.d("Arbeitsbericht.SummaryActivity.onClickClearClientSignature", "Re-enabling pad")
-            storageHandler().getReport().client_signature = ""
-            findViewById<ImageView>(R.id.client_signature_view).visibility = View.GONE
-            sigPad.visibility = View.VISIBLE
-        }
-
-         */
+        val pad = findViewById<SignaturePad>(R.id.client_signature)
+        pad.visibility = View.VISIBLE
+        pad.clear()
+        findViewById<ImageView>(R.id.client_signature_view).visibility = View.GONE
     }
 
     fun saveSignatures() {
-        /*
-        val cSig = findViewById(R.id.client_signature) as SignaturePad
-        if(!cSig.isEmpty) {
-            storageHandler().getReport().client_signature = cSig.getSignatureSvg()
-            Log.d("Arbeitsbericht", "Saving client signature")
-        }
-        val eSig = findViewById(R.id.employee_signature) as SignaturePad
+        val eSig = findViewById<SignaturePad>(R.id.employee_signature)
         if(!eSig.isEmpty) {
-            storageHandler().getReport().employee_signature = eSig.getSignatureSvg()
+            signatureData.employeeSignatureSvg.value = eSig.getSignatureSvg()
             Log.d("Arbeitsbericht", "Saving employee signature")
         }
-
-         */
+        val cSig = findViewById<SignaturePad>(R.id.client_signature)
+        if(!cSig.isEmpty) {
+            signatureData.clientSignatureSvg.value = cSig.getSignatureSvg()
+            Log.d("Arbeitsbericht", "Saving client signature")
+        }
     }
 
     var pdfWritePermissionContinuation: Continuation<Boolean>? = null
     fun onClickSend(@Suppress("UNUSED_PARAMETER") sendButton: View) {
-        saveSignatures()
-
         Log.d("Arbeitsbericht.SummaryActivity.onClickSend", "Entry")
+        saveSignatures()
 
         GlobalScope.launch(Dispatchers.Main) {
             var withPdf = true

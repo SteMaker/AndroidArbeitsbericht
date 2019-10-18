@@ -65,6 +65,8 @@ object StorageHandler {
                 val toast = Toast.makeText(c, "Fehler bei der aktuellen laufenden Nummer", Toast.LENGTH_LONG)
                 toast.show()
             }
+            if(configuration.activeReportId > 0)
+                selectReportById(configuration.activeReportId)
 
             Log.d("Arbeitsbericht.StorageHandler.myInit", "done")
         }
@@ -87,13 +89,16 @@ object StorageHandler {
         Log.d("Arbeitsbericht.StorageHandler.createNewReportAndSelect", "Created new report with ID ${rep.id.value!!}")
         reports.add(rep.id.value!!)
         activeReport = rep
+        configuration.activeReportId = rep.id.value!!
         configuration.currentId += 1
         saveConfigurationToFile(c)
     }
 
     fun selectReportById(id: Int, c: Context = ArbeitsberichtApp.appContext) {
         Log.d("Arbeitsbericht.StorageHandler.selectReportById", c.toString())
+        configuration.activeReportId = id
         activeReport = readReportFromFile(reportIdToReportFile(id), c)
+        saveConfigurationToFile(c)
     }
 
     private fun readStringFromFile(fileName: String, context: Context): String {
@@ -141,17 +146,17 @@ object StorageHandler {
         return rep
     }
 
-    fun saveReportToFile(r: ReportData, c: Context) {
-        r.updateLastChangeDate()
-        val jsonString = ReportData.getJsonFromReport(r)
-        val fileName = reportIdToReportFile(r.id.value!!)
+    fun saveActiveReportToFile(c: Context) {
+        activeReport.updateLastChangeDate()
+        val jsonString = ReportData.getJsonFromReport(activeReport)
+        val fileName = reportIdToReportFile(activeReport.id.value!!)
         writeStringToFile(fileName, jsonString, c)
         Log.d("Arbeitsbericht.StorageHandler.saveReportToFile", "Saved to file $fileName")
 
-        for(wi in r.workItemContainer.items) {
+        for(wi in activeReport.workItemContainer.items) {
             addToWorkItemDictionary(wi.item.value!!)
         }
-        for(m in r.materialContainer.items) {
+        for(m in activeReport.materialContainer.items) {
             addToMaterialDictionary(m.item.value!!)
         }
 

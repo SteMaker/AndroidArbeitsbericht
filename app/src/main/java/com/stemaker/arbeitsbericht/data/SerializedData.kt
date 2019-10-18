@@ -4,6 +4,17 @@ import com.stemaker.arbeitsbericht.*
 import kotlinx.serialization.Serializable
 
 @Serializable
+class SignatureDataSerialized {
+    var employeeSignatureSvg: String = ""
+    var clientSignatureSvg: String = ""
+
+    fun copyFromData(s: SignatureData) {
+        employeeSignatureSvg = s.employeeSignatureSvg.value!!
+        clientSignatureSvg = s.clientSignatureSvg.value!!
+    }
+}
+
+@Serializable
 class PhotoContainerDataSerialized() {
     val items = mutableListOf<PhotoDataSerialized>()
 
@@ -171,6 +182,7 @@ class ReportDataSerialized() {
     val materialContainer = MaterialContainerDataSerialized()
     val lumpSumContainer = LumpSumContainerDataSerialized()
     val photoContainer = PhotoContainerDataSerialized()
+    val signatureData = SignatureDataSerialized()
 
     fun copyFromData(r: ReportData) {
         id = r.id.value!!
@@ -183,6 +195,7 @@ class ReportDataSerialized() {
         materialContainer.copyFromData(r.materialContainer)
         lumpSumContainer.copyFromData(r.lumpSumContainer)
         photoContainer.copyFromData(r.photoContainer)
+        signatureData.copyFromData(r.signatureData)
     }
 
 }

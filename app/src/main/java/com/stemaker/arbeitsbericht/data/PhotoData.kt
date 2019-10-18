@@ -1,5 +1,6 @@
 package com.stemaker.arbeitsbericht.data
 
+import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 
@@ -16,13 +17,17 @@ class PhotoContainerData(): ViewModel() {
     }
 
     fun addPhoto(): PhotoData {
+        Log.d("Arbeitsbericht.debug", "Adding photo, before: ${items.size}, object: ${this.toString()}")
         val p = PhotoData()
         items.add(p)
+        Log.d("Arbeitsbericht.debug", "Adding photo, after: ${items.size}, object: ${this.toString()}")
         return p
     }
 
     fun removePhoto(p: PhotoData) {
+        Log.d("Arbeitsbericht.debug", "Removing photo, before: ${items.size}, object: ${this.toString()}")
         items.remove(p)
+        Log.d("Arbeitsbericht.debug", "Removing photo, after: ${items.size}, object: ${this.toString()}")
     }
 }
 

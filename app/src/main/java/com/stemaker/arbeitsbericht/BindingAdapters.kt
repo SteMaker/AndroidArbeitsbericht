@@ -1,5 +1,6 @@
 package com.stemaker.arbeitsbericht
 
+import android.graphics.drawable.PictureDrawable
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
@@ -8,7 +9,10 @@ import android.widget.*
 import androidx.databinding.BindingAdapter
 import androidx.databinding.InverseBindingAdapter
 import androidx.databinding.InverseBindingListener
+import com.caverock.androidsvg.SVG
+import com.github.gcacace.signaturepad.views.SignaturePad
 import com.google.android.material.textfield.TextInputEditText
+import java.io.File
 
 object BindingAdapters {
     /******************************************************************/
@@ -124,7 +128,21 @@ object BindingAdapters {
     @BindingAdapter("srcFile")
     fun setSrcFile(imgView: ImageView, file: String) {
         Log.d("Arbeitsbericht.BindingAdapters.srcFile.setSrcFile","called")
-        GlideApp.with(imgView.context).load(file).into(imgView)
+        if(file != "" && File(file).length() > 0)
+            GlideApp.with(imgView.context).load(file).into(imgView)
     }
 
+    /********************************************************/
+    /* Binding Adapter to bind a svg string to an ImageView */
+    /********************************************************/
+    @JvmStatic
+    @BindingAdapter("svgString")
+    fun setSvgString(imgView: ImageView, svgString: String) {
+        Log.d("Arbeitsbericht.BindingAdapters.svgString.setSvgString: ",if(svgString=="") "no data" else "with SVG")
+        if(svgString != "") {
+            val svg = SVG.getFromString(svgString)
+            val pd = PictureDrawable(svg.renderToPicture())
+            imgView.setImageDrawable(pd)
+        }
+    }
 }

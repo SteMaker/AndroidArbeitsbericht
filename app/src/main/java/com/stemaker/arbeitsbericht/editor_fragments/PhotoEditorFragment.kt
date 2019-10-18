@@ -14,6 +14,7 @@ import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.FileProvider
 import com.stemaker.arbeitsbericht.helpers.ImageViewFragment
@@ -39,6 +40,7 @@ class PhotoEditorFragment : ReportEditorSectionFragment(),
     private var listener: OnPhotoEditorInteractionListener? = null
     var photoContainerData: PhotoContainerData? = null
     lateinit var dataBinding: FragmentPhotoEditorBinding
+    var activePhoto: PhotoData? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,6 +52,7 @@ class PhotoEditorFragment : ReportEditorSectionFragment(),
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+
         // Inflate the layout for this fragment
         Log.d("Arbeitsbericht","PhotoEditorFragment.onCreateView called")
         val root = super.onCreateView(inflater, container, savedInstanceState)
@@ -98,7 +101,6 @@ class PhotoEditorFragment : ReportEditorSectionFragment(),
     }
 
     val REQUEST_TAKE_PHOTO = 1
-    var continuation: Continuation<Boolean>? = null
 
     fun addPhotoView(p: PhotoData) {
         val inflater = layoutInflater
@@ -124,34 +126,25 @@ class PhotoEditorFragment : ReportEditorSectionFragment(),
 
         photoDataBinding.root.findViewById<ImageButton>(R.id.photo_take_button).setOnClickListener(object : View.OnClickListener {
             override fun onClick(btn: View) {
-                GlobalScope.launch(Dispatchers.Main) {
-                    Intent(MediaStore.ACTION_IMAGE_CAPTURE).also { takePictureIntent ->
-                        // Ensure that there's a camera activity to handle the intent
-                        takePictureIntent.resolveActivity(activity!!.packageManager)?.also {
-                            // Create the File where the photo should go
-                            val photoFile: File? = try {
-                                createImageFile()
-                            } catch (ex: IOException) {
-                                // TODO: Error occurred while creating the File
-                                null
-                            }
-                            // Continue only if the File was successfully created
-                            photoFile?.also {
-                                val photoURI: Uri = FileProvider.getUriForFile(activity!!.applicationContext, "com.android.stemaker.arbeitsbericht.fileprovider", it)
-                                Log.d("Arbeitsbericht.PhotoEditorFragment.onClickTakePhoto", "PhotoURI: ${photoURI}")
-                                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
-                                startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO)
-                                val success = suspendCoroutine<Boolean> {
-                                    Log.d("Arbeitsbericht.PhotoEditorFragment.addPhotoView", "Coroutine: suspended")
-                                    continuation = it
-                                }
-                                Log.d("Arbeitsbericht.PhotoEditorFragment.addPhotoView", "Coroutine: resumed with success=${success}")
-                                if(success) {
-                                    p.file.value = photoFile.absolutePath
-                                } else {
-                                    // TODO: Error occurred while taking the photo
-                                }
-                            }
+                Intent(MediaStore.ACTION_IMAGE_CAPTURE).also { takePictureIntent ->
+                    // Ensure that there's a camera activity to handle the intent
+                    takePictureIntent.resolveActivity(activity!!.packageManager)?.also {
+                        // Create the File where the photo should go
+                        val photoFile: File? = try {
+                            createImageFile()
+                        } catch (ex: IOException) {
+                            val toast = Toast.makeText(activity, "Konnte Datei für Foto nicht erstellen", Toast.LENGTH_LONG)
+                            toast.show()
+                            null
+                        }
+                        // Continue only if the File was successfully created
+                        photoFile?.also {
+                            val photoURI: Uri = FileProvider.getUriForFile(activity!!.applicationContext, "com.android.stemaker.arbeitsbericht.fileprovider", it)
+                            Log.d("Arbeitsbericht.PhotoEditorFragment.onClickTakePhoto", "PhotoURI: ${photoURI}")
+                            takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
+                            p.file.value = photoFile.absolutePath
+                            activePhoto = p
+                            startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO)
                         }
                     }
                 }
@@ -168,7 +161,7 @@ class PhotoEditorFragment : ReportEditorSectionFragment(),
             }
         })
 
-                val pos = container.getChildCount()
+        val pos = container.getChildCount()
         Log.d("Arbeitsbericht", "Adding work item card $pos to UI")
         container.addView(photoDataBinding.root, pos)
     }
@@ -183,10 +176,8 @@ class PhotoEditorFragment : ReportEditorSectionFragment(),
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (requestCode == REQUEST_TAKE_PHOTO && resultCode == RESULT_OK) {
-            continuation!!.resume(true)
-        } else {
-            Log.w("Arbeitsbericht.PhotoEditorFragment.onActivityResult", "No success taking the photo. requestCode=$requestCode, resultCode=$resultCode")
-            continuation!!.resume(false)
+            // Trigger a redraw
+            activePhoto?.file?.value = activePhoto?.file?.value
         }
     }
 

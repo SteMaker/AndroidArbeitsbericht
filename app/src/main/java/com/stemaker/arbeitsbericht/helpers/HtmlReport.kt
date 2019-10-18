@@ -1,33 +1,33 @@
 package com.stemaker.arbeitsbericht.helpers
 
+import android.util.Log
 import com.stemaker.arbeitsbericht.data.ReportData
 
 object HtmlReport {
 
     fun encodeReport(rep: ReportData, inclSignatures: Boolean = true): String {
-        /*
-        Log.d("Arbeitsbericht.HtmlReport.encodeReport", "Generating HTML report for ID:${rep.id}, Name: ${rep.client_name}")
+        Log.d("Arbeitsbericht.HtmlReport.encodeReport", "Generating HTML report for ID:${rep.id}, Name: ${rep.project.name.value}")
         var html: String =
-                "<!DOCTYPE html>" +
-                "<html>" +
-                "<body>" +
-                "<h1>Arbeitsbericht Nr. ${rep.id}</h1>" +
-                "<table style=\"border: 2px solid black;border-collapse: collapse;\">" +
+            "<!DOCTYPE html>" +
+                    "<html>" +
+                    "<body>" +
+                    "<h1>Arbeitsbericht Nr. ${rep.id.value}</h1>" +
+                    "<table style=\"border: 2px solid black;border-collapse: collapse;\">" +
                     "<tr>" +
                         "<th style=\"padding: 15px;font-size:24px;text-align:left;border: 2px solid black;border-collapse: collapse;\">Kunde / Projekt</th>" +
                         "<th style=\"padding: 15px;font-size:24px;text-align:left;border: 2px solid black;border-collapse: collapse;\">Rechnungsaddresse</th>" +
                     "</tr>" +
                     "<tr>" +
-                        "<td style=\"padding: 10px;border: 2px solid black;border-collapse: collapse;\"> ${rep.client_name}</td>" +
-                        "<td style=\"padding: 10px;border: 2px solid black;border-collapse: collapse;\">${rep.bill_address_name}</td>" +
+                        "<td style=\"padding: 10px;border: 2px solid black;border-collapse: collapse;\"> ${rep.project.name.value}</td>" +
+                        "<td style=\"padding: 10px;border: 2px solid black;border-collapse: collapse;\">${rep.bill.name.value}</td>" +
                     "</tr>" +
                     "<tr>" +
-                        "<td style=\"padding: 10px;border: 2px solid black;border-collapse: collapse;\"> ${rep.client_extra1}</td>" +
-                        "<td style=\"padding: 10px;border: 2px solid black;border-collapse: collapse;\">${rep.bill_address_street}</td>" +
+                        "<td style=\"padding: 10px;border: 2px solid black;border-collapse: collapse;\"> ${rep.project.extra1.value}</td>" +
+                        "<td style=\"padding: 10px;border: 2px solid black;border-collapse: collapse;\">${rep.bill.street.value}</td>" +
                     "</tr>" +
                     "<tr>" +
                         "<td style=\"padding: 10px;border: 2px solid black;border-collapse: collapse;\"></td>" +
-                        "<td style=\"padding: 10px;border: 2px solid black;border-collapse: collapse;\">${rep.bill_address_zip} ${rep.bill_address_city}</td>" +
+                        "<td style=\"padding: 10px;border: 2px solid black;border-collapse: collapse;\">${rep.bill.zip.value} ${rep.bill.city.value}</td>" +
                     "</tr>" +
                 "</table><hr>"
 
@@ -42,13 +42,13 @@ object HtmlReport {
                         "<th style=\"padding: 15px;font-size:24px;text-align:left;border: 2px solid black;border-collapse: collapse;\">Fahrzeit</th>" +
                         "<th style=\"padding: 15px;font-size:24px;text-align:left;border: 2px solid black;border-collapse: collapse;\">Fahrstrecke [km]</th>" +
                     "</tr>"
-        rep.work_times.forEach {
+            rep.workTimeContainer.items.forEach {
             html += "<tr>" +
-                        "<td style=\"padding: 10px;border: 2px solid black;border-collapse: collapse;\"> ${it.date}</td>" +
-                        "<td style=\"padding: 10px;border: 2px solid black;border-collapse: collapse;\"> ${it.employee}</td>" +
-                        "<td style=\"padding: 10px;border: 2px solid black;border-collapse: collapse;\"> ${it.duration}</td>" +
-                        "<td style=\"padding: 10px;border: 2px solid black;border-collapse: collapse;\"> ${it.driveTime}</td>" +
-                        "<td style=\"padding: 10px;border: 2px solid black;border-collapse: collapse;\"> ${it.distance.toString()}</td>" +
+                        "<td style=\"padding: 10px;border: 2px solid black;border-collapse: collapse;\"> ${it.date.value}</td>" +
+                        "<td style=\"padding: 10px;border: 2px solid black;border-collapse: collapse;\"> ${it.employee.value}</td>" +
+                        "<td style=\"padding: 10px;border: 2px solid black;border-collapse: collapse;\"> ${it.duration.value}</td>" +
+                        "<td style=\"padding: 10px;border: 2px solid black;border-collapse: collapse;\"> ${it.driveTime.value}</td>" +
+                        "<td style=\"padding: 10px;border: 2px solid black;border-collapse: collapse;\"> ${it.distance.value}</td>" +
                     "</tr>"
         }
         html += "</table><hr>"
@@ -59,9 +59,9 @@ object HtmlReport {
                     "<tr>" +
                         "<th style=\"padding: 15px;font-size:24px;text-align:left;border: 2px solid black;border-collapse: collapse;\">Arbeit</th>" +
                     "</tr>"
-        rep.work_items.forEach {
+        rep.workItemContainer.items.forEach {
             html += "<tr>" +
-                        "<td style=\"padding: 10px;border: 2px solid black;border-collapse: collapse;\"> ${it.item}</td>" +
+                        "<td style=\"padding: 10px;border: 2px solid black;border-collapse: collapse;\"> ${it.item.value}</td>" +
                     "</tr>"
         }
         html += "</table><hr>"
@@ -72,9 +72,9 @@ object HtmlReport {
                     "<tr>" +
                         "<th style=\"padding: 15px;font-size:24px;text-align:left;border: 2px solid black;border-collapse: collapse;\">Pauschale</th>" +
                     "</tr>"
-        rep.lump_sums.forEach {
+        rep.lumpSumContainer.items.forEach {
             html += "<tr>" +
-                        "<td style=\"padding: 10px;border: 2px solid black;border-collapse: collapse;\"> ${it.item}</td>" +
+                        "<td style=\"padding: 10px;border: 2px solid black;border-collapse: collapse;\"> ${it.item.value}</td>" +
                     "</tr>"
         }
         html += "</table><hr>"
@@ -86,47 +86,44 @@ object HtmlReport {
                         "<th style=\"padding: 15px;font-size:24px;text-align:left;border: 2px solid black;border-collapse: collapse;\">Material</th>" +
                         "<th style=\"padding: 15px;font-size:24px;text-align:left;border: 2px solid black;border-collapse: collapse;\">Anzahl</th>" +
                     "</tr>"
-        rep.material.forEach {
+        rep.materialContainer.items.forEach {
             html += "<tr>" +
-                        "<td style=\"padding: 10px;border: 2px solid black;border-collapse: collapse;\"> ${it.item}</td>" +
-                        "<td style=\"padding: 10px;border: 2px solid black;border-collapse: collapse;\"> ${it.amount.toString()}</td>" +
+                        "<td style=\"padding: 10px;border: 2px solid black;border-collapse: collapse;\"> ${it.item.value}</td>" +
+                        "<td style=\"padding: 10px;border: 2px solid black;border-collapse: collapse;\"> ${it.amount.value}</td>" +
                     "</tr>"
         }
         html += "</table><hr>"
-        if(rep.photos.size != 0) {
+        if(rep.photoContainer.items.size != 0) {
             html += "<h2>Fotos</h2>"
-            rep.photos.forEach {
-                Log.d("Arbeitsbericht.html", it.file)
-                html += "<img src=\"file://${it.file}\">"
-                html += "${it.description}"
+            rep.photoContainer.items.forEach {
+                html += "<img src=\"file://${it.file.value}\">"
+                html += "${it.description.value}"
             }
             html += "<hr>"
         }
         if(inclSignatures) {
             // Employee signature
             html += "<h2>Unterschrift Auftragnehmer</h2>"
-            if (rep.employee_signature == "") {
+            if (rep.signatureData.employeeSignatureSvg.value == "") {
                 html += "Keine Unterschrift vorhanden"
             } else {
                 html += "<div class=\"svg\">"
-                html += rep.employee_signature
+                html += rep.signatureData.employeeSignatureSvg.value
                 html += "</div>"
             }
             // Client signature
             html += "<h2>Unterschrift Auftraggeber</h2>"
-            if (rep.client_signature == "") {
+            if (rep.signatureData.clientSignatureSvg.value == "") {
                 html += "Keine Unterschrift vorhanden"
             } else {
                 html += "<div class=\"svg\">"
-                html += rep.client_signature
+                html += rep.signatureData.clientSignatureSvg.value
                 html += "</div>"
             }
         }
         html += "</body></html>"
 
         return html
-         */
-        return ""
     }
 }
 

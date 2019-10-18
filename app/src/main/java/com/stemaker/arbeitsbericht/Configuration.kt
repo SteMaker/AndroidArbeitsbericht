@@ -10,6 +10,7 @@ class Configuration() {
     var currentId: Int = 1
     var recvMail: String = ""
     var lumpSums = listOf<String>()
+    var activeReportId: Int = -1
     var workItemDictionary = setOf<String>()
     var materialDictionary = setOf<String>()
 }

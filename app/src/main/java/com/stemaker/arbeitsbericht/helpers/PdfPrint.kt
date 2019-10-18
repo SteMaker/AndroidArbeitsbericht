@@ -67,7 +67,7 @@ class PdfPrint(val activity: Activity, val report: ReportData) {
 
     suspend fun getFileForPdfGeneration(ctx: Context): File? {
         val path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS).absolutePath
-        val fileName = "report_${report.id.toString()}.pdf"
+        val fileName = "report_${report.id.value}.pdf"
 
         val file = File(path, fileName)
 

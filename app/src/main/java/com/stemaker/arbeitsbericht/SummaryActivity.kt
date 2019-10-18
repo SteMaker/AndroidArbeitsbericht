@@ -104,6 +104,7 @@ class SummaryActivity : AppCompatActivity(), PdfPrint.PdfPrintFinishedCallback {
             signatureData.clientSignatureSvg.value = cSig.getSignatureSvg()
             Log.d("Arbeitsbericht", "Saving client signature")
         }
+        storageHandler().saveActiveReportToFile(getApplicationContext())
     }
 
     var pdfWritePermissionContinuation: Continuation<Boolean>? = null
@@ -168,15 +169,16 @@ class SummaryActivity : AppCompatActivity(), PdfPrint.PdfPrintFinishedCallback {
     }
 
     fun sendMail(pdfFile: File?, report: ReportData) {
-        val subj = "Arbeitsbericht von ${storageHandler().configuration.employeeName}: Kunde: ${report.project.name}, Berichtsnr: ${report.id}"
+        val subj = "Arbeitsbericht von ${storageHandler().configuration.employeeName}: Kunde: ${report.project.name.value}, Berichtsnr: ${report.id.value}"
         val emailIntent = Intent(Intent.ACTION_SENDTO)
         emailIntent.data = Uri.parse("mailto:" + storageHandler().configuration.recvMail)
         emailIntent.putExtra(Intent.EXTRA_SUBJECT, subj)
-        emailIntent.putExtra(Intent.EXTRA_TEXT, HtmlReport.encodeReport(report, true))
         if(pdfFile != null) {
+            emailIntent.putExtra(Intent.EXTRA_TEXT, "Bericht im Anhang")
             emailIntent .putExtra(Intent.EXTRA_STREAM, Uri.parse("file://"+pdfFile.path))
             Log.d("Arbeitsbericht", "Added attachement file://${pdfFile.path}")
         } else {
+            emailIntent.putExtra(Intent.EXTRA_TEXT, HtmlReport.encodeReport(report, true))
             Log.d("Arbeitsbericht", "No attachement")
         }
 

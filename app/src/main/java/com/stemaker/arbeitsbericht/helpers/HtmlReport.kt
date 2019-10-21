@@ -38,7 +38,8 @@ object HtmlReport {
                     "<tr>" +
                         "<th style=\"padding: 15px;font-size:24px;text-align:left;border: 2px solid black;border-collapse: collapse;\">Datum</th>" +
                         "<th style=\"padding: 15px;font-size:24px;text-align:left;border: 2px solid black;border-collapse: collapse;\">Mitarbeiter</th>" +
-                        "<th style=\"padding: 15px;font-size:24px;text-align:left;border: 2px solid black;border-collapse: collapse;\">Arbeitszeit</th>" +
+                        "<th style=\"padding: 15px;font-size:24px;text-align:left;border: 2px solid black;border-collapse: collapse;\">Arbeitsanfang</th>" +
+                        "<th style=\"padding: 15px;font-size:24px;text-align:left;border: 2px solid black;border-collapse: collapse;\">Arbeitsend</th>" +
                         "<th style=\"padding: 15px;font-size:24px;text-align:left;border: 2px solid black;border-collapse: collapse;\">Fahrzeit</th>" +
                         "<th style=\"padding: 15px;font-size:24px;text-align:left;border: 2px solid black;border-collapse: collapse;\">Fahrstrecke [km]</th>" +
                     "</tr>"
@@ -46,7 +47,8 @@ object HtmlReport {
             html += "<tr>" +
                         "<td style=\"padding: 10px;border: 2px solid black;border-collapse: collapse;\"> ${it.date.value}</td>" +
                         "<td style=\"padding: 10px;border: 2px solid black;border-collapse: collapse;\"> ${it.employee.value}</td>" +
-                        "<td style=\"padding: 10px;border: 2px solid black;border-collapse: collapse;\"> ${it.duration.value}</td>" +
+                        "<td style=\"padding: 10px;border: 2px solid black;border-collapse: collapse;\"> ${it.startTime.value}</td>" +
+                        "<td style=\"padding: 10px;border: 2px solid black;border-collapse: collapse;\"> ${it.endTime.value}</td>" +
                         "<td style=\"padding: 10px;border: 2px solid black;border-collapse: collapse;\"> ${it.driveTime.value}</td>" +
                         "<td style=\"padding: 10px;border: 2px solid black;border-collapse: collapse;\"> ${it.distance.value}</td>" +
                     "</tr>"
@@ -71,10 +73,12 @@ object HtmlReport {
                 "<table style=\"border: 2px solid black;border-collapse: collapse;\">" +
                     "<tr>" +
                         "<th style=\"padding: 15px;font-size:24px;text-align:left;border: 2px solid black;border-collapse: collapse;\">Pauschale</th>" +
+                        "<th style=\"padding: 15px;font-size:24px;text-align:left;border: 2px solid black;border-collapse: collapse;\">Anzahl</th>" +
                     "</tr>"
         rep.lumpSumContainer.items.forEach {
             html += "<tr>" +
                         "<td style=\"padding: 10px;border: 2px solid black;border-collapse: collapse;\"> ${it.item.value}</td>" +
+                        "<td style=\"padding: 10px;border: 2px solid black;border-collapse: collapse;\"> ${it.amount.value}</td>" +
                     "</tr>"
         }
         html += "</table><hr>"

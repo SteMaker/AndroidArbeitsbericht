@@ -17,8 +17,11 @@ class WorkTimeContainerData(): ViewModel() {
         }
     }
 
-    fun addWorkTime(): WorkTimeData {
+    fun addWorkTime(ref: WorkTimeData? = null): WorkTimeData {
         val wt = WorkTimeData()
+        if(ref != null) {
+            wt.copyFromData(ref)
+        }
         items.add(wt)
         return wt
     }
@@ -28,12 +31,27 @@ class WorkTimeContainerData(): ViewModel() {
     }
 }
 
+class WorkTimeEmployeeListContainerData: ViewModel() {
+    val items = mutableListOf<MutableLiveData<String>>().apply { add(MutableLiveData<String>().apply { value = storageHandler().configuration.employeeName } ) }
+
+    copyFromSerialized(e: WorkTimeEmployeeListContainerDataSerialized) {
+        employee.clear()
+        for(e in e.employee) {
+            val emp = MutableLiveData<String>().apply { value = e }
+            employee.add(emp)
+        }
+
+    }
+}
+
 class WorkTimeData: ViewModel() {
     val date = MutableLiveData<String>().apply { value =  getCurrentDate()}
 
-    val employee = MutableLiveData<String>().apply { value =  storageHandler().configuration.employeeName}
+    val employees = WorkTimeEmployeeListContainerData()
 
-    val duration = MutableLiveData<String>().apply { value =  "00:00"}
+    val startTime = MutableLiveData<String>().apply { value =  "00:00"}
+
+    val endTime = MutableLiveData<String>().apply { value =  "00:00"}
 
     val driveTime = MutableLiveData<String>().apply { value =  "00:00"}
 
@@ -48,11 +66,39 @@ class WorkTimeData: ViewModel() {
                 cal.get(Calendar.YEAR).toString().padStart(4,'0')
     }
 
+    fun addEmployee(): MutableLiveData<String> {
+        val emp = MutableLiveData<String>().apply { value = storageHandler().configuration.employeeName }
+        employee.add(emp)
+        return emp
+    }
+
+    fun removeEmployee(emp: MutableLiveData<String>) {
+        employee.remove(emp)
+    }
+
     fun copyFromSerialized(w: WorkTimeDataSerialized) {
         date.value = w.date
-        employee.value = w.employee
-        duration.value = w.duration
+        employee.clear()
+        for(e in w.employee) {
+            val emp = MutableLiveData<String>().apply { value = e }
+            employee.add(emp)
+        }
+        startTime.value = w.startTime
+        endTime.value = w.endTime
         driveTime.value = w.driveTime
         distance.value = w.distance
+    }
+
+    fun copyFromData(w: WorkTimeData) {
+        date.value = w.date.value!!
+        employee.clear()
+        for(e in w.employee) {
+            val emp = MutableLiveData<String>().apply { value = e.value!! }
+            employee.add(emp)
+        }
+        startTime.value = w.startTime.value!!
+        endTime.value = w.endTime.value!!
+        driveTime.value = w.driveTime.value!!
+        distance.value = w.distance.value!!
     }
 }

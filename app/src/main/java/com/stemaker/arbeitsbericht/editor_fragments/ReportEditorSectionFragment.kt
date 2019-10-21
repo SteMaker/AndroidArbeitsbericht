@@ -8,7 +8,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
+import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.cardview.widget.CardView
 import com.stemaker.arbeitsbericht.R
 
 abstract class ReportEditorSectionFragment : Fragment() {
@@ -22,10 +25,11 @@ abstract class ReportEditorSectionFragment : Fragment() {
     ): View? {
         // Inflate the layout for this fragment
         rootView = inflater.inflate(R.layout.fragment_report_editor_section, container, false)
-        val btn: ImageButton = rootView.findViewById(R.id.resh_expand_content_button)
-        btn.setOnClickListener(object: View.OnClickListener {
-            override fun onClick(btn: View) {
-                onClickExpandContentButton(btn)
+        val pseudoBtn: LinearLayout = rootView.findViewById(R.id.resh_headline_container)
+        val imgV: ImageView = rootView.findViewById(R.id.resh_expand_content_pic)
+        pseudoBtn.setOnClickListener(object: View.OnClickListener {
+            override fun onClick(cV: View) {
+                onClickExpandContentButton(imgV)
             }
         })
         return rootView
@@ -44,14 +48,14 @@ abstract class ReportEditorSectionFragment : Fragment() {
         rootView.findViewById<TextView>(R.id.resh_headline_textview).text = t
     }
 
-    fun onClickExpandContentButton(btn: View) {
+    fun onClickExpandContentButton(imgV: View) {
         Log.d("Arbeitsbericht.ReportEditorSectionFragment.onClickExpandContentButton", "called")
         if (!visible) {
-            btn.rotation = 180.toFloat()
+            imgV.rotation = 180.toFloat()
             listener?.setVisibility(true)
             visible = true
         } else {
-            btn.rotation = 0.toFloat()
+            imgV.rotation = 0.toFloat()
             listener?.setVisibility(false)
             visible = false
         }

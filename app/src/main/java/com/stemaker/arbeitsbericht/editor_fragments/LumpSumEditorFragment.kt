@@ -108,6 +108,8 @@ class LumpSumEditorFragment : ReportEditorSectionFragment(),
         val pos = container.getChildCount()
         Log.d("Arbeitsbericht", "Adding work item card $pos to UI")
         container.addView(lumpSumDataBinding.root, pos)
+
+        // TODO: Scroll to new element. Should use ListView instead of LinearLayout
     }
 
 }

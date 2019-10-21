@@ -9,11 +9,13 @@ import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.LinearLayout
 import androidx.appcompat.app.AlertDialog
+import androidx.lifecycle.MutableLiveData
 import com.stemaker.arbeitsbericht.helpers.DatePickerFragment
 import com.stemaker.arbeitsbericht.R
 import com.stemaker.arbeitsbericht.helpers.TimePickerFragment
 import com.stemaker.arbeitsbericht.data.WorkTimeContainerData
 import com.stemaker.arbeitsbericht.data.WorkTimeData
+import com.stemaker.arbeitsbericht.databinding.EmployeeEntryLayoutBinding
 import com.stemaker.arbeitsbericht.databinding.FragmentWorkTimeEditorBinding
 import com.stemaker.arbeitsbericht.databinding.WorkTimeLayoutBinding
 import com.stemaker.arbeitsbericht.helpers.showConfirmationDialog
@@ -90,15 +92,26 @@ class WorkTimeEditorFragment : ReportEditorSectionFragment(),
         val workTimeDataBinding: WorkTimeLayoutBinding = WorkTimeLayoutBinding.inflate(inflater, null, false)
         workTimeDataBinding.workTime = wt
         workTimeDataBinding.lifecycleOwner = activity
+
+        for(empl in wt.employee) {
+            addEmployeeView(workTimeDataBinding.root, wt, empl)
+        }
+
         workTimeDataBinding.root.findViewById<ImageButton>(R.id.work_time_date_change).setOnClickListener(object: View.OnClickListener {
             override fun onClick(btn: View) {
                 val newFragment = DatePickerFragment(wt.date)
                 newFragment.show(fragmentManager, "datePicker")
             }
         })
-        workTimeDataBinding.root.findViewById<ImageButton>(R.id.work_time_work_duration_change).setOnClickListener(object: View.OnClickListener {
+        workTimeDataBinding.root.findViewById<ImageButton>(R.id.work_time_work_start_change).setOnClickListener(object: View.OnClickListener {
             override fun onClick(btn: View) {
-                val newFragment = TimePickerFragment(wt.duration)
+                val newFragment = TimePickerFragment(wt.startTime)
+                newFragment.show(fragmentManager, "timePicker")
+            }
+        })
+        workTimeDataBinding.root.findViewById<ImageButton>(R.id.work_time_work_end_change).setOnClickListener(object: View.OnClickListener {
+            override fun onClick(btn: View) {
+                val newFragment = TimePickerFragment(wt.endTime)
                 newFragment.show(fragmentManager, "timePicker")
             }
         })
@@ -106,6 +119,18 @@ class WorkTimeEditorFragment : ReportEditorSectionFragment(),
             override fun onClick(btn: View) {
                 val newFragment = TimePickerFragment(wt.driveTime)
                 newFragment.show(fragmentManager, "timePicker")
+            }
+        })
+        workTimeDataBinding.root.findViewById<ImageButton>(R.id.work_time_add_employee).setOnClickListener(object: View.OnClickListener {
+            override fun onClick(btn: View) {
+                val empl = wt.addEmployee()
+                addEmployeeView(workTimeDataBinding.root, wt, empl)
+            }
+        })
+        workTimeDataBinding.root.findViewById<ImageButton>(R.id.work_time_copy_button).setOnClickListener(object: View.OnClickListener {
+            override fun onClick(btn: View) {
+                val wt2 = workTimeContainerData!!.addWorkTime(wt)
+                addWorkTimeView(wt2)
             }
         })
         workTimeDataBinding.root.findViewById<ImageButton>(R.id.work_time_del_button).setOnClickListener(object: View.OnClickListener {
@@ -127,6 +152,33 @@ class WorkTimeEditorFragment : ReportEditorSectionFragment(),
         val pos = container.getChildCount()
         Log.d("Arbeitsbericht", "Adding work time card $pos to UI")
         container.addView(workTimeDataBinding.root, pos)
+    }
+
+    fun addEmployeeView(root: View, wt: WorkTimeData, empl: MutableLiveData<String>) {
+        val inflater = layoutInflater
+        val employeeDataBinding: EmployeeEntryLayoutBinding = EmployeeEntryLayoutBinding.inflate(inflater, null, false)
+        employeeDataBinding.employee = empl
+        employeeDataBinding.lifecycleOwner = activity
+        val container = root.findViewById<LinearLayout>(R.id.work_time_container)
+
+        employeeDataBinding.root.findViewById<ImageButton>(R.id.work_time_del_employee).setOnClickListener(object: View.OnClickListener {
+            override fun onClick(btn: View) {
+                GlobalScope.launch(Dispatchers.Main) {
+                    val answer =
+                        showConfirmationDialog(getString(R.string.del_confirmation), btn.context)
+                    if (answer == AlertDialog.BUTTON_POSITIVE) {
+                        Log.d("Arbeitsbericht.WorkTimeEditorFragment.work_time_del_employee.onClick", "deleting work time employee")
+                        container.removeView(employeeDataBinding.root)
+                        wt.removeEmployee(empl)
+                    } else {
+                        Log.d("Arbeitsbericht.WorkTimeEditorFragment.work_time_del_employee.onClick", "cancelled deleting work time employee")
+                    }
+                }
+            }
+        })
+
+        val pos = container.getChildCount()
+        container.addView(employeeDataBinding.root, pos)
     }
 
 }

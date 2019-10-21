@@ -4,7 +4,7 @@
         xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:card_view="http://schemas.android.com/apk/res-auto">
     <data>
-        <variable name="employee" type="String"/>
+        <variable name="employee" type="com.stemaker.arbeitsbericht.data.WorkTimeEmployeeListContainerData"/>
     </data>
 
     <LinearLayout

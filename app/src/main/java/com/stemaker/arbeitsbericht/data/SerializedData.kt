@@ -42,9 +42,11 @@ class PhotoDataSerialized() {
 @Serializable
 class LumpSumDataSerialized() {
     var item: String = ""
+    var amount: Int = 0
 
     fun copyFromData(l: LumpSumData) {
         item = l.item.value!!
+        amount = l.amount.value!!
     }
 }
 
@@ -112,18 +114,36 @@ class WorkItemContainerDataSerialized() {
 @Serializable
 class WorkTimeDataSerialized() {
     var date: String = ""
-    var employee: String = storageHandler().configuration.employeeName
-    var duration: String = "00:00"
+    var employees = WorkTimeEmployeeListContainerDataSerialized()
+    var startTime: String = "00:00"
+    var endTime: String = "00:00"
     var driveTime: String = "00:00"
     var distance: Int = 0
 
 
     fun copyFromData(w: WorkTimeData) {
         date = w.date.value!!
-        employee = w.employee.value!!
-        duration = w.duration.value!!
+        employee.clear()
+        for(e in w.employee)
+            employee.add(e.value!!)
+        startTime = w.startTime.value!!
+        endTime = w.endTime.value!!
         driveTime = w.driveTime.value!!
         distance = w.distance.value!!
+    }
+}
+
+@Serializable
+class WorkTimeEmployeeListContainerDataSerialized() {
+    var items = mutableListOf(storageHandler().configuration.employeeName)
+
+    fun copyFromData(e: WorkTimeEmployeeListContainerData) {
+        items.clear()
+        for(emp in e.items) {
+            val s = String(emp.value!!)
+            items.add(s)
+        }
+
     }
 }
 

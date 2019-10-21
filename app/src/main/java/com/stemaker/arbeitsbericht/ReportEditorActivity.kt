@@ -28,11 +28,6 @@ class ReportEditorActivity : AppCompatActivity(),
         Log.d("Arbeitsbericht.ReportEditorActivity.onCreate", "start")
 
         topBinding = DataBindingUtil.setContentView(this, R.layout.activity_report_editor)
-
-        /*if (savedInstanceState != null) {
-            Log.d("Arbeitsbericht.ReportEditorActivity.onCreate", "restoring active report ${savedInstanceState.getInt("activeReport").toString()}")
-            StorageHandler.selectReportById(savedInstanceState.getInt("activeReport"))
-        }*/
     }
 
     override fun onStart() {

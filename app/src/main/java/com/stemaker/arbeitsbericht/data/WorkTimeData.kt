@@ -7,8 +7,10 @@ import java.util.*
 
 class WorkTimeContainerData(): ViewModel() {
     val items = mutableListOf<WorkTimeData>()
+    val visibility = MutableLiveData<Boolean>().apply { value = false }
 
     fun copyFromSerialized(w: WorkTimeContainerDataSerialized) {
+        visibility.value = w.visibility
         items.clear()
         for(i in 0 until w.items.size) {
             val item = WorkTimeData()

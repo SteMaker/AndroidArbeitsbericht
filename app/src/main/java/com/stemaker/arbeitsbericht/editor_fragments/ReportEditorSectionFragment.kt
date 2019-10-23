@@ -16,7 +16,6 @@ import com.stemaker.arbeitsbericht.R
 
 abstract class ReportEditorSectionFragment : Fragment() {
     private var listener: OnExpandChange? = null
-    var visible: Boolean = false
     lateinit var rootView: View
 
     override fun onCreateView(
@@ -50,20 +49,21 @@ abstract class ReportEditorSectionFragment : Fragment() {
 
     fun onClickExpandContentButton(imgV: View) {
         Log.d("Arbeitsbericht.ReportEditorSectionFragment.onClickExpandContentButton", "called")
-        if (!visible) {
-            imgV.rotation = 180.toFloat()
-            listener?.setVisibility(true)
-            visible = true
-        } else {
-            imgV.rotation = 0.toFloat()
-            listener?.setVisibility(false)
-            visible = false
+        listener?.let {
+            if (it.getVisibility()) {
+                imgV.rotation = 0.toFloat()
+                it.setVisibility(false)
+            } else {
+                imgV.rotation = 180.toFloat()
+                it.setVisibility(true)
+            }
         }
 
     }
 
     interface OnExpandChange {
         fun setVisibility(vis: Boolean)
+        fun getVisibility(): Boolean
     }
 
 }

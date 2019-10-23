@@ -11,8 +11,10 @@ class LumpSumContainerData(): ViewModel() {
     private var _list = MutableLiveData<List<String>>().apply { value = storageHandler().configuration.lumpSums }
     val list: LiveData<List<String>>
         get() = _list
+    val visibility = MutableLiveData<Boolean>().apply { value = false }
 
     fun copyFromSerialized(l: LumpSumContainerDataSerialized) {
+        visibility.value = l.visibility
         items.clear()
         for(i in 0 until l.items.size) {
             val item = LumpSumData()

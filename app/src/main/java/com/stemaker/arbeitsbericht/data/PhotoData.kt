@@ -6,8 +6,10 @@ import androidx.lifecycle.ViewModel
 
 class PhotoContainerData(): ViewModel() {
     val items = mutableListOf<PhotoData>()
+    val visibility = MutableLiveData<Boolean>().apply { value = false }
 
     fun copyFromSerialized(p: PhotoContainerDataSerialized) {
+        visibility.value = p.visibility
         items.clear()
         for(i in 0 until p.items.size) {
             val item = PhotoData()

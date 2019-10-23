@@ -8,12 +8,14 @@ class BillData() : ViewModel() {
     val street = MutableLiveData<String>().apply { value = ""}
     val zip = MutableLiveData<String>().apply { value = ""}
     val city = MutableLiveData<String>().apply { value = ""}
+    val visibility = MutableLiveData<Boolean>().apply { value = false }
 
     fun copyFromSerialized(b: BillDataSerialized) {
         name.value = b.name
         street.value = b.street
         zip.value = b.zip
         city.value = b.city
+        visibility.value = b.visibility
     }
 
 }

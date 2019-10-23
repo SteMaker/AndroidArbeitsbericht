@@ -78,6 +78,10 @@ class WorkItemEditorFragment : ReportEditorSectionFragment(),
         dataBinding.root.findViewById<LinearLayout>(R.id.work_item_content_container).setVisibility(if(vis) View.VISIBLE else View.GONE)
     }
 
+    override fun getVisibility(): Boolean {
+        return dataBinding.root.findViewById<LinearLayout>(R.id.work_item_content_container).visibility != View.GONE
+    }
+
     interface OnWorkItemEditorInteractionListener {
         fun getWorkItemContainerData(): WorkItemContainerData
     }

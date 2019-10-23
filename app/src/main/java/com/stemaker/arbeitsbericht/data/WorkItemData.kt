@@ -11,8 +11,10 @@ class WorkItemContainerData(): ViewModel() {
     private var _dictionary = MutableLiveData<Set<String>>().apply { value = storageHandler().workItemDictionary }
     val dictionary: LiveData<Set<String>>
         get() = _dictionary
+    val visibility = MutableLiveData<Boolean>().apply { value = false }
 
     fun copyFromSerialized(w: WorkItemContainerDataSerialized) {
+        visibility.value = w.visibility
         items.clear()
         for(i in 0 until w.items.size) {
             val item = WorkItemData()

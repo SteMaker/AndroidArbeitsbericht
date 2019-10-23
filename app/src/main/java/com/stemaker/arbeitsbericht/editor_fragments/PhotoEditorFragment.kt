@@ -96,6 +96,10 @@ class PhotoEditorFragment : ReportEditorSectionFragment(),
         dataBinding.root.findViewById<LinearLayout>(R.id.photo_content_container).setVisibility(if(vis) View.VISIBLE else View.GONE)
     }
 
+    override fun getVisibility(): Boolean {
+        return dataBinding.root.findViewById<LinearLayout>(R.id.photo_content_container).visibility != View.GONE
+    }
+
     interface OnPhotoEditorInteractionListener {
         fun getPhotoContainerData(): PhotoContainerData
     }

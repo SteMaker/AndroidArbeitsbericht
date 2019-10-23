@@ -10,8 +10,8 @@ import androidx.databinding.BindingAdapter
 import androidx.databinding.InverseBindingAdapter
 import androidx.databinding.InverseBindingListener
 import com.caverock.androidsvg.SVG
-import com.github.gcacace.signaturepad.views.SignaturePad
 import com.google.android.material.textfield.TextInputEditText
+import com.stemaker.arbeitsbericht.helpers.LinearLayoutVisListener
 import java.io.File
 
 object BindingAdapters {
@@ -144,5 +144,36 @@ object BindingAdapters {
             val pd = PictureDrawable(svg.renderToPicture())
             imgView.setImageDrawable(pd)
         }
+    }
+
+    /*************************************************************/
+    /* Binding Adapters to bind a View's visibility to a Boolean */
+    /*************************************************************/
+    @JvmStatic
+    @BindingAdapter("visibilityAttrChanged")
+    fun setListener(view: LinearLayoutVisListener, listener: InverseBindingListener?) {
+        if (listener != null) {
+            view.setVisibilityChangeListener(object: LinearLayoutVisListener.onVisibilityChange {
+                override fun visibilityChanged(view: View, visible: Boolean) {
+                    listener.onChange()
+                }
+            })
+        }
+    }
+
+    @JvmStatic
+    @BindingAdapter("visibility")
+    fun setVisibility(view: LinearLayoutVisListener, visible: Boolean) {
+        if(visible) {
+            view.visibility = View.VISIBLE
+        } else {
+            view.visibility = View.GONE
+        }
+    }
+
+    @JvmStatic
+    @InverseBindingAdapter(attribute="visibility")
+    fun getVisibility(view: LinearLayoutVisListener): Boolean {
+        return view.visibility!=View.GONE
     }
 }

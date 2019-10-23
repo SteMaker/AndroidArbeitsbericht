@@ -17,8 +17,10 @@ class SignatureDataSerialized {
 @Serializable
 class PhotoContainerDataSerialized() {
     val items = mutableListOf<PhotoDataSerialized>()
+    var visibility: Boolean = true
 
     fun copyFromData(p: PhotoContainerData) {
+        visibility = p.visibility.value!!
         items.clear()
         for(i in 0 until p.items.size) {
             val item = PhotoDataSerialized()
@@ -53,8 +55,10 @@ class LumpSumDataSerialized() {
 @Serializable
 class LumpSumContainerDataSerialized() {
     val items = mutableListOf<LumpSumDataSerialized>()
+    var visibility: Boolean = true
 
     fun copyFromData(l: LumpSumContainerData) {
+        visibility = l.visibility.value!!
         items.clear()
         for(i in 0 until l.items.size) {
             val item = LumpSumDataSerialized()
@@ -78,8 +82,10 @@ class MaterialDataSerialized() {
 @Serializable
 class MaterialContainerDataSerialized() {
     val items = mutableListOf<MaterialDataSerialized>()
+    var visibility: Boolean = true
 
     fun copyFromData(m: MaterialContainerData) {
+        visibility = m.visibility.value!!
         items.clear()
         for(i in 0 until m.items.size) {
             val item = MaterialDataSerialized()
@@ -100,8 +106,10 @@ class WorkItemDataSerialized() {
 @Serializable
 class WorkItemContainerDataSerialized() {
     val items = mutableListOf<WorkItemDataSerialized>()
+    var visibility: Boolean = true
 
     fun copyFromData(w: WorkItemContainerData) {
+        visibility = w.visibility.value!!
         items.clear()
         for(i in 0 until w.items.size) {
             val item = WorkItemDataSerialized()
@@ -136,8 +144,10 @@ class WorkTimeDataSerialized() {
 @Serializable
 class WorkTimeContainerDataSerialized() {
     val items = mutableListOf<WorkTimeDataSerialized>()
+    var visibility: Boolean = true
 
     fun copyFromData(w: WorkTimeContainerData) {
+        visibility = w.visibility.value!!
         items.clear()
         for(i in 0 until w.items.size) {
             val item = WorkTimeDataSerialized()
@@ -154,12 +164,14 @@ class BillDataSerialized {
     var street: String = ""
     var zip: String = ""
     var city: String = ""
+    var visibility: Boolean = true
 
     fun copyFromData(b: BillData) {
         name = b.name.value!!
         street = b.street.value!!
         zip = b.zip.value!!
         city = b.city.value!!
+        visibility = b.visibility.value!!
     }
 
 }
@@ -168,10 +180,12 @@ class BillDataSerialized {
 class ProjectDataSerialized {
     var name: String = ""
     var extra1: String = ""
+    var visibility: Boolean = true
 
     fun copyFromData(p: ProjectData) {
         name = p.name.value!!
         extra1 = p.extra1.value!!
+        visibility = p.visibility.value!!
     }
 
 }

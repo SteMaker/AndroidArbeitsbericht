@@ -11,8 +11,10 @@ class MaterialContainerData(): ViewModel() {
     private var _dictionary = MutableLiveData<Set<String>>().apply { value = storageHandler().materialDictionary }
     val dictionary: LiveData<Set<String>>
         get() = _dictionary
+    val visibility = MutableLiveData<Boolean>().apply { value = false }
 
     fun copyFromSerialized(m: MaterialContainerDataSerialized) {
+        visibility.value = m.visibility
         items.clear()
         for(i in 0 until m.items.size) {
             val item = MaterialData()

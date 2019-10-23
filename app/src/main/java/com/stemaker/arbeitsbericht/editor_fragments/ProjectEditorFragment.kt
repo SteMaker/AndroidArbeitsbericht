@@ -59,6 +59,10 @@ class ProjectEditorFragment : ReportEditorSectionFragment(),
         dataBinding.root.findViewById<LinearLayout>(R.id.project_content_container).setVisibility(if(vis) View.VISIBLE else View.GONE)
     }
 
+    override fun getVisibility(): Boolean {
+        return dataBinding.root.findViewById<LinearLayout>(R.id.project_content_container).visibility != View.GONE
+    }
+
     interface OnProjectEditorInteractionListener {
         fun getProjectData(): ProjectData
     }

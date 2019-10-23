@@ -39,8 +39,8 @@ object HtmlReport {
                         "<th style=\"padding: 15px;font-size:24px;text-align:left;border: 2px solid black;border-collapse: collapse;\">Datum</th>" +
                         "<th style=\"padding: 15px;font-size:24px;text-align:left;border: 2px solid black;border-collapse: collapse;\">Mitarbeiter</th>" +
                         "<th style=\"padding: 15px;font-size:24px;text-align:left;border: 2px solid black;border-collapse: collapse;\">Arbeitsanfang</th>" +
-                        "<th style=\"padding: 15px;font-size:24px;text-align:left;border: 2px solid black;border-collapse: collapse;\">Arbeitsend</th>" +
-                        "<th style=\"padding: 15px;font-size:24px;text-align:left;border: 2px solid black;border-collapse: collapse;\">Fahrzeit</th>" +
+                        "<th style=\"padding: 15px;font-size:24px;text-align:left;border: 2px solid black;border-collapse: collapse;\">Arbeitsende</th>" +
+                        "<th style=\"padding: 15px;font-size:24px;text-align:left;border: 2px solid black;border-collapse: collapse;\">Fahrzeit<br>[h:m]</th>" +
                         "<th style=\"padding: 15px;font-size:24px;text-align:left;border: 2px solid black;border-collapse: collapse;\">Fahrstrecke [km]</th>" +
                     "</tr>"
             rep.workTimeContainer.items.forEach {
@@ -48,10 +48,10 @@ object HtmlReport {
                         "<td style=\"padding: 10px;border: 2px solid black;border-collapse: collapse;\"> ${it.date.value}</td>" +
                         "<td style=\"padding: 10px;border: 2px solid black;border-collapse: collapse;\">"
                 for(empl in it.employees)
-                    html += "${empl}<br>"
+                    html += "${empl.value!!}<br>"
                 html += "</td>" +
-                        "<td style=\"padding: 10px;border: 2px solid black;border-collapse: collapse;\"> ${it.startTime.value}</td>" +
-                        "<td style=\"padding: 10px;border: 2px solid black;border-collapse: collapse;\"> ${it.endTime.value}</td>" +
+                        "<td style=\"padding: 10px;border: 2px solid black;border-collapse: collapse;\"> ${it.startTime.value} Uhr</td>" +
+                        "<td style=\"padding: 10px;border: 2px solid black;border-collapse: collapse;\"> ${it.endTime.value} Uhr</td>" +
                         "<td style=\"padding: 10px;border: 2px solid black;border-collapse: collapse;\"> ${it.driveTime.value}</td>" +
                         "<td style=\"padding: 10px;border: 2px solid black;border-collapse: collapse;\"> ${it.distance.value}</td>" +
                     "</tr>"

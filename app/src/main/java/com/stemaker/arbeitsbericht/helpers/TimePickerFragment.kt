@@ -7,6 +7,7 @@ import android.util.Log
 import android.widget.TimePicker
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.MutableLiveData
+import java.util.*
 
 // TODO: Put the button and TextView into a separate layout xml and inflate it here directly using data binding instead of letting the higher level
 //       XML handle it
@@ -20,8 +21,9 @@ class TimePickerFragment(_timeString: MutableLiveData<String>) : DialogFragment(
         val minute : Int
 
         if(timeString.value == "") {
-            hour = 0
-            minute = 0
+            val c = Calendar.getInstance()
+            hour = c.get(Calendar.HOUR_OF_DAY)
+            minute = c.get(Calendar.MINUTE)
         } else {
             val timeVal = timeString.value!!
             Log.d("Arbeitsbericht.TimePickerFragment.onCreateDialog", "Default duration: ${timeVal}")

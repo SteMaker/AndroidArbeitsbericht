@@ -36,9 +36,9 @@ class WorkTimeData: ViewModel() {
 
     val employees = mutableListOf<MutableLiveData<String>>().apply { add(MutableLiveData<String>().apply { value = storageHandler().configuration.employeeName } ) }
 
-    val startTime = MutableLiveData<String>().apply { value =  "00:00"}
+    val startTime = MutableLiveData<String>().apply { value =  ""} // Empty string will lead to pre-setting current time when clicking the edit button
 
-    val endTime = MutableLiveData<String>().apply { value =  "00:00"}
+    val endTime = MutableLiveData<String>().apply { value =  ""} // Empty string will lead to pre-setting current time when clicking the edit button
 
     val driveTime = MutableLiveData<String>().apply { value =  "00:00"}
 

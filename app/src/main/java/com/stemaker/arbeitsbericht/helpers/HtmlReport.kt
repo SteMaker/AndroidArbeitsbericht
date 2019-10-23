@@ -46,7 +46,10 @@ object HtmlReport {
             rep.workTimeContainer.items.forEach {
             html += "<tr>" +
                         "<td style=\"padding: 10px;border: 2px solid black;border-collapse: collapse;\"> ${it.date.value}</td>" +
-                        "<td style=\"padding: 10px;border: 2px solid black;border-collapse: collapse;\"> ${it.employee.value}</td>" +
+                        "<td style=\"padding: 10px;border: 2px solid black;border-collapse: collapse;\">"
+                for(empl in it.employees)
+                    html += "${empl}<br>"
+                html += "</td>" +
                         "<td style=\"padding: 10px;border: 2px solid black;border-collapse: collapse;\"> ${it.startTime.value}</td>" +
                         "<td style=\"padding: 10px;border: 2px solid black;border-collapse: collapse;\"> ${it.endTime.value}</td>" +
                         "<td style=\"padding: 10px;border: 2px solid black;border-collapse: collapse;\"> ${it.driveTime.value}</td>" +

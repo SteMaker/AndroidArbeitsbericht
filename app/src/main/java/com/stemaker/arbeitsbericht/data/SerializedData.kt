@@ -114,7 +114,7 @@ class WorkItemContainerDataSerialized() {
 @Serializable
 class WorkTimeDataSerialized() {
     var date: String = ""
-    var employees = WorkTimeEmployeeListContainerDataSerialized()
+    var employees = mutableListOf(storageHandler().configuration.employeeName)
     var startTime: String = "00:00"
     var endTime: String = "00:00"
     var driveTime: String = "00:00"
@@ -123,27 +123,13 @@ class WorkTimeDataSerialized() {
 
     fun copyFromData(w: WorkTimeData) {
         date = w.date.value!!
-        employee.clear()
-        for(e in w.employee)
-            employee.add(e.value!!)
+        employees.clear()
+        for(empData in w.employees)
+            employees.add(empData.value!!)
         startTime = w.startTime.value!!
         endTime = w.endTime.value!!
         driveTime = w.driveTime.value!!
         distance = w.distance.value!!
-    }
-}
-
-@Serializable
-class WorkTimeEmployeeListContainerDataSerialized() {
-    var items = mutableListOf(storageHandler().configuration.employeeName)
-
-    fun copyFromData(e: WorkTimeEmployeeListContainerData) {
-        items.clear()
-        for(emp in e.items) {
-            val s = String(emp.value!!)
-            items.add(s)
-        }
-
     }
 }
 

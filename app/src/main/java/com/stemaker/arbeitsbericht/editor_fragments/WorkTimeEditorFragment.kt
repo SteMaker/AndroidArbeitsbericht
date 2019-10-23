@@ -93,7 +93,7 @@ class WorkTimeEditorFragment : ReportEditorSectionFragment(),
         workTimeDataBinding.workTime = wt
         workTimeDataBinding.lifecycleOwner = activity
 
-        for(empl in wt.employee) {
+        for(empl in wt.employees) {
             addEmployeeView(workTimeDataBinding.root, wt, empl)
         }
 

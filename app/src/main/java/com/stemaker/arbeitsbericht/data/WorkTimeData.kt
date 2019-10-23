@@ -20,7 +20,7 @@ class WorkTimeContainerData(): ViewModel() {
     fun addWorkTime(ref: WorkTimeData? = null): WorkTimeData {
         val wt = WorkTimeData()
         if(ref != null) {
-            wt.copyFromData(ref)
+            wt.clone(ref)
         }
         items.add(wt)
         return wt
@@ -31,23 +31,10 @@ class WorkTimeContainerData(): ViewModel() {
     }
 }
 
-class WorkTimeEmployeeListContainerData: ViewModel() {
-    val items = mutableListOf<MutableLiveData<String>>().apply { add(MutableLiveData<String>().apply { value = storageHandler().configuration.employeeName } ) }
-
-    copyFromSerialized(e: WorkTimeEmployeeListContainerDataSerialized) {
-        employee.clear()
-        for(e in e.employee) {
-            val emp = MutableLiveData<String>().apply { value = e }
-            employee.add(emp)
-        }
-
-    }
-}
-
 class WorkTimeData: ViewModel() {
     val date = MutableLiveData<String>().apply { value =  getCurrentDate()}
 
-    val employees = WorkTimeEmployeeListContainerData()
+    val employees = mutableListOf<MutableLiveData<String>>().apply { add(MutableLiveData<String>().apply { value = storageHandler().configuration.employeeName } ) }
 
     val startTime = MutableLiveData<String>().apply { value =  "00:00"}
 
@@ -68,20 +55,20 @@ class WorkTimeData: ViewModel() {
 
     fun addEmployee(): MutableLiveData<String> {
         val emp = MutableLiveData<String>().apply { value = storageHandler().configuration.employeeName }
-        employee.add(emp)
+        employees.add(emp)
         return emp
     }
 
     fun removeEmployee(emp: MutableLiveData<String>) {
-        employee.remove(emp)
+        employees.remove(emp)
     }
 
     fun copyFromSerialized(w: WorkTimeDataSerialized) {
         date.value = w.date
-        employee.clear()
-        for(e in w.employee) {
-            val emp = MutableLiveData<String>().apply { value = e }
-            employee.add(emp)
+        employees.clear()
+        for(empSer in w.employees) {
+            val emp = MutableLiveData<String>().apply { value = empSer }
+            employees.add(emp)
         }
         startTime.value = w.startTime
         endTime.value = w.endTime
@@ -89,12 +76,12 @@ class WorkTimeData: ViewModel() {
         distance.value = w.distance
     }
 
-    fun copyFromData(w: WorkTimeData) {
+    fun clone(w: WorkTimeData) {
         date.value = w.date.value!!
-        employee.clear()
-        for(e in w.employee) {
-            val emp = MutableLiveData<String>().apply { value = e.value!! }
-            employee.add(emp)
+        employees.clear()
+        for(empRef in w.employees) {
+            val emp = MutableLiveData<String>().apply { value = empRef.value!! }
+            employees.add(emp)
         }
         startTime.value = w.startTime.value!!
         endTime.value = w.endTime.value!!

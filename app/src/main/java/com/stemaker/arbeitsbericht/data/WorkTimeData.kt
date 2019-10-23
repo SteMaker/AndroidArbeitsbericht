@@ -76,8 +76,25 @@ class WorkTimeData: ViewModel() {
         distance.value = w.distance
     }
 
+    fun incDateByOneWeekday(dateIn: String): String {
+        var isWeekDay = true
+        val cal = Calendar.getInstance()
+        cal.set(dateIn.substring(6,10).toInt(), dateIn.substring(3,5).toInt()-1, dateIn.substring(0,2).toInt())
+        while(isWeekDay) {
+            cal.add(Calendar.DATE, 1)
+            val dow = cal.get(Calendar.DAY_OF_WEEK)
+            if(dow == Calendar.SATURDAY || dow == Calendar.SUNDAY)
+                cal.add(Calendar.DATE, 1)
+            else
+                isWeekDay = false
+        }
+        return cal.get(Calendar.DAY_OF_MONTH).toString().padStart(2,'0') + "." +
+                (cal.get(Calendar.MONTH)+1).toString().padStart(2,'0') + "." +
+                cal.get(Calendar.YEAR).toString().padStart(4,'0')
+    }
+
     fun clone(w: WorkTimeData) {
-        date.value = w.date.value!!
+        date.value  = incDateByOneWeekday(w.date.value!!)
         employees.clear()
         for(empRef in w.employees) {
             val emp = MutableLiveData<String>().apply { value = empRef.value!! }

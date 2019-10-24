@@ -52,7 +52,7 @@ class ReportEditorActivity : AppCompatActivity(),
     }
 
     fun saveAndBackToMain() {
-        Log.d("Arbeitsbericht", "Kundenname ist ${StorageHandler.getReport().project.name.value}")
+        Log.d("Arbeitsbericht", "Kundenname ist ${storageHandler().getReport().project.name.value}")
         Log.d("Arbeitsbericht.debug","There are ${storageHandler().activeReport.photoContainer.items.size} photos, , object: ${storageHandler().activeReport.photoContainer.toString()}")
         saveReport()
         val intent = Intent(this, MainActivity::class.java).apply {}
@@ -90,30 +90,30 @@ class ReportEditorActivity : AppCompatActivity(),
     }
 
     override fun getProjectData(): ProjectData {
-        return StorageHandler.getReport().project
+        return storageHandler().getReport().project
     }
 
     override fun getBillData(): BillData {
-        return StorageHandler.getReport().bill
+        return storageHandler().getReport().bill
     }
 
     override fun getWorkTimeContainerData(): WorkTimeContainerData {
-        return StorageHandler.getReport().workTimeContainer
+        return storageHandler().getReport().workTimeContainer
     }
 
     override fun getWorkItemContainerData(): WorkItemContainerData {
-        return StorageHandler.getReport().workItemContainer
+        return storageHandler().getReport().workItemContainer
     }
 
     override fun getMaterialContainerData(): MaterialContainerData {
-        return StorageHandler.getReport().materialContainer
+        return storageHandler().getReport().materialContainer
     }
 
     override fun getLumpSumContainerData(): LumpSumContainerData {
-        return StorageHandler.getReport().lumpSumContainer
+        return storageHandler().getReport().lumpSumContainer
     }
 
     override fun getPhotoContainerData(): PhotoContainerData {
-        return StorageHandler.getReport().photoContainer
+        return storageHandler().getReport().photoContainer
     }
 }

@@ -11,18 +11,13 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
-import com.stemaker.arbeitsbericht.Report
-import com.stemaker.arbeitsbericht.HtmlReport
-import com.stemaker.arbeitsbericht.R
-import com.stemaker.arbeitsbericht.showConfirmationDialog
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import com.stemaker.arbeitsbericht.data.ReportData
+import com.stemaker.arbeitsbericht.helpers.HtmlReport
+import com.stemaker.arbeitsbericht.helpers.showConfirmationDialog
 import java.io.File
 import java.io.IOException
 
-class PdfPrint(val activity: Activity, val report: Report) {
+class PdfPrint(val activity: Activity, val report: ReportData) {
 
     interface PdfPrintFinishedCallback {
         fun pdfPrintFinishedCallback(pdfFile: File)
@@ -72,14 +67,15 @@ class PdfPrint(val activity: Activity, val report: Report) {
 
     suspend fun getFileForPdfGeneration(ctx: Context): File? {
         val path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS).absolutePath
-        val fileName = "report_${report.id.toString()}.pdf"
+        val fileName = "report_${report.id.value}.pdf"
 
         val file = File(path, fileName)
 
         try {
             if(file.exists()) {
                 Log.d("Arbeitsbericht", "The report did already exist")
-                val answer = showConfirmationDialog("Der Bericht exisitiert bereits als PDF, soll er überschrieben werden?", ctx)
+                val answer =
+                    showConfirmationDialog("Der Bericht exisitiert bereits als PDF, soll er überschrieben werden?", ctx)
                 if(answer != AlertDialog.BUTTON_POSITIVE) {
                     return null
                 }

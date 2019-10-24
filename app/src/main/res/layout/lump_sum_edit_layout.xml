@@ -1,8 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView
+<layout
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:card_view="http://schemas.android.com/apk/res-auto"
+    xmlns:card_view="http://schemas.android.com/apk/res-auto">
+
+    <data>
+        <variable name="lump_sum" type="com.stemaker.arbeitsbericht.data.LumpSumData"/>
+        <variable name="lump_sum_container" type="com.stemaker.arbeitsbericht.data.LumpSumContainerData"/>
+    </data>
+
+<androidx.cardview.widget.CardView
     android:id="@+id/lump_sum_edit_card_top"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -17,18 +24,41 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical">
-        <Spinner
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/lump_sum_item">
-        </Spinner>
+            android:orientation="horizontal">
+            <Spinner
+                android:id="@+id/lump_sum_item"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="2"
+                app:selectionList="@{lump_sum_container.list}"
+                app:selectedItem="@={lump_sum.item}">
+            </Spinner>
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/lump_sum_amount"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="numberDecimal"
+                    android:selectAllOnFocus="true"
+                    app:textInt="@={lump_sum.amount}"
+                    android:hint="@string/amount"
+                />
+            </com.google.android.material.textfield.TextInputLayout>
+        </LinearLayout>
+
         <ImageButton
-                android:id="@+id/lump_sum_item_del_button"
+                android:id="@+id/lump_sum_del_button"
                 android:layout_width="50dp"
                 android:layout_height="wrap_content"
                 android:src="@drawable/ic_delete_black_24dp"
-                android:onClick="onClickDelLumpSumItem"
                 android:layout_gravity="right"
                 />
     </LinearLayout>
 </androidx.cardview.widget.CardView>
+</layout>

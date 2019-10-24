@@ -12,9 +12,8 @@ import android.widget.ImageButton
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.cardview.widget.CardView
+import com.stemaker.arbeitsbericht.helpers.showConfirmationDialog
 import kotlinx.android.synthetic.main.activity_lump_sum_definition.*
-import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.android.synthetic.main.activity_report_editor.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -32,10 +31,7 @@ class LumpSumDefinitionActivity : AppCompatActivity() {
     }
 
     fun onClickAddLumpSumDefinition(btn: View) {
-        val configuration = storageHandler().configuration
-        val ls: String = "Unbekannt"
-        configuration.lumpSums.add(ls)
-        addLumpSumView(ls)
+        addLumpSumView("Unbekannt")
     }
 
     fun addLumpSumView(ls: String) {

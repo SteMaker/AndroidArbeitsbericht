@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        tools:context=".editor_fragments.BillEditorFragment">
+    <data>
+        <variable name="bill_data" type="com.stemaker.arbeitsbericht.data.BillData"/>
+    </data>
+
+    <com.stemaker.arbeitsbericht.helpers.LinearLayoutVisListener
+        android:id="@+id/bill_content_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:visibility="@={bill_data.visibility}">
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="395dp"
+            android:layout_height="wrap_content"
+            android:visibility="visible">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/bill_address_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textPersonName|textCapWords"
+                android:text="@={bill_data.name}"
+                android:hint="@string/name"/>
+        </com.google.android.material.textfield.TextInputLayout>
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="395dp"
+            android:layout_height="wrap_content"
+            android:visibility="visible">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/bill_address_street"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textCapWords"
+                android:text="@={bill_data.street}"
+                android:hint="@string/street"/>
+        </com.google.android.material.textfield.TextInputLayout>
+        <LinearLayout
+            android:id="@+id/plz_ort_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="120dp"
+                android:layout_height="wrap_content"
+                android:visibility="visible">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/bill_address_zip"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="number"
+                    android:text="@={bill_data.zip}"
+                    android:hint="@string/zip"/>
+            </com.google.android.material.textfield.TextInputLayout>
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="275dp"
+                android:layout_height="wrap_content"
+                android:visibility="visible">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/bill_address_city"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textCapWords"
+                    android:text="@={bill_data.city}"
+                    android:hint="@string/city"/>
+            </com.google.android.material.textfield.TextInputLayout>
+        </LinearLayout> <!-- End of plz_ort_container-->
+    </com.stemaker.arbeitsbericht.helpers.LinearLayoutVisListener> <!-- End of billdata_content_container-->
+</layout>

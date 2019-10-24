@@ -1,11 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView
+<layout
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <data>
+        <variable name="report_data" type="com.stemaker.arbeitsbericht.data.ReportData"/>
+    </data>
+<androidx.cardview.widget.CardView
     android:id="@+id/report_card_top"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:clickable="true"
+    android:focusable="true"
     android:onClick="onClickReport">
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -18,7 +23,7 @@
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 android:layout_marginStart="20dp"
-                android:text="@string/reportnr"
+                android:text="@{@string/reportid(report_data.id)}"
                 android:textSize="12sp"
         />
         <TextView
@@ -27,7 +32,7 @@
             android:layout_height="wrap_content"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/report_card_id"
-            android:text="@string/client"
+            android:text="@{report_data.project.name}"
             android:textSize="26sp"
         />
         <TextView
@@ -36,7 +41,7 @@
                 android:layout_height="wrap_content"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/report_card_client"
-                android:text="@string/date"
+                android:text="@{@string/creationdate(report_data.create_date)}"
                 android:textSize="20sp"
         />
         <TextView
@@ -45,7 +50,7 @@
                 android:layout_height="wrap_content"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/report_card_create_date"
-                android:text="@string/date"
+                android:text="@{@string/changedate(report_data.change_date)}"
                 android:textSize="20sp"
         />
         <ImageButton
@@ -62,3 +67,4 @@
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.cardview.widget.CardView>
+</layout>

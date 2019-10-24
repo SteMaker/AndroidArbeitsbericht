@@ -1,9 +1,9 @@
-package com.stemaker.arbeitsbericht
+package com.stemaker.arbeitsbericht.helpers
 
 import android.content.Context
 import android.util.Log
 import androidx.appcompat.app.AlertDialog
-import kotlinx.coroutines.*
+import com.stemaker.arbeitsbericht.R
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine

@@ -85,10 +85,6 @@ class ReportEditorActivity : AppCompatActivity(),
         storageHandler().saveActiveReportToFile(getApplicationContext())
     }
 
-    fun onClickExpandContentButton(expandProjectButton: View) {
-        Log.d("arbeitsbericht", "project expand clicked")
-    }
-
     override fun getProjectData(): ProjectData {
         return storageHandler().getReport().project
     }

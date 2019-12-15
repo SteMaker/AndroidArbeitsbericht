@@ -30,6 +30,7 @@ class LumpSumDefinitionActivity : AppCompatActivity() {
         }
     }
 
+    @Suppress("UNUSED_PARAMETER")
     fun onClickAddLumpSumDefinition(btn: View) {
         addLumpSumView("Unbekannt")
     }
@@ -48,6 +49,7 @@ class LumpSumDefinitionActivity : AppCompatActivity() {
         lump_sums_container.addView(cV, pos)
     }
 
+    @Suppress("UNUSED_PARAMETER")
     fun onClickSave(btn: View) {
         Log.d("Arbeitsbericht.LumpSumDefinitionActivity.onClickSave", "saving ${lump_sums_container.getChildCount()} lump-sums ...")
         val lumpSums = mutableListOf<String>()

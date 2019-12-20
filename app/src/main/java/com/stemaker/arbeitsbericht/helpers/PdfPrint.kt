@@ -67,8 +67,19 @@ class PdfPrint(val activity: Activity, val report: ReportData) {
 
     suspend fun getFileForPdfGeneration(ctx: Context): File? {
         val path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS).absolutePath
-        val fileName = "report_${report.id.value}.pdf"
 
+        /* Create the Documents folder if it doesn't exist */
+        val folder = File(path)
+        if(!folder.exists()) {
+            if (!folder.mkdirs()) {
+                Log.d("Arbeitsbericht", "Could not create documents directory")
+                val toast = Toast.makeText(activity, "Konnte erforderlichen Ordner für die Berichtsdatei nicht erstellen", Toast.LENGTH_LONG)
+                toast.show()
+                return null
+            }
+        }
+
+        val fileName = "report_${report.id.value}.pdf"
         val file = File(path, fileName)
 
         try {

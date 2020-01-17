@@ -45,10 +45,12 @@ class PhotoDataSerialized() {
 class LumpSumDataSerialized() {
     var item: String = ""
     var amount: Int = 0
+    var comment: String = ""
 
     fun copyFromData(l: LumpSumData) {
         item = l.item.value!!
         amount = l.amount.value!!
+        comment = l.comment.value!!
     }
 }
 

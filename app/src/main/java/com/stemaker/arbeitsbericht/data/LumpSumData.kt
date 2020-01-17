@@ -37,9 +37,11 @@ class LumpSumContainerData(): ViewModel() {
 class LumpSumData() {
     var item = MutableLiveData<String>().apply { value = "" }
     var amount = MutableLiveData<Int>().apply { value = 0 }
+    var comment = MutableLiveData<String>().apply { value = "" }
 
     fun copyFromSerialized(l: LumpSumDataSerialized) {
         item.value = l.item
         amount.value = l.amount
+        comment.value = l.comment
     }
 }

@@ -45,6 +45,7 @@
     <string name="no_lump_sum_defined">Keine Pauschalen bisher definiert. Bitte erst im Menü Einträge anlegen</string>
     <string name="photo">Fotos</string>
     <string name="description">Beschreibung</string>
+    <string name="comment">Bemerkung</string>
 
     <item name="TAG_REPORT_ID" type="id" />
     <item name="TAG_CARDVIEW" type="id" />

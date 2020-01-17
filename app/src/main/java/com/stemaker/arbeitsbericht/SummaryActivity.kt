@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
 import android.net.Uri
 import android.util.Log
 import android.view.View
@@ -16,6 +17,7 @@ import android.widget.Toast
 import androidx.annotation.NonNull
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.toBitmap
 import androidx.databinding.DataBindingUtil
 import com.stemaker.arbeitsbericht.data.ReportData
 import com.stemaker.arbeitsbericht.databinding.ActivitySummaryBinding
@@ -24,6 +26,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.io.File
+import java.io.FileOutputStream
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
@@ -139,11 +142,14 @@ class SummaryActivity : AppCompatActivity(), PdfPrint.PdfPrintFinishedCallback {
         val report = storageHandler().getReport()
         if (withPdf) {
             val pdfPrint = PdfPrint(this, report)
-            val pdfFile = pdfPrint.getFileForPdfGeneration(this@SummaryActivity)
-            if(pdfFile != null) {
+            val files = pdfPrint.getFilesForPdfGeneration(this@SummaryActivity)
+            if(files != null) {
+                val pdfFile = files[0]
                 Log.d("Arbeitsbericht.SummaryActivity.createAndSendReport", "creating pdf")
+                report.signatureData.clientSignaturePngFile = files[1]
+                report.signatureData.employeeSignaturePngFile = files[2]
+                createSigPngs(files[1], files[2])
                 pdfPrint.print(pdfFile)
-                sendMail(pdfFile, report)
             } else {
                 Log.d("Arbeitsbericht.SummaryActivity.createAndSendReport", "dropping pdf generation")
                 sendMail(null, report)
@@ -151,6 +157,37 @@ class SummaryActivity : AppCompatActivity(), PdfPrint.PdfPrintFinishedCallback {
         } else {
             sendMail(null, report)
         }
+    }
+
+    fun createSigPngs(cSigFile: File, eSigFile: File) {
+        val cSigPad = findViewById<SignaturePad>(R.id.client_signature)
+        val eSigPad = findViewById<SignaturePad>(R.id.employee_signature)
+        val cSigV = findViewById<ImageView>(R.id.client_signature_view)
+        val eSigV = findViewById<ImageView>(R.id.employee_signature_view)
+
+        val vis = arrayOf(cSigPad.visibility, eSigPad.visibility, cSigV.visibility, eSigV.visibility)
+        cSigPad.visibility = View.GONE
+        eSigPad.visibility = View.GONE
+        cSigV.visibility = View.VISIBLE
+        eSigV.visibility = View.VISIBLE
+
+        val cSigBitmap = cSigV.drawable?.toBitmap().apply {
+            val cSigfOut = FileOutputStream(cSigFile)
+            this?.compress(Bitmap.CompressFormat.PNG, 85, cSigfOut)
+            cSigfOut.flush()
+            cSigfOut.close()
+        }
+
+        val eSigBitmap = eSigV.drawable?.toBitmap().apply {
+            val eSigfOut = FileOutputStream(eSigFile)
+            this?.compress(Bitmap.CompressFormat.PNG, 85, eSigfOut)
+            eSigfOut.flush()
+            eSigfOut.close()
+        }
+        cSigPad.visibility = vis[0]
+        eSigPad.visibility = vis[1]
+        cSigV.visibility = vis[2]
+        eSigV.visibility = vis[3]
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, @NonNull permissions: Array<String>, @NonNull grantResults: IntArray) {

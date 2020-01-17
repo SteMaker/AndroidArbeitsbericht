@@ -27,11 +27,12 @@ class PdfPrint(val activity: Activity, val report: ReportData) {
     val attributes = PrintAttributes.Builder()
         .setMediaSize(PrintAttributes.MediaSize.ISO_A4)
         .setResolution(PrintAttributes.Resolution("pdf", "pdf", 300, 300))
-        .setMinMargins(PrintAttributes.Margins.NO_MARGINS).build()
-    val html = HtmlReport.encodeReport(report, true)
+        .setMinMargins(PrintAttributes.Margins.NO_MARGINS)
+        .build()
 
     fun print(file: File): Boolean {
 
+        val html = HtmlReport.encodeReport(report, true)
         // Generate a webview including signatures and then print it to pdf
         val wv = WebView(activity)
 
@@ -65,7 +66,7 @@ class PdfPrint(val activity: Activity, val report: ReportData) {
         return true
     }
 
-    suspend fun getFileForPdfGeneration(ctx: Context): File? {
+    suspend fun getFilesForPdfGeneration(ctx: Context): Array<File>? {
         val path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS).absolutePath
 
         /* Create the Documents folder if it doesn't exist */
@@ -79,11 +80,16 @@ class PdfPrint(val activity: Activity, val report: ReportData) {
             }
         }
 
-        val fileName = "report_${report.id.value}.pdf"
-        val file = File(path, fileName)
+        val pdfFileName = "report_${report.id.value}.pdf"
+        val pdfFile = File(path, pdfFileName)
+        val clientSigFileName = "report_client_sig_${report.id.value}.png"
+        val clientSigFile = File(path, clientSigFileName)
+        val employeeSigFileName = "report_employee_sig_${report.id.value}.png"
+        val employeeSigFile = File(path, employeeSigFileName)
 
         try {
-            if(file.exists()) {
+            // PDF file
+            if(pdfFile.exists()) {
                 Log.d("Arbeitsbericht", "The report did already exist")
                 val answer =
                     showConfirmationDialog("Der Bericht exisitiert bereits als PDF, soll er überschrieben werden?", ctx)
@@ -91,21 +97,29 @@ class PdfPrint(val activity: Activity, val report: ReportData) {
                     return null
                 }
             } else {
-                file.createNewFile()
+                pdfFile.createNewFile()
             }
+
+            // client signature bitmap file
+            if(!clientSigFile.exists())
+                clientSigFile.createNewFile()
+
+            // employee signature bitmap file
+            if(!employeeSigFile.exists())
+                employeeSigFile.createNewFile()
         } catch(e:SecurityException) {
-            Log.d("Arbeitsbericht", "Permission denied on file ${file.toString()}")
+            Log.d("Arbeitsbericht", "Permission denied on file ${pdfFile.toString()}")
             val toast = Toast.makeText(activity, "Konnte Berichtsdatei nicht erstellen wegen fehlender Berechtigungen", Toast.LENGTH_LONG)
             toast.show()
             return null
         } catch(e: IOException) {
-            Log.d("Arbeitsbericht", "IOException: Could not create report file ${file.toString()}")
+            Log.d("Arbeitsbericht", "IOException: Could not create report file ${pdfFile.toString()}")
             val toast = Toast.makeText(activity, "Konnte Berichtsdatei nicht erstellen. Grund unbekannt", Toast.LENGTH_LONG)
             toast.show()
             return null
         }
 
-        return file
+        return arrayOf(pdfFile, clientSigFile, employeeSigFile)
     }
 
 }

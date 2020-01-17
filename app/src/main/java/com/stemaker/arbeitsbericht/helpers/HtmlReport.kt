@@ -14,8 +14,8 @@ object HtmlReport {
                     "<h1>Arbeitsbericht Nr. ${rep.id.value}</h1>" +
                     "<table style=\"border: 2px solid black;border-collapse: collapse;\">" +
                     "<tr>" +
-                        "<th style=\"padding: 15px;font-size:24px;text-align:left;border: 2px solid black;border-collapse: collapse;\">Kunde / Projekt</th>" +
-                        "<th style=\"padding: 15px;font-size:24px;text-align:left;border: 2px solid black;border-collapse: collapse;\">Rechnungsaddresse</th>" +
+                        "<th style=\"padding: 15px;font-size:18px;text-align:left;border: 2px solid black;border-collapse: collapse;\">Kunde / Projekt</th>" +
+                        "<th style=\"padding: 15px;font-size:18px;text-align:left;border: 2px solid black;border-collapse: collapse;\">Rechnungsaddresse</th>" +
                     "</tr>" +
                     "<tr>" +
                         "<td style=\"padding: 10px;border: 2px solid black;border-collapse: collapse;\"> ${rep.project.name.value}</td>" +
@@ -36,12 +36,12 @@ object HtmlReport {
         html += "<h2>Arbeits-/fahrzeiten und Fahrstrecken</h2>" +
                 "<table style=\"border: 2px solid black;border-collapse: collapse;\">" +
                     "<tr>" +
-                        "<th style=\"padding: 15px;font-size:24px;text-align:left;border: 2px solid black;border-collapse: collapse;\">Datum</th>" +
-                        "<th style=\"padding: 15px;font-size:24px;text-align:left;border: 2px solid black;border-collapse: collapse;\">Mitarbeiter</th>" +
-                        "<th style=\"padding: 15px;font-size:24px;text-align:left;border: 2px solid black;border-collapse: collapse;\">Arbeitsanfang</th>" +
-                        "<th style=\"padding: 15px;font-size:24px;text-align:left;border: 2px solid black;border-collapse: collapse;\">Arbeitsende</th>" +
-                        "<th style=\"padding: 15px;font-size:24px;text-align:left;border: 2px solid black;border-collapse: collapse;\">Fahrzeit<br>[h:m]</th>" +
-                        "<th style=\"padding: 15px;font-size:24px;text-align:left;border: 2px solid black;border-collapse: collapse;\">Fahrstrecke [km]</th>" +
+                        "<th style=\"padding: 15px;font-size:18px;text-align:left;border: 2px solid black;border-collapse: collapse;\">Datum</th>" +
+                        "<th style=\"padding: 15px;font-size:18px;text-align:left;border: 2px solid black;border-collapse: collapse;\">Mitarbeiter</th>" +
+                        "<th style=\"padding: 15px;font-size:18px;text-align:left;border: 2px solid black;border-collapse: collapse;\">Arbeits-anfang</th>" +
+                        "<th style=\"padding: 15px;font-size:18px;text-align:left;border: 2px solid black;border-collapse: collapse;\">Arbeits-ende</th>" +
+                        "<th style=\"padding: 15px;font-size:18px;text-align:left;border: 2px solid black;border-collapse: collapse;\">Fahrzeit<br>[h:m]</th>" +
+                        "<th style=\"padding: 15px;font-size:18px;text-align:left;border: 2px solid black;border-collapse: collapse;\">Fahr-strecke [km]</th>" +
                     "</tr>"
             rep.workTimeContainer.items.forEach {
             html += "<tr>" +
@@ -62,7 +62,7 @@ object HtmlReport {
         html += "<h2>Durchgeführte Arbeiten</h2>" +
                 "<table style=\"border: 2px solid black;border-collapse: collapse;\">" +
                     "<tr>" +
-                        "<th style=\"padding: 15px;font-size:24px;text-align:left;border: 2px solid black;border-collapse: collapse;\">Arbeit</th>" +
+                        "<th style=\"padding: 15px;font-size:18px;text-align:left;border: 2px solid black;border-collapse: collapse;\">Arbeit</th>" +
                     "</tr>"
         rep.workItemContainer.items.forEach {
             html += "<tr>" +
@@ -75,8 +75,8 @@ object HtmlReport {
         html += "<h2>Pauschalen</h2>" +
                 "<table style=\"border: 2px solid black;border-collapse: collapse;\">" +
                     "<tr>" +
-                        "<th style=\"padding: 15px;font-size:24px;text-align:left;border: 2px solid black;border-collapse: collapse;\">Pauschale</th>" +
-                        "<th style=\"padding: 15px;font-size:24px;text-align:left;border: 2px solid black;border-collapse: collapse;\">Anzahl</th>" +
+                        "<th style=\"padding: 15px;font-size:18px;text-align:left;border: 2px solid black;border-collapse: collapse;\">Pauschale</th>" +
+                        "<th style=\"padding: 15px;font-size:18px;text-align:left;border: 2px solid black;border-collapse: collapse;\">Anzahl</th>" +
                     "</tr>"
         rep.lumpSumContainer.items.forEach {
             html += "<tr>" +
@@ -90,8 +90,8 @@ object HtmlReport {
         html += "<h2>Material</h2>" +
                 "<table style=\"border: 2px solid black;border-collapse: collapse;\">" +
                     "<tr>" +
-                        "<th style=\"padding: 15px;font-size:24px;text-align:left;border: 2px solid black;border-collapse: collapse;\">Material</th>" +
-                        "<th style=\"padding: 15px;font-size:24px;text-align:left;border: 2px solid black;border-collapse: collapse;\">Anzahl</th>" +
+                        "<th style=\"padding: 15px;font-size:18px;text-align:left;border: 2px solid black;border-collapse: collapse;\">Material</th>" +
+                        "<th style=\"padding: 15px;font-size:18px;text-align:left;border: 2px solid black;border-collapse: collapse;\">Anzahl</th>" +
                     "</tr>"
         rep.materialContainer.items.forEach {
             html += "<tr>" +
@@ -103,7 +103,7 @@ object HtmlReport {
         if(rep.photoContainer.items.size != 0) {
             html += "<h2>Fotos</h2>"
             rep.photoContainer.items.forEach {
-                html += "<img src=\"file://${it.file.value}\">"
+                html += "<img src=\"file://${it.file.value}\" style=\"max-width:100%\">"
                 html += "${it.description.value}"
             }
             html += "<hr>"
@@ -111,21 +111,17 @@ object HtmlReport {
         if(inclSignatures) {
             // Employee signature
             html += "<h2>Unterschrift Auftragnehmer</h2>"
-            if (rep.signatureData.employeeSignatureSvg.value == "") {
+            if (rep.signatureData.employeeSignatureSvg.value == "" || rep.signatureData.employeeSignaturePngFile == null) {
                 html += "Keine Unterschrift vorhanden"
             } else {
-                html += "<div class=\"svg\">"
-                html += rep.signatureData.employeeSignatureSvg.value
-                html += "</div>"
+                html += "<img src=\"file://${rep.signatureData.employeeSignaturePngFile!!.absoluteFile}\" style=\"max-width:50%\">"
             }
             // Client signature
             html += "<h2>Unterschrift Auftraggeber</h2>"
-            if (rep.signatureData.clientSignatureSvg.value == "") {
+            if (rep.signatureData.clientSignatureSvg.value == "" || rep.signatureData.clientSignaturePngFile == null) {
                 html += "Keine Unterschrift vorhanden"
             } else {
-                html += "<div class=\"svg\">"
-                html += rep.signatureData.clientSignatureSvg.value
-                html += "</div>"
+                html += "<img src=\"file://${rep.signatureData.clientSignaturePngFile!!.absoluteFile}\" style=\"max-width:50%\">"
             }
         }
         html += "</body></html>"

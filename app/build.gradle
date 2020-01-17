@@ -15,15 +15,15 @@ android {
         applicationId "com.stemaker.arbeitsbericht"
         minSdkVersion 23
         targetSdkVersion 29
-        versionCode 5
-        versionName "beta01"
+        versionCode 7
+        versionName "v1.1"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            versionNameSuffix = 'beta01'
+            versionNameSuffix = ''
         }
     }
     dataBinding {

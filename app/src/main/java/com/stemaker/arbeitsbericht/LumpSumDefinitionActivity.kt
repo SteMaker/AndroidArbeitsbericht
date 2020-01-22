@@ -35,7 +35,6 @@ class LumpSumDefinitionActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_lump_sum_definition)
 
-        findViewById<CheckBox>(R.id.checkbox_server).setChecked(configuration().lumpSumsFromServer)
         findViewById<EditText>(R.id.lump_sum_ftp_host).setText(configuration().lumpSumServerHost)
         findViewById<EditText>(R.id.lump_sum_ftp_port).setText(configuration().lumpSumServerPort.toString())
         findViewById<EditText>(R.id.lump_sum_ftp_path).setText(configuration().lumpSumServerPath)
@@ -44,8 +43,6 @@ class LumpSumDefinitionActivity : AppCompatActivity() {
         for (ls in lumpSums) {
             addLumpSumView(ls)
         }
-        if(configuration().lumpSumsFromServer) serverViewsEnabled()
-        else serverViewsDisabled()
     }
 
     @Suppress("UNUSED_PARAMETER")
@@ -78,16 +75,13 @@ class LumpSumDefinitionActivity : AppCompatActivity() {
             Log.d("Arbeitsbericht.LumpSumDefinitionActivity.onClickSave", "saving $pos")
         }
         configuration().lumpSums = lumpSums
-        configuration().lumpSumsFromServer = findViewById<CheckBox>(R.id.checkbox_server).isChecked()
-        if(configuration().lumpSumsFromServer) {
-            configuration().lumpSumServerHost= findViewById<EditText>(R.id.lump_sum_ftp_host).text.toString()
-            configuration().lumpSumServerPort = findViewById<EditText>(R.id.lump_sum_ftp_port).text.toString().toInt()
-            configuration().lumpSumServerPath = findViewById<EditText>(R.id.lump_sum_ftp_path).text.toString()
-            configuration().lumpSumServerUser = findViewById<EditText>(R.id.lump_sum_ftp_user).text.toString()
-            val pwd = findViewById<EditText>(R.id.lump_sum_ftp_pwd).text.toString()
-            if(pwd != "") // only overwrite if a new one has been set
-                configuration().lumpSumServerEncryptedPassword = pwd
-        }
+        configuration().lumpSumServerHost= findViewById<EditText>(R.id.lump_sum_ftp_host).text.toString()
+        configuration().lumpSumServerPort = findViewById<EditText>(R.id.lump_sum_ftp_port).text.toString().toInt()
+        configuration().lumpSumServerPath = findViewById<EditText>(R.id.lump_sum_ftp_path).text.toString()
+        configuration().lumpSumServerUser = findViewById<EditText>(R.id.lump_sum_ftp_user).text.toString()
+        val pwd = findViewById<EditText>(R.id.lump_sum_ftp_pwd).text.toString()
+        if(pwd != "") // only overwrite if a new one has been set
+            configuration().lumpSumServerEncryptedPassword = pwd
         storageHandler().saveConfigurationToFile(getApplicationContext())
         val intent = Intent(this, MainActivity::class.java).apply {}
         startActivity(intent)
@@ -105,66 +99,49 @@ class LumpSumDefinitionActivity : AppCompatActivity() {
         }
     }
 
-    fun onCheckboxServerClicked(chkb: View) {
-        val checkbox = chkb as CheckBox
-        when(checkbox.isChecked()) {
-            true -> serverViewsEnabled()
-            false -> serverViewsDisabled()
-        }
-    }
-
     fun onClickLoad(btn: View) {
         GlobalScope.launch(Dispatchers.Main) {
-            findViewById<ProgressBar>(R.id.load_progress).visibility = View.VISIBLE
-            val host = findViewById<AutoCompleteTextView>(R.id.lump_sum_ftp_host).text.toString()
-            val port = findViewById<AutoCompleteTextView>(R.id.lump_sum_ftp_port).text.toString().toInt()
-            val user = findViewById<AutoCompleteTextView>(R.id.lump_sum_ftp_user).text.toString()
-            var pwd = findViewById<AutoCompleteTextView>(R.id.lump_sum_ftp_pwd).text.toString()
-            if(pwd == "") pwd = configuration().lumpSumServerEncryptedPassword
-            val path = findViewById<AutoCompleteTextView>(R.id.lump_sum_ftp_path).text.toString()
-            try {
-                val sftpProvider = SftpProvider(this@LumpSumDefinitionActivity)
-                sftpProvider.connect(user, pwd, host, port)
-                Log.d(TAG, "Connection success")
-                val lumpSumsFileContent = sftpProvider.getAsciiFromFile(path)
-                Log.d(TAG, lumpSumsFileContent)
-            } catch(e: Exception) {
-                val toast = Toast.makeText(this@LumpSumDefinitionActivity, e.message, Toast.LENGTH_LONG)
-                toast.show()
+            if(checkAndObtainInternetPermission()) {
+                findViewById<ProgressBar>(R.id.load_progress).visibility = View.VISIBLE
+                val host = findViewById<AutoCompleteTextView>(R.id.lump_sum_ftp_host).text.toString()
+                val port = findViewById<AutoCompleteTextView>(R.id.lump_sum_ftp_port).text.toString().toInt()
+                val user = findViewById<AutoCompleteTextView>(R.id.lump_sum_ftp_user).text.toString()
+                var pwd = findViewById<AutoCompleteTextView>(R.id.lump_sum_ftp_pwd).text.toString()
+                if (pwd == "") pwd = configuration().lumpSumServerEncryptedPassword
+                val path = findViewById<AutoCompleteTextView>(R.id.lump_sum_ftp_path).text.toString()
+                try {
+                    val sftpProvider = SftpProvider(this@LumpSumDefinitionActivity)
+                    sftpProvider.connect(user, pwd, host, port)
+                    Log.d(TAG, "Connection success")
+                    val lumpSumsFileContent = sftpProvider.getAsciiFromFile(path)
+                    val lumpSums = lumpSumsFileContent.lines()
+                    val filtered = mutableListOf<String>()
+                    for (e in lumpSums)
+                        if (e != "")
+                            filtered.add(e)
+                    if (filtered.size == 0) {
+                        val answer = showConfirmationDialog(getString(R.string.no_lump_sums_found), this@LumpSumDefinitionActivity)
+                        if (answer == AlertDialog.BUTTON_POSITIVE) {
+                            lump_sums_container.removeAllViews()
+                        }
+                    } else {
+                        val answer = showConfirmationDialog(getString(R.string.lump_sums_found, filtered.size), this@LumpSumDefinitionActivity)
+                        if (answer == AlertDialog.BUTTON_POSITIVE) {
+                            lump_sums_container.removeAllViews()
+                            for (line in filtered)
+                                addLumpSumView(line)
+                        }
+                    }
+                } catch (e: Exception) {
+                    val toast = Toast.makeText(this@LumpSumDefinitionActivity, e.message, Toast.LENGTH_LONG)
+                    toast.show()
+                }
+                findViewById<ProgressBar>(R.id.load_progress).visibility = View.GONE
             }
-            findViewById<ProgressBar>(R.id.load_progress).visibility = View.GONE
         }
     }
 
-    private fun serverViewsEnabled() {
-
-        GlobalScope.launch(Dispatchers.Main) {
-            checkAndObtainInternetPermission()
-        }
-        findViewById<View>(R.id.add_lump_sum_element_button).visibility = View.GONE
-        findViewById<View>(R.id.ftp_config_container).visibility = View.VISIBLE
-
-        // Lump sums shall no longer be editable
-        for (pos in 0 until lump_sums_container.getChildCount()) {
-            val cV = lump_sums_container.getChildAt(pos) as CardView
-            cV.findViewById<EditText>(R.id.lump_sum_text).setEnabled(false)
-            cV.findViewById<View>(R.id.lump_sum_del_button).visibility = View.GONE
-        }
-    }
-
-    private fun serverViewsDisabled() {
-        findViewById<View>(R.id.add_lump_sum_element_button).visibility = View.VISIBLE
-        findViewById<View>(R.id.ftp_config_container).visibility = View.GONE
-
-        // Make lump sums editable
-        for (pos in 0 until lump_sums_container.getChildCount()) {
-            val cV = lump_sums_container.getChildAt(pos) as CardView
-            cV.findViewById<EditText>(R.id.lump_sum_text).setEnabled(true)
-            cV.findViewById<View>(R.id.lump_sum_del_button).visibility = View.VISIBLE
-        }
-    }
-
-    suspend fun checkAndObtainInternetPermission() {
+    private suspend fun checkAndObtainInternetPermission(): Boolean {
         var internetPermissionGranted = true
         if (ContextCompat.checkSelfPermission(
                 this,
@@ -182,12 +159,14 @@ class LumpSumDefinitionActivity : AppCompatActivity() {
                 internetPermissionContinuation = it
             }
         }
-        if (internetPermissionGranted)
+        if(internetPermissionGranted) {
             Log.d(TAG, "Permission for Internet is granted")
-        else {
+            return true
+        } else {
             val toast =
                 Toast.makeText(this, R.string.no_internet_access_abort, Toast.LENGTH_LONG)
             toast.show()
+            return false
         }
     }
 }

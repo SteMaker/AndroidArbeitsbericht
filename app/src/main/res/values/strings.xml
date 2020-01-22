@@ -59,6 +59,8 @@
     <string name="sftp_connect_done">Verbindung zum SFTP Server erfolgreich</string>
     <string name="sftp_file_get_error">Datei konnte nicht geladen werden: </string>
     <string name="no_internet_access_abort">Berechtigungen abgelehnt, die App kann die Datei ohne Netzwerkzugriff nicht laden</string>
+    <string name="lump_sums_found">%1d Pauschalen gefunden. Sollen diese übernommen werden?</string>
+    <string name="no_lump_sums_found">Keine Pauschalen gefunden. Sollen alle vorhandenen glöscht werden?</string>
 
     <item name="TAG_REPORT_ID" type="id" />
     <item name="TAG_CARDVIEW" type="id" />

@@ -20,7 +20,6 @@ class ConfigurationStore {
     var employeeName: String = ""
     var currentId: Int = 1
     var recvMail: String = ""
-    var lumpSumsFromServer: Boolean = false
     var lumpSumServerHost: String = ""
     var lumpSumServerPort: Int = 22
     var lumpSumServerPath: String = ""
@@ -63,10 +62,6 @@ object Configuration {
     var recvMail: String
         get(): String = store.recvMail
         set(value) {store.recvMail = value}
-
-    var lumpSumsFromServer: Boolean
-        get(): Boolean = store.lumpSumsFromServer
-        set(value) {store.lumpSumsFromServer = value}
 
     var lumpSumServerHost: String
         get(): String = store.lumpSumServerHost

@@ -31,6 +31,10 @@ class LumpSumEditorFragment : ReportEditorSectionFragment(),
         lumpSumContainerData = listener!!.getLumpSumContainerData()
     }
 
+    /* TODO: In case a lump sum has been deleted that is still used here we should
+     * Option A) Add this one still as an option (not good?)
+     * Option B) Make a TextView out of this drop down list and write it there (+hint that it is mssing)
+     */
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?

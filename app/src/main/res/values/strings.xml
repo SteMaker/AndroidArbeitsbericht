@@ -46,6 +46,19 @@
     <string name="photo">Fotos</string>
     <string name="description">Beschreibung</string>
     <string name="comment">Bemerkung</string>
+    <string name="lump_sum_from_server">Pauschalendefinition von einem server beziehen</string>
+
+    <!-- sFTP related -->
+    <string name="sftp_host">sFTP server Adresse</string>
+    <string name="sftp_port">sFTP server Port</string>
+    <string name="sftp_path">Pfad zur Datei auf dem sFTP server</string>
+    <string name="sftp_user">Benutzername (user name) sFTP server</string>
+    <string name="sftp_pwd">Passwort sFTP server</string>
+    <string name="file_load">Datei laden</string>
+    <string name="sftp_connect_error">Verbindung zum SFTP Server fehlgeschlagen: Fehlermedlung: %1s</string>
+    <string name="sftp_connect_done">Verbindung zum SFTP Server erfolgreich</string>
+    <string name="sftp_file_get_error">Datei konnte nicht geladen werden: </string>
+    <string name="no_internet_access_abort">Berechtigungen abgelehnt, die App kann die Datei ohne Netzwerkzugriff nicht laden</string>
 
     <item name="TAG_REPORT_ID" type="id" />
     <item name="TAG_CARDVIEW" type="id" />

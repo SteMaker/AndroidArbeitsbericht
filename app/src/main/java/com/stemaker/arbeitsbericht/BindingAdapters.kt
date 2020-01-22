@@ -84,7 +84,7 @@ object BindingAdapters {
     fun setSelectedItemText(spinner: Spinner, value: String) {
         Log.d("Arbeitsbericht.BindingAdapters.selectedItem.setSelectedItemText","Value = $value")
 
-        val idx = storageHandler().configuration.lumpSums.indexOf(value)
+        val idx = configuration().lumpSums.indexOf(value)
         if(idx >= 0) {
             spinner.setSelection(idx)
         }
@@ -93,7 +93,7 @@ object BindingAdapters {
     @JvmStatic
     @InverseBindingAdapter(attribute="selectedItem")
     fun getSelectedItemText(spinner: Spinner): String {
-        val value = storageHandler().configuration.lumpSums[spinner.selectedItemPosition]
+        val value = configuration().lumpSums[spinner.selectedItemPosition]
         Log.d("Arbeitsbericht.BindingAdapters.selectedItem.getSelectedItemText","Value = $value")
         return value
     }

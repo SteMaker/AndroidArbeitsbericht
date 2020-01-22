@@ -12,18 +12,16 @@ class ConfigurationActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_configuration)
 
-        val cfg = storageHandler().configuration
-        findViewById<EditText>(R.id.config_employee_name).setText(cfg.employeeName)
-        findViewById<EditText>(R.id.config_next_id).setText(cfg.currentId.toString())
-        findViewById<EditText>(R.id.config_mail_receiver).setText(cfg.recvMail)
+        findViewById<EditText>(R.id.config_employee_name).setText(configuration().employeeName)
+        findViewById<EditText>(R.id.config_next_id).setText(configuration().currentId.toString())
+        findViewById<EditText>(R.id.config_mail_receiver).setText(configuration().recvMail)
 
     }
 
     fun onClickSave(@Suppress("UNUSED_PARAMETER") saveButton: View) {
-        val cfg = storageHandler().configuration
-        cfg.employeeName = findViewById<EditText>(R.id.config_employee_name).getText().toString()
-        cfg.currentId = findViewById<EditText>(R.id.config_next_id).getText().toString().toInt()
-        cfg.recvMail = findViewById<EditText>(R.id.config_mail_receiver).getText().toString()
+        configuration().employeeName = findViewById<EditText>(R.id.config_employee_name).getText().toString()
+        configuration().currentId = findViewById<EditText>(R.id.config_next_id).getText().toString().toInt()
+        configuration().recvMail = findViewById<EditText>(R.id.config_mail_receiver).getText().toString()
         storageHandler().saveConfigurationToFile(getApplicationContext())
         val intent = Intent(this, MainActivity::class.java).apply {}
         startActivity(intent)

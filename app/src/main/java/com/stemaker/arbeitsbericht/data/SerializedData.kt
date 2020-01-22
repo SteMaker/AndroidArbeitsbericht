@@ -124,7 +124,7 @@ class WorkItemContainerDataSerialized() {
 @Serializable
 class WorkTimeDataSerialized() {
     var date: String = ""
-    var employees = mutableListOf(storageHandler().configuration.employeeName)
+    var employees = mutableListOf(configuration().employeeName)
     var startTime: String = "00:00"
     var endTime: String = "00:00"
     var driveTime: String = "00:00"

@@ -12,7 +12,7 @@ import java.io.*
 
 fun storageHandler(): StorageHandler {
     if(!StorageHandler.inited) {
-        StorageHandler.myInit()
+        StorageHandler.initialize()
     }
     return StorageHandler
 }
@@ -22,7 +22,6 @@ object StorageHandler {
     var gson = Gson()
     var reports = mutableListOf<Int>()
     lateinit var activeReport: ReportData
-    lateinit var configuration: Configuration
 
     private var _materialDictionary = mutableSetOf<String>()
     val materialDictionary: Set<String>
@@ -34,14 +33,14 @@ object StorageHandler {
         get() = _workItemDictionary
     private var workItemDictionaryChanged: Boolean = false
 
-    fun myInit() {
+    fun initialize() {
         val c: Context = ArbeitsberichtApp.appContext
         if(inited == false) {
             inited = true
             // Read the configuration
             Log.d("Arbeitsbericht.StorageHandler.myInit", "start")
             loadConfigurationFromFile(c)
-            Log.d("Arbeitsbericht.StorageHandler.myInit", "Next free ID is ${configuration.currentId}")
+            Log.d("Arbeitsbericht.StorageHandler.myInit", "Next free ID is ${configuration().currentId}")
 
             // Read the list of files that match report$id.json
             var maxId: Int = 0
@@ -61,13 +60,13 @@ object StorageHandler {
             }
 
             // Consistency check if the report IDs are beyond the next ID
-            if(maxId >= configuration.currentId) {
+            if(maxId >= configuration().currentId) {
                 Log.w("Arbeitsbericht.StorageHandler.myInit", "A report has an ID which is higher than the next one to use")
                 val toast = Toast.makeText(c, "Fehler bei der aktuellen laufenden Nummer", Toast.LENGTH_LONG)
                 toast.show()
             }
-            if(configuration.activeReportId > 0)
-                selectReportById(configuration.activeReportId)
+            if(configuration().activeReportId > 0)
+                selectReportById(configuration().activeReportId)
 
             Log.d("Arbeitsbericht.StorageHandler.myInit", "done")
         }
@@ -86,20 +85,20 @@ object StorageHandler {
     }
 
     fun createNewReportAndSelect(c: Context) {
-        val rep = ReportData.createReport(configuration.currentId)
+        val rep = ReportData.createReport(configuration().currentId)
         Log.d("Arbeitsbericht.StorageHandler.createNewReportAndSelect", "Created new report with ID ${rep.id.value!!}")
         reports.add(rep.id.value!!)
         activeReport = rep
-        configuration.activeReportId = rep.id.value!!
-        configuration.currentId += 1
-        saveConfigurationToFile(c)
+        configuration().activeReportId = rep.id.value!!
+        configuration().currentId += 1
+        configuration().save()
     }
 
     fun selectReportById(id: Int, c: Context = ArbeitsberichtApp.appContext) {
         Log.d("Arbeitsbericht.StorageHandler.selectReportById", c.toString())
-        configuration.activeReportId = id
+        configuration().activeReportId = id
         activeReport = readReportFromFile(reportIdToReportFile(id), c)
-        saveConfigurationToFile(c)
+        configuration().save()
     }
 
     private fun readStringFromFile(fileName: String, context: Context): String {
@@ -162,7 +161,7 @@ object StorageHandler {
         }
 
         if(materialDictionaryChanged || workItemDictionaryChanged) {
-            saveConfigurationToFile(c)
+            configuration().save()
             materialDictionaryChanged = false
             workItemDictionaryChanged = false
         }
@@ -183,23 +182,23 @@ object StorageHandler {
         try {
             val fIn = c.openFileInput("configuration.json")
             val isr = InputStreamReader(fIn)
-            configuration = gson.fromJson(isr, Configuration::class.java)
-            Log.d("Arbeitsbericht.StorageHandler.loadConfigurationFromFile", "Next ID to be used: ${configuration.currentId}")
+            configuration().store = gson.fromJson(isr, ConfigurationStore::class.java)
+            Log.d("Arbeitsbericht.StorageHandler.loadConfigurationFromFile", "Next ID to be used: ${configuration().currentId}")
         }
         catch (e: FileNotFoundException){
             Log.d("Arbeitsbericht.StorageHandler.loadConfigurationFromFile", "No configuration file found, creating a new one")
-            configuration = Configuration()
-            saveConfigurationToFile(c)
+            configuration().store = ConfigurationStore()
+            configuration().save()
         }
     }
 
     fun saveConfigurationToFile(c: Context) {
-        configuration.materialDictionary = materialDictionary
-        configuration.workItemDictionary = workItemDictionary
+        configuration().materialDictionary = materialDictionary
+        configuration().workItemDictionary = workItemDictionary
         val fOut = c.openFileOutput("configuration.json", MODE_PRIVATE)
-        Log.d("Arbeitsbericht.StorageHandler.saveConfigurationToFile", "currentId = ${configuration.currentId}; num lump sums = ${configuration.lumpSums.size}")
+        Log.d("Arbeitsbericht.StorageHandler.saveConfigurationToFile", "currentId = ${configuration().currentId}; num lump sums = ${configuration().lumpSums.size}")
         val osw = OutputStreamWriter(fOut)
-        gson.toJson(configuration, osw)
+        gson.toJson(Configuration.store, osw)
         osw.close()
     }
 

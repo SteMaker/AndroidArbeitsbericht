@@ -2,6 +2,8 @@ package com.stemaker.arbeitsbericht.data
 
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.stemaker.arbeitsbericht.Configuration
+import com.stemaker.arbeitsbericht.configuration
 import com.stemaker.arbeitsbericht.storageHandler
 import java.util.*
 
@@ -36,7 +38,7 @@ class WorkTimeContainerData(): ViewModel() {
 class WorkTimeData: ViewModel() {
     val date = MutableLiveData<String>().apply { value =  getCurrentDate()}
 
-    val employees = mutableListOf<MutableLiveData<String>>().apply { add(MutableLiveData<String>().apply { value = storageHandler().configuration.employeeName } ) }
+    val employees = mutableListOf<MutableLiveData<String>>().apply { add(MutableLiveData<String>().apply { value = configuration().employeeName } ) }
 
     val startTime = MutableLiveData<String>().apply { value =  ""} // Empty string will lead to pre-setting current time when clicking the edit button
 
@@ -56,7 +58,7 @@ class WorkTimeData: ViewModel() {
     }
 
     fun addEmployee(): MutableLiveData<String> {
-        val emp = MutableLiveData<String>().apply { value = storageHandler().configuration.employeeName }
+        val emp = MutableLiveData<String>().apply { value = configuration().employeeName }
         employees.add(emp)
         return emp
     }

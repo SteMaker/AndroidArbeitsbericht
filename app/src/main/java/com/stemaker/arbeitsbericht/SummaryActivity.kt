@@ -206,9 +206,9 @@ class SummaryActivity : AppCompatActivity(), PdfPrint.PdfPrintFinishedCallback {
     }
 
     fun sendMail(pdfFile: File?, report: ReportData) {
-        val subj = "Arbeitsbericht von ${storageHandler().configuration.employeeName}: Kunde: ${report.project.name.value}, Berichtsnr: ${report.id.value}"
+        val subj = "Arbeitsbericht von configuration().employeeName}: Kunde: ${report.project.name.value}, Berichtsnr: ${report.id.value}"
         val emailIntent = Intent(Intent.ACTION_SENDTO)
-        emailIntent.data = Uri.parse("mailto:" + storageHandler().configuration.recvMail)
+        emailIntent.data = Uri.parse("mailto:" + configuration().recvMail)
         emailIntent.putExtra(Intent.EXTRA_SUBJECT, subj)
         if(pdfFile != null) {
             emailIntent.putExtra(Intent.EXTRA_TEXT, "Bericht im Anhang")

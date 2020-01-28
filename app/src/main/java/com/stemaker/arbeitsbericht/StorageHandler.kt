@@ -5,9 +5,12 @@ package com.stemaker.arbeitsbericht
 import android.content.Context
 import android.content.Context.MODE_PRIVATE
 import android.util.Log
-import android.widget.Toast
 import com.google.gson.Gson
 import com.stemaker.arbeitsbericht.data.ReportData
+import com.stemaker.arbeitsbericht.helpers.showInfoDialog
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import java.io.*
 
 fun storageHandler(): StorageHandler {
@@ -62,8 +65,9 @@ object StorageHandler {
             // Consistency check if the report IDs are beyond the next ID
             if(maxId >= configuration().currentId) {
                 Log.w("Arbeitsbericht.StorageHandler.myInit", "A report has an ID which is higher than the next one to use")
-                val toast = Toast.makeText(c, "Fehler bei der aktuellen laufenden Nummer", Toast.LENGTH_LONG)
-                toast.show()
+                GlobalScope.launch(Dispatchers.Main) {
+                    showInfoDialog(c.getString(R.string.report_id_mismatch), c, c.getString(R.string.report_id_mismatch_detail))
+                }
             }
             if(configuration().activeReportId > 0)
                 selectReportById(configuration().activeReportId)
@@ -147,8 +151,8 @@ object StorageHandler {
     }
 
     fun saveActiveReportToFile(c: Context) {
-        activeReport.updateLastChangeDate()
         val jsonString = ReportData.getJsonFromReport(activeReport)
+        activeReport.lastStoreHash = jsonString.hashCode()
         val fileName = reportIdToReportFile(activeReport.id.value!!)
         writeStringToFile(fileName, jsonString, c)
         Log.d("Arbeitsbericht.StorageHandler.saveReportToFile", "Saved to file $fileName")

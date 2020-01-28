@@ -9,19 +9,32 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
 suspend fun showConfirmationDialog(title: String, context: Context, msg: String=""): Int {
+    var continuation: Continuation<Int>? = null
+    val alert = AlertDialog.Builder(context)
+        .setIcon(R.drawable.ic_delete_black_24dp)
+        .setTitle(title)
+        .setMessage(msg)
+        .setPositiveButton(R.string.ok) { _, button -> continuation!!.resume(button) }
+        .setNegativeButton(R.string.cancel) { _, button -> continuation!!.resume(button) }
+        .setOnCancelListener() { _ -> continuation!!.resume(AlertDialog.BUTTON_NEUTRAL) }
+        .create()
+    alert.show()
+    return suspendCoroutine<Int> {
+        continuation = it
+    }
+}
+
+suspend fun showInfoDialog(title: String, context: Context, msg: String=""): Int {
         var continuation: Continuation<Int>? = null
-        Log.d("Arbeitsbericht.ConfirmationFragment.showConfirmationDialog", "in coroutine context")
         val alert = AlertDialog.Builder(context)
-            .setIcon(R.drawable.ic_delete_black_24dp)
+            .setIcon(R.drawable.ic_info_outline_black_24dp)
             .setTitle(title)
             .setMessage(msg)
-            .setPositiveButton(R.string.ok) { _, button -> continuation!!.resume(button) }
-            .setNegativeButton(R.string.cancel) { _, button -> continuation!!.resume(button) }
+            .setPositiveButton(R.string.ok) { _, button -> continuation!!.resume(AlertDialog.BUTTON_NEUTRAL) }
             .setOnCancelListener() { _ -> continuation!!.resume(AlertDialog.BUTTON_NEUTRAL) }
             .create()
         alert.show()
         return suspendCoroutine<Int> {
-            Log.d("Arbeitsbericht.ConfirmationFragment.showConfirmationDialog", "Coroutine: suspended")
             continuation = it
         }
 }

@@ -3,6 +3,7 @@ package com.stemaker.arbeitsbericht.editor_fragments
 import android.app.Activity.RESULT_OK
 import android.content.Context
 import android.content.Intent
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
@@ -182,6 +183,12 @@ class PhotoEditorFragment : ReportEditorSectionFragment(),
         if (requestCode == REQUEST_TAKE_PHOTO && resultCode == RESULT_OK) {
             // Trigger a redraw
             activePhoto?.file?.value = activePhoto?.file?.value
+            // calc and store image dimensions
+            val options = BitmapFactory.Options()
+            options.inJustDecodeBounds = true
+            BitmapFactory.decodeFile(activePhoto?.file?.value, options)
+            activePhoto?.imageHeight = options.outHeight
+            activePhoto?.imageWidth = options.outWidth
         }
     }
 

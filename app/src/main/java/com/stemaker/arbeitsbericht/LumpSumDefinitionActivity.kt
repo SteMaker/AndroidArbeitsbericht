@@ -28,17 +28,14 @@ private const val TAG = "LumpSumDefinitionActivity"
 private const val PERMISSION_CODE_REQUEST_INTERNET = 1
 
 class LumpSumDefinitionActivity : AppCompatActivity() {
-    var internetPermissionContinuation: Continuation<Boolean>? = null
+    private var internetPermissionContinuation: Continuation<Boolean>? = null
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_lump_sum_definition)
 
-        findViewById<EditText>(R.id.lump_sum_ftp_host).setText(configuration().lumpSumServerHost)
-        findViewById<EditText>(R.id.lump_sum_ftp_port).setText(configuration().lumpSumServerPort.toString())
         findViewById<EditText>(R.id.lump_sum_ftp_path).setText(configuration().lumpSumServerPath)
-        findViewById<EditText>(R.id.lump_sum_ftp_user).setText(configuration().lumpSumServerUser)
         val lumpSums = configuration().lumpSums
         for (ls in lumpSums) {
             addLumpSumView(ls)
@@ -75,13 +72,7 @@ class LumpSumDefinitionActivity : AppCompatActivity() {
             Log.d("Arbeitsbericht.LumpSumDefinitionActivity.onClickSave", "saving $pos")
         }
         configuration().lumpSums = lumpSums
-        configuration().lumpSumServerHost= findViewById<EditText>(R.id.lump_sum_ftp_host).text.toString()
-        configuration().lumpSumServerPort = findViewById<EditText>(R.id.lump_sum_ftp_port).text.toString().toInt()
         configuration().lumpSumServerPath = findViewById<EditText>(R.id.lump_sum_ftp_path).text.toString()
-        configuration().lumpSumServerUser = findViewById<EditText>(R.id.lump_sum_ftp_user).text.toString()
-        val pwd = findViewById<EditText>(R.id.lump_sum_ftp_pwd).text.toString()
-        if(pwd != "") // only overwrite if a new one has been set
-            configuration().lumpSumServerEncryptedPassword = pwd
         storageHandler().saveConfigurationToFile(getApplicationContext())
         val intent = Intent(this, MainActivity::class.java).apply {}
         startActivity(intent)
@@ -103,17 +94,16 @@ class LumpSumDefinitionActivity : AppCompatActivity() {
         GlobalScope.launch(Dispatchers.Main) {
             if(checkAndObtainInternetPermission()) {
                 findViewById<ProgressBar>(R.id.load_progress).visibility = View.VISIBLE
-                val host = findViewById<AutoCompleteTextView>(R.id.lump_sum_ftp_host).text.toString()
-                val port = findViewById<AutoCompleteTextView>(R.id.lump_sum_ftp_port).text.toString().toInt()
-                val user = findViewById<AutoCompleteTextView>(R.id.lump_sum_ftp_user).text.toString()
-                var pwd = findViewById<AutoCompleteTextView>(R.id.lump_sum_ftp_pwd).text.toString()
-                if (pwd == "") pwd = configuration().lumpSumServerEncryptedPassword
+                val host = configuration().sFtpHost
+                val port = configuration().sFtpPort
+                val user = configuration().sFtpUser
+                val pwd = configuration().sFtpEncryptedPassword
                 val path = findViewById<AutoCompleteTextView>(R.id.lump_sum_ftp_path).text.toString()
                 try {
                     val sftpProvider = SftpProvider(this@LumpSumDefinitionActivity)
                     sftpProvider.connect(user, pwd, host, port)
                     Log.d(TAG, "Connection success")
-                    val lumpSumsFileContent = sftpProvider.getAsciiFromFile(path)
+                    val lumpSumsFileContent = sftpProvider.getFileContentAsString(path)
                     val lumpSums = lumpSumsFileContent.lines()
                     val filtered = mutableListOf<String>()
                     for (e in lumpSums)

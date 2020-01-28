@@ -16,12 +16,15 @@ import com.stemaker.arbeitsbericht.helpers.HtmlReport
 import com.stemaker.arbeitsbericht.helpers.showConfirmationDialog
 import java.io.File
 import java.io.IOException
+import kotlin.coroutines.Continuation
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
+
+private const val TAG = "PdfPrint"
 
 class PdfPrint(val activity: Activity, val report: ReportData) {
 
-    interface PdfPrintFinishedCallback {
-        fun pdfPrintFinishedCallback(pdfFile: File)
-    }
+    var pdfPrintContinuation: Continuation<Unit>? = null
 
     val jobName = "pdf_print_" + report.id.toString()
     val attributes = PrintAttributes.Builder()
@@ -30,10 +33,9 @@ class PdfPrint(val activity: Activity, val report: ReportData) {
         .setMinMargins(PrintAttributes.Margins.NO_MARGINS)
         .build()
 
-    fun print(file: File): Boolean {
-
-        val html = HtmlReport.encodeReport(report, true)
+    suspend fun print(file: File) {
         // Generate a webview including signatures and then print it to pdf
+        val html = HtmlReport.encodeReport(report, true)
         val wv = WebView(activity)
 
         wv.webViewClient = object : WebViewClient() {
@@ -51,9 +53,8 @@ class PdfPrint(val activity: Activity, val report: ReportData) {
                             object : PrintDocumentAdapter.WriteResultCallback() {
                                 override fun onWriteFinished(pages: Array<PageRange>) {
                                     super.onWriteFinished(pages)
-                                    Log.d("Arbeitsbericht", "PDF generation finished")
-                                    val cb = activity as PdfPrintFinishedCallback
-                                    cb.pdfPrintFinishedCallback(file)
+                                    Log.d(TAG, "PDF generation finished")
+                                    pdfPrintContinuation!!.resume(Unit)
                                 }
                             })
                     }
@@ -63,17 +64,21 @@ class PdfPrint(val activity: Activity, val report: ReportData) {
             }
         }
         wv.loadDataWithBaseURL("", html, "text/html", "UTF-8", "")
-        return true
+
+        suspendCoroutine<Unit> {
+            Log.d(TAG, "Coroutine: suspended")
+            pdfPrintContinuation = it
+        }
     }
 
     suspend fun getFilesForPdfGeneration(ctx: Context): Array<File>? {
-        val path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS).absolutePath
+        val path = "${Environment.getExternalStorageDirectory().absolutePath}/Arbeitsbericht"
 
         /* Create the Documents folder if it doesn't exist */
         val folder = File(path)
         if(!folder.exists()) {
             if (!folder.mkdirs()) {
-                Log.d("Arbeitsbericht", "Could not create documents directory")
+                Log.d(TAG, "Could not create documents directory")
                 val toast = Toast.makeText(activity, "Konnte erforderlichen Ordner für die Berichtsdatei nicht erstellen", Toast.LENGTH_LONG)
                 toast.show()
                 return null

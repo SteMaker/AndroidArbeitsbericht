@@ -1,60 +1,221 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:paddingLeft="16dp"
-    android:paddingRight="16dp"
-    android:orientation="vertical"
-    tools:context=".ReportEditorActivity">
-
-    <ScrollView
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:card_view="http://schemas.android.com/apk/res-auto"
         android:layout_width="match_parent"
-        android:layout_height="0dp" android:layout_weight="1">
-        <LinearLayout
-            android:id="@+id/config_list_container"
-            android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:orientation="vertical"
+        tools:context=".ReportEditorActivity">
+
+    <ProgressBar
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
-            <com.google.android.material.textfield.TextInputLayout
+            android:visibility="gone"
+            android:id="@+id/sftp_progress"
+            />
+    <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+        <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:visibility="visible">
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/config_employee_name"
+                android:orientation="vertical">
+        <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                card_view:cardCornerRadius="4dp"
+                card_view:cardElevation="4dp"
+                app:contentPadding="10dp"
+                app:contentPaddingBottom="0dp"
+                app:cardPreventCornerOverlap="true"
+                app:cardUseCompatPadding="true"
+                android:clickable="false">
+            <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="@string/employee_name"
-                />
-            </com.google.android.material.textfield.TextInputLayout>
-            <com.google.android.material.textfield.TextInputLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:visibility="visible">
-                <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/config_mail_receiver"
+                    android:orientation="vertical">
+                <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="@string/mail_receiver"
-                        android:inputType="textEmailAddress"
-                />
-            </com.google.android.material.textfield.TextInputLayout>
-            <com.google.android.material.textfield.TextInputLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:visibility="visible">
-                <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/config_next_id"
+                        android:text="Allgemeine Einstellungen"
+                        android:textSize="24sp"
+                        />
+                <com.google.android.material.textfield.TextInputLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="@string/free_id"
-                        android:inputType="numberDecimal"
-                />
-            </com.google.android.material.textfield.TextInputLayout>
+                        android:visibility="visible">
+                    <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/config_employee_name"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="@string/employee_name"
+                            />
+                </com.google.android.material.textfield.TextInputLayout>
+                <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:visibility="visible">
+                    <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/config_mail_receiver"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="@string/mail_receiver"
+                            android:inputType="textEmailAddress"
+                            />
+                </com.google.android.material.textfield.TextInputLayout>
+                <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:visibility="visible">
+                    <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/config_next_id"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="@string/free_id"
+                            android:inputType="numberDecimal"
+                            />
+                </com.google.android.material.textfield.TextInputLayout>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
 
+        <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                card_view:cardCornerRadius="4dp"
+                card_view:cardElevation="4dp"
+                app:contentPadding="10dp"
+                app:contentPaddingBottom="0dp"
+                app:cardPreventCornerOverlap="true"
+                app:cardUseCompatPadding="true"
+                android:clickable="false">
+        <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+            <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/sftp_settings"
+                    android:textSize="24sp"
+                    />
+            <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+                <AutoCompleteTextView
+                        android:id="@+id/sftp_host"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textUri"
+                        android:hint="@string/sftp_host"
+                        />
+            </com.google.android.material.textfield.TextInputLayout>
+            <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+                <AutoCompleteTextView
+                        android:id="@+id/sftp_port"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="numberDecimal"
+                        android:hint="@string/sftp_port"
+                        />
+            </com.google.android.material.textfield.TextInputLayout>
+            <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+                <AutoCompleteTextView
+                        android:id="@+id/sftp_user"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="text"
+                        android:hint="@string/sftp_user"
+                        />
+            </com.google.android.material.textfield.TextInputLayout>
+            <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+                <AutoCompleteTextView
+                        android:id="@+id/sftp_pwd"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textPassword"
+                        android:hint="@string/sftp_pwd"
+                        />
+            </com.google.android.material.textfield.TextInputLayout>
+            <Button
+                    android:id="@+id/sftp_connect"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="16dp"
+                    android:layout_gravity="end"
+                    android:text="@string/sftp_connect_test"
+                    android:onClick="onClickConnect"
+                    />
+        </LinearLayout>
+        </androidx.cardview.widget.CardView>
+        <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                card_view:cardCornerRadius="4dp"
+                card_view:cardElevation="4dp"
+                app:contentPadding="10dp"
+                app:contentPaddingBottom="0dp"
+                app:cardPreventCornerOverlap="true"
+                app:cardUseCompatPadding="true"
+                android:clickable="false">
+        <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+            <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Ausgabe Einstellungen"
+                    android:textSize="24sp"
+                    />
+            <RadioGroup
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+                <RadioButton android:id="@+id/radio_odf_output"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/odf_output"
+                        />
+                <RadioButton android:id="@+id/radio_pdf_output"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/pdf_output"
+                        />
+            </RadioGroup>
+            <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+                <AutoCompleteTextView
+                        android:id="@+id/odf_template_ftp_path"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textUri"
+                        android:hint="@string/sftp_path_odf"
+                        />
+            </com.google.android.material.textfield.TextInputLayout>
+            <Button
+                    android:id="@+id/odf_template_load_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="16dp"
+                    android:layout_gravity="end"
+                    android:text="@string/file_load"
+                    android:onClick="onClickLoadTemplate"
+                    />
+        </LinearLayout>
+        </androidx.cardview.widget.CardView>
         </LinearLayout>
     </ScrollView>
     <Button
@@ -64,6 +225,6 @@
             android:layout_marginLeft="16dp"
             android:text="@string/save"
             android:onClick="onClickSave"
-    />
+            />
 
 </LinearLayout>

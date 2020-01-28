@@ -1,11 +1,9 @@
 package com.stemaker.arbeitsbericht
 
-import android.content.Context
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import android.util.Base64
 import android.util.Log
-import androidx.lifecycle.MutableLiveData
 import kotlinx.serialization.*
 import java.security.KeyStore
 import javax.crypto.Cipher
@@ -20,17 +18,20 @@ class ConfigurationStore {
     var employeeName: String = ""
     var currentId: Int = 1
     var recvMail: String = ""
-    var lumpSumServerHost: String = ""
-    var lumpSumServerPort: Int = 22
+    var useOdfOutput: Boolean = true
+    var sFtpHost: String = ""
+    var sFtpPort: Int = 22
+    var sFtpUser: String = ""
+    var sFtpEncryptedPassword: String = ""
+    var sFtpUsedIV: String = ""
+    var sFtpTagLength: Int = 0
     var lumpSumServerPath: String = ""
-    var lumpSumServerUser: String = ""
-    var lumpSumServerEncryptedPassword: String = ""
-    var lumpSumServerUsedIV: String = ""
-    var lumpSumServerTagLength: Int = 0
+    var odfTemplateServerPath: String = ""
     var lumpSums = listOf<String>()
     var activeReportId: Int = -1
     var workItemDictionary = setOf<String>()
     var materialDictionary = setOf<String>()
+    var odfTemplateFile: String = ""
 }
 
 fun configuration(): Configuration{
@@ -63,20 +64,29 @@ object Configuration {
         get(): String = store.recvMail
         set(value) {store.recvMail = value}
 
-    var lumpSumServerHost: String
-        get(): String = store.lumpSumServerHost
-            set(value) {store.lumpSumServerHost = value}
+    var useOdfOutput: Boolean
+        get(): Boolean = store.useOdfOutput
+        set(value) {store.useOdfOutput = value}
 
-    var lumpSumServerPort: Int
-        get(): Int = store.lumpSumServerPort
-            set(value) {store.lumpSumServerPort = value}
+    var sFtpHost: String
+        get(): String = store.sFtpHost
+            set(value) {store.sFtpHost = value}
+
+    var sFtpPort: Int
+        get(): Int = store.sFtpPort
+            set(value) {store.sFtpPort = value}
+
     var lumpSumServerPath: String
         get(): String = store.lumpSumServerPath
-            set(value) {store.lumpSumServerPath = value}
+        set(value) {store.lumpSumServerPath = value}
 
-    var lumpSumServerUser: String
-        get(): String = store.lumpSumServerUser
-            set(value) {store.lumpSumServerUser = value}
+    var odfTemplateServerPath: String
+        get(): String = store.odfTemplateServerPath
+            set(value) {store.odfTemplateServerPath = value}
+
+    var sFtpUser: String
+        get(): String = store.sFtpUser
+            set(value) {store.sFtpUser = value}
 
     var lumpSums: List<String>
         get(): List<String> = store.lumpSums
@@ -94,19 +104,23 @@ object Configuration {
         get(): Set<String> = store.materialDictionary
             set(value) {store.materialDictionary = value}
 
-    var lumpSumServerEncryptedPassword: String
+    var sFtpEncryptedPassword: String
         set(value) {
             if(value != "") {
-                store.lumpSumServerEncryptedPassword = encryptPassword(value)
+                store.sFtpEncryptedPassword = encryptPassword(value)
             }
         }
         get() {
-            if (store.lumpSumServerEncryptedPassword == "" || store.lumpSumServerUsedIV == "") return ""
+            if (store.sFtpEncryptedPassword == "" || store.sFtpUsedIV == "") return ""
             val keyStore = KeyStore.getInstance("AndroidKeyStore")
             keyStore.load(null)
             val secretKey: SecretKey = keyStore.getKey(KEY_ALIAS, null) as SecretKey
-            return decryptPassword(store.lumpSumServerEncryptedPassword, secretKey)
+            return decryptPassword(store.sFtpEncryptedPassword, secretKey)
         }
+
+    var odfTemplateFile: String
+        get(): String = store.odfTemplateFile
+        set(value) {store.odfTemplateFile = value}
 
     private fun encryptPassword(pwd: String): String {
         /* Now we try to store the password in an encrypted way. First we retrieve a key
@@ -138,8 +152,8 @@ object Configuration {
         val decryptedByteArray = pwd.toByteArray(Charsets.UTF_8)
         val encryptedByteArray = ciph.doFinal(decryptedByteArray)
         val encryptedBase64Encoded = Base64.encodeToString(encryptedByteArray, Base64.NO_WRAP)
-        store.lumpSumServerUsedIV = Base64.encodeToString(ciph.iv, Base64.NO_WRAP)
-        store.lumpSumServerTagLength = ciph.parameters.getParameterSpec(GCMParameterSpec::class.java).tLen
+        store.sFtpUsedIV = Base64.encodeToString(ciph.iv, Base64.NO_WRAP)
+        store.sFtpTagLength = ciph.parameters.getParameterSpec(GCMParameterSpec::class.java).tLen
         return encryptedBase64Encoded
     }
 
@@ -170,8 +184,8 @@ object Configuration {
                 throw UnsupportedOperationException("Entschlüsseln des Passworts wird von ihrem Telefon nicht unterstützt. Das Passwort kann nicht gespeichert werden")
             }
         ciph?: return ""
-        val iv = Base64.decode(store.lumpSumServerUsedIV, Base64.NO_WRAP)
-        val gcmParameterSpec = GCMParameterSpec(store.lumpSumServerTagLength, iv)
+        val iv = Base64.decode(store.sFtpUsedIV, Base64.NO_WRAP)
+        val gcmParameterSpec = GCMParameterSpec(store.sFtpTagLength, iv)
         ciph.init(Cipher.DECRYPT_MODE, key, gcmParameterSpec)
         val encryptedByteArray = Base64.decode(encryptedBase64Encoded, Base64.NO_WRAP)
         val decryptedByteArray = ciph.doFinal(encryptedByteArray)

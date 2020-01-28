@@ -77,11 +77,13 @@ object HtmlReport {
                     "<tr>" +
                         "<th style=\"padding: 15px;font-size:18px;text-align:left;border: 2px solid black;border-collapse: collapse;\">Pauschale</th>" +
                         "<th style=\"padding: 15px;font-size:18px;text-align:left;border: 2px solid black;border-collapse: collapse;\">Anzahl</th>" +
-                    "</tr>"
+                        "<th style=\"padding: 15px;font-size:18px;text-align:left;border: 2px solid black;border-collapse: collapse;\">Bemerkung</th>" +
+                "</tr>"
         rep.lumpSumContainer.items.forEach {
             html += "<tr>" +
                         "<td style=\"padding: 10px;border: 2px solid black;border-collapse: collapse;\"> ${it.item.value}</td>" +
                         "<td style=\"padding: 10px;border: 2px solid black;border-collapse: collapse;\"> ${it.amount.value}</td>" +
+                        "<td style=\"padding: 10px;border: 2px solid black;border-collapse: collapse;\"> ${it.comment.value}</td>" +
                     "</tr>"
         }
         html += "</table><hr>"

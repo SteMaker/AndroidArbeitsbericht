@@ -36,9 +36,13 @@ class PhotoContainerData(): ViewModel() {
 class PhotoData: ViewModel() {
     val file = MutableLiveData<String>().apply { value =  "" }
     val description = MutableLiveData<String>().apply { value = "" }
+    var imageHeight = 0
+    var imageWidth = 0
 
     fun copyFromSerialized(p: PhotoDataSerialized) {
         file.value = p.file
         description.value = p.description
+        imageHeight = p.imageHeight
+        imageWidth = p.imageWidth
     }
 }

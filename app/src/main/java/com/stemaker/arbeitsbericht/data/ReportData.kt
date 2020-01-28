@@ -15,9 +15,7 @@ class ReportData private constructor(val __id: Int = 0): ViewModel() {
     val create_date: LiveData<String>
         get() = _create_date
 
-    private val _change_date = MutableLiveData<String>()
-    val change_date: LiveData<String>
-        get() = _change_date
+    var lastStoreHash: Int = 0
 
     var project = ProjectData()
     var bill = BillData()
@@ -31,13 +29,11 @@ class ReportData private constructor(val __id: Int = 0): ViewModel() {
     init {
         _id.value = __id
         _create_date.value = getCurrentDate()
-        _change_date.value = _create_date.value
     }
 
     private fun copyFromSerialized(r: ReportDataSerialized) {
         _id.value = r.id
         _create_date.value = r.create_date
-        _change_date.value = r.change_date
         project.copyFromSerialized(r.project)
         bill.copyFromSerialized(r.bill)
         workTimeContainer.copyFromSerialized(r.workTimeContainer)
@@ -53,15 +49,6 @@ class ReportData private constructor(val __id: Int = 0): ViewModel() {
         val cal = Calendar.getInstance()
         cal.time = d
         return cal.get(Calendar.DAY_OF_MONTH).toString().padStart(2,'0') + "." +
-                (cal.get(Calendar.MONTH)+1).toString().padStart(2,'0') + "." +
-                cal.get(Calendar.YEAR).toString().padStart(4,'0')
-    }
-
-    fun updateLastChangeDate() {
-        val d = Date()
-        val cal = Calendar.getInstance()
-        cal.time = d
-        _change_date.value = cal.get(Calendar.DAY_OF_MONTH).toString().padStart(2,'0') + "." +
                 (cal.get(Calendar.MONTH)+1).toString().padStart(2,'0') + "." +
                 cal.get(Calendar.YEAR).toString().padStart(4,'0')
     }

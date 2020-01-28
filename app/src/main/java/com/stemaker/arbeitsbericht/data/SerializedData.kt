@@ -34,10 +34,14 @@ class PhotoContainerDataSerialized() {
 class PhotoDataSerialized() {
     var file: String = ""
     var description: String = ""
+    var imageWidth: Int = 0
+    var imageHeight: Int = 0
 
     fun copyFromData(p: PhotoData) {
         file = p.file.value!!
         description = p.description.value!!
+        imageWidth = p.imageWidth
+        imageHeight = p.imageHeight
     }
 }
 
@@ -157,7 +161,6 @@ class WorkTimeContainerDataSerialized() {
             items.add(item)
         }
     }
-
 }
 
 @Serializable
@@ -175,7 +178,6 @@ class BillDataSerialized {
         city = b.city.value!!
         visibility = b.visibility.value!!
     }
-
 }
 
 @Serializable
@@ -189,14 +191,12 @@ class ProjectDataSerialized {
         extra1 = p.extra1.value!!
         visibility = p.visibility.value!!
     }
-
 }
 
 @Serializable
 class ReportDataSerialized() {
     var id: Int = 0
     var create_date: String = "00:00"
-    var change_date: String = "00:00"
     var project = ProjectDataSerialized()
     var bill = BillDataSerialized()
     val workTimeContainer = WorkTimeContainerDataSerialized()
@@ -209,7 +209,6 @@ class ReportDataSerialized() {
     fun copyFromData(r: ReportData) {
         id = r.id.value!!
         create_date = r.create_date.value!!
-        change_date = r.change_date.value!!
         project.copyFromData(r.project)
         bill.copyFromData(r.bill)
         workTimeContainer.copyFromData(r.workTimeContainer)
@@ -219,5 +218,4 @@ class ReportDataSerialized() {
         photoContainer.copyFromData(r.photoContainer)
         signatureData.copyFromData(r.signatureData)
     }
-
 }

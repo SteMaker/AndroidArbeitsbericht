@@ -44,15 +44,6 @@
                 android:text="@{@string/creationdate(report_data.create_date)}"
                 android:textSize="20sp"
         />
-        <TextView
-                android:id="@+id/report_card_change_date"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/report_card_create_date"
-                android:text="@{@string/changedate(report_data.change_date)}"
-                android:textSize="20sp"
-        />
         <ImageButton
             android:id="@+id/report_card_del_button"
             android:layout_width="50dp"

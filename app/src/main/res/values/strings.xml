@@ -22,6 +22,7 @@
     <string name="employee_name">Mitarbeiter</string>
     <string name="mail_receiver">E-Mail Empfänger</string>
     <string name="save">Speichern</string>
+    <string name="view">Voransicht</string>
     <string name="free_id">Nächste freie Berichtsnr</string>
     <string name="worktimes">Arbeitszeiten</string>
     <string name="workitems">Durchgeführte Arbeiten</string>
@@ -47,21 +48,40 @@
     <string name="description">Beschreibung</string>
     <string name="comment">Bemerkung</string>
     <string name="lump_sum_from_server">Pauschalendefinition von einem server beziehen</string>
+    <string name="sftp_path_lump_sum">Pfad zur Pauschalendatei auf dem SFTP server</string>
 
-    <!-- sFTP related -->
-    <string name="sftp_host">sFTP server Adresse</string>
-    <string name="sftp_port">sFTP server Port</string>
-    <string name="sftp_path">Pfad zur Datei auf dem sFTP server</string>
-    <string name="sftp_user">Benutzername (user name) sFTP server</string>
-    <string name="sftp_pwd">Passwort sFTP server</string>
+    <!-- SFTP related -->
+    <string name="sftp_settings">SFTP Einstellungen</string>
+    <string name="sftp_host">SFTP server Adresse</string>
+    <string name="sftp_port">SFTP server Port</string>
+    <string name="sftp_path_odf">Pfad zur ODF Vorlage (.ott Datei) auf dem SFTP server</string>
+    <string name="sftp_user">Benutzername (user name) SFTP server</string>
+    <string name="sftp_pwd">Passwort SFTP server</string>
     <string name="file_load">Datei laden</string>
     <string name="sftp_connect_error">Verbindung zum SFTP Server fehlgeschlagen: Fehlermedlung: %1s</string>
-    <string name="sftp_connect_done">Verbindung zum SFTP Server erfolgreich</string>
+    <string name="sftp_connect_done">Verbindung zum SFTP Server war erfolgreich</string>
     <string name="sftp_file_get_error">Datei konnte nicht geladen werden: </string>
     <string name="no_internet_access_abort">Berechtigungen abgelehnt, die App kann die Datei ohne Netzwerkzugriff nicht laden</string>
     <string name="lump_sums_found">%1d Pauschalen gefunden. Sollen diese übernommen werden?</string>
     <string name="no_lump_sums_found">Keine Pauschalen gefunden. Sollen alle vorhandenen glöscht werden?</string>
+    <string name="sftp_connect_test">Testen</string>
+    <string name="sftp_getfile_error">Fehler beim Laden der Datei</string>
 
+    <!-- ODF / PDF generation -->
+    <string name="cannot_createdocs_dir">Konnte erforderlichen Ordner für die Berichtsdatei nicht erstellen</string>
+    <string name="report_exists_overwrite">Der Bericht exisitiert bereits als ODF, soll er überschrieben werden?</string>
+    <string name="report_create_fail_perm">Konnte Berichtsdatei wegen fehlender Berechtigungen nicht erstellen</string>
+    <string name="report_create_fail">Konnte Berichtsdatei nicht erstellen</string>
+    <string name="report_create_fail_unknown">Konnte Berichtsdatei nicht erstellen. Grund unbekannt</string>
+    <string name="no_xdf_viewer">Es ist keine App installiert, die das %1$s Dokument anzeigen kann</string>
+    <string name="odf_output">ODF-Ausgabe (unterstützt eigene Vorlagen)</string>
+    <string name="pdf_output">PDF-Ausgabe</string>
+
+    <string name="no_mail_client">Es wurde kein E_Mail Programm gefunden</string>
+    <string name="report_id_mismatch">Vorsicht! Inkonsistente laufende Nummer</string>
+    <string name="report_id_mismatch_detail">Ein Bericht verwendet eine laufende Nummer, die größer ist als die aktuelle</string>
+
+    <!-- IDs -->
     <item name="TAG_REPORT_ID" type="id" />
     <item name="TAG_CARDVIEW" type="id" />
     <item name="TAG_WORKTIME" type="id" />

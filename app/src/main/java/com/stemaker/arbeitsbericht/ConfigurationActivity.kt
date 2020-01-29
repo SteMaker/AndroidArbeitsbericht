@@ -34,7 +34,8 @@ class ConfigurationActivity : AppCompatActivity() {
         setContentView(R.layout.activity_configuration)
 
         findViewById<EditText>(R.id.config_employee_name).setText(configuration().employeeName)
-        findViewById<EditText>(R.id.config_next_id).setText(configuration().currentId.toString())
+        findViewById<EditText>(R.id.config_device_name).setText(configuration().deviceName)
+        findViewById<EditText>(R.id.config_report_id_pattern).setText(configuration().reportIdPattern)
         findViewById<EditText>(R.id.config_mail_receiver).setText(configuration().recvMail)
         findViewById<EditText>(R.id.sftp_host).setText(configuration().sFtpHost)
         findViewById<EditText>(R.id.sftp_port).setText(configuration().sFtpPort.toString())
@@ -46,21 +47,47 @@ class ConfigurationActivity : AppCompatActivity() {
         findViewById<EditText>(R.id.odf_template_ftp_path).setText(configuration().odfTemplateServerPath)
     }
 
+    fun checkForIdChange(): Boolean {
+        val pat = findViewById<EditText>(R.id.config_report_id_pattern).getText().toString()
+        val en = findViewById<EditText>(R.id.config_employee_name).getText().toString()
+        val dn = findViewById<EditText>(R.id.config_device_name).getText().toString()
+        if(pat != configuration().reportIdPattern ||
+            en != configuration().employeeName ||
+            dn != configuration().deviceName) {
+            return true
+        }
+        return false
+    }
+
     fun onClickSave(@Suppress("UNUSED_PARAMETER") btn: View) {
-        configuration().employeeName = findViewById<EditText>(R.id.config_employee_name).getText().toString()
-        configuration().currentId = findViewById<EditText>(R.id.config_next_id).getText().toString().toInt()
-        configuration().recvMail = findViewById<EditText>(R.id.config_mail_receiver).getText().toString()
-        configuration().useOdfOutput = findViewById<RadioButton>(R.id.radio_odf_output).isChecked
-        configuration().sFtpHost = findViewById<EditText>(R.id.sftp_host).text.toString()
-        configuration().sFtpPort = findViewById<EditText>(R.id.sftp_port).text.toString().toInt()
-        configuration().sFtpUser = findViewById<EditText>(R.id.sftp_user).text.toString()
-        val pwd = findViewById<EditText>(R.id.sftp_pwd).text.toString()
-        if(pwd != "") // only overwrite if a new one has been set
-            configuration().sFtpEncryptedPassword = pwd
-        configuration().odfTemplateServerPath = findViewById<EditText>(R.id.odf_template_ftp_path).text.toString()
-        storageHandler().saveConfigurationToFile(getApplicationContext())
-        val intent = Intent(this, MainActivity::class.java).apply {}
-        startActivity(intent)
+        GlobalScope.launch(Dispatchers.Main) {
+            getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
+            findViewById<ProgressBar>(R.id.sftp_progress).visibility = View.VISIBLE
+
+            val rename = checkForIdChange()
+            configuration().employeeName = findViewById<EditText>(R.id.config_employee_name).getText().toString()
+            configuration().deviceName = findViewById<EditText>(R.id.config_device_name).getText().toString()
+            configuration().reportIdPattern = findViewById<EditText>(R.id.config_report_id_pattern).getText().toString()
+
+            if(rename)
+                storageHandler().renameReportsIfNeeded()
+
+            configuration().recvMail = findViewById<EditText>(R.id.config_mail_receiver).getText().toString()
+            configuration().useOdfOutput = findViewById<RadioButton>(R.id.radio_odf_output).isChecked
+            configuration().sFtpHost = findViewById<EditText>(R.id.sftp_host).text.toString()
+            configuration().sFtpPort = findViewById<EditText>(R.id.sftp_port).text.toString().toInt()
+            configuration().sFtpUser = findViewById<EditText>(R.id.sftp_user).text.toString()
+            val pwd = findViewById<EditText>(R.id.sftp_pwd).text.toString()
+            if (pwd != "") // only overwrite if a new one has been set
+                configuration().sFtpEncryptedPassword = pwd
+            configuration().odfTemplateServerPath = findViewById<EditText>(R.id.odf_template_ftp_path).text.toString()
+            storageHandler().saveConfigurationToFile(getApplicationContext())
+
+            findViewById<ProgressBar>(R.id.sftp_progress).visibility = View.GONE
+            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
+            val intent = Intent(this@ConfigurationActivity, MainActivity::class.java).apply {}
+            startActivity(intent)
+        }
     }
 
     fun onClickConnect(@Suppress("UNUSED_PARAMETER") btn: View) {

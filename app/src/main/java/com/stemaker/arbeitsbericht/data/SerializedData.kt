@@ -193,10 +193,13 @@ class ProjectDataSerialized {
     }
 }
 
+private const val vers = 100
 @Serializable
 class ReportDataSerialized() {
-    var id: Int = 0
+    var formatVersion: Int = 0
+    var id: Int = 0 // Called cnt in ReportData
     var create_date: String = "00:00"
+    var change_date: String = ""
     var project = ProjectDataSerialized()
     var bill = BillDataSerialized()
     val workTimeContainer = WorkTimeContainerDataSerialized()
@@ -207,8 +210,10 @@ class ReportDataSerialized() {
     val signatureData = SignatureDataSerialized()
 
     fun copyFromData(r: ReportData) {
-        id = r.id.value!!
+        formatVersion = vers
+        id = r.cnt
         create_date = r.create_date.value!!
+        change_date = "" // No longer used
         project.copyFromData(r.project)
         bill.copyFromData(r.bill)
         workTimeContainer.copyFromData(r.workTimeContainer)

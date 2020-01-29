@@ -48,7 +48,7 @@ class MainActivity : AppCompatActivity() {
 
             // Assign the report ID as tag to the button to know which one to delete
             val btnDel = reportBinding.root.findViewById<ImageButton>(R.id.report_card_del_button)
-            btnDel.setTag(R.id.TAG_REPORT_ID, rep.id.value)
+            btnDel.setTag(R.id.TAG_REPORT_ID, rep.id)
             btnDel.setTag(R.id.TAG_CARDVIEW, reportBinding.root)
             reportBinding.root.setTag(R.id.TAG_REPORT_ID, it)
 
@@ -66,7 +66,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun createNewReport() {
-        storageHandler().createNewReportAndSelect(getApplicationContext())
+        storageHandler().createNewReportAndSelect()
         val intent = Intent(this, ReportEditorActivity::class.java).apply {}
         startActivity(intent)
     }
@@ -76,9 +76,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun onClickReport(reportCard: View) {
-        val id: Int = reportCard.getTag(R.id.TAG_REPORT_ID) as Int
+        val id = reportCard.getTag(R.id.TAG_REPORT_ID) as String
         Log.d("Arbeitsbericht", "Clicked report with id ${id}")
-        storageHandler().selectReportById(id, getApplicationContext())
+        storageHandler().selectReportById(id, applicationContext)
         val intent = Intent(this, ReportEditorActivity::class.java).apply {}
         startActivity(intent)
     }
@@ -89,7 +89,7 @@ class MainActivity : AppCompatActivity() {
             val answer = showConfirmationDialog(getString(R.string.del_confirmation), this@MainActivity)
             if(answer == AlertDialog.BUTTON_POSITIVE) {
                 Log.d("Arbeitsbericht.ReportEditorActivity.onClickDelete", "deleting a report")
-                storageHandler().deleteReport(btn.getTag(R.id.TAG_REPORT_ID) as Int, getApplicationContext())
+                storageHandler().deleteReport(btn.getTag(R.id.TAG_REPORT_ID) as String, applicationContext)
                 val reportListScrollContainer = report_list_scroll_container
                 reportListScrollContainer.removeView(btn.getTag(R.id.TAG_CARDVIEW) as View)
             } else {

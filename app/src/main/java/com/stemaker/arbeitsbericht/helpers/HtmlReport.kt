@@ -11,7 +11,7 @@ object HtmlReport {
             "<!DOCTYPE html>" +
                     "<html>" +
                     "<body>" +
-                    "<h1>Arbeitsbericht Nr. ${rep.id.value}</h1>" +
+                    "<h1>Arbeitsbericht Nr. ${rep.id}</h1>" +
                     "<table style=\"border: 2px solid black;border-collapse: collapse;\">" +
                     "<tr>" +
                         "<th style=\"padding: 15px;font-size:18px;text-align:left;border: 2px solid black;border-collapse: collapse;\">Kunde / Projekt</th>" +

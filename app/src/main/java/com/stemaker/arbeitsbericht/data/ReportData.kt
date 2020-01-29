@@ -1,15 +1,47 @@
 package com.stemaker.arbeitsbericht.data
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.stemaker.arbeitsbericht.configuration
 import kotlinx.serialization.json.Json
 import java.util.*
 
-class ReportData private constructor(val __id: Int = 0): ViewModel() {
-    private val _id = MutableLiveData<Int>()
-    val id: LiveData<Int>
-        get() = _id
+private const val TAG="ReportData"
+
+class ReportData private constructor(var cnt: Int = 0): ViewModel() {
+    private var _id = MutableLiveData<String>()
+    val idLive: LiveData<String>
+        get() { return MutableLiveData<String>().apply { value = id } }
+
+    val id: String
+        get() {
+            var string = configuration().reportIdPattern
+            // Replace %<n>c -> running counter
+            val regex = """(%c|%[0-9]c)""".toRegex()
+            string = regex.replace(string) { m ->
+                Log.d(TAG, m.value)
+                when (m.value) {
+                    "%c" -> cnt.toString()
+                    else -> {
+                        val length = m.value.substring(1,2).toInt()
+                        cnt.toString().padStart(length, '0')
+                    }
+                }
+            }
+
+            // Replace %y, %m, %d -> Date
+            string = string.replace("%y", create_date.value!!.substring(6, 10))
+            string = string.replace("%m", create_date.value!!.substring(3, 5))
+            string = string.replace("%d", create_date.value!!.substring(0, 2))
+
+            // Replace others
+            string = string.replace("%e", configuration().employeeName)
+            string = string.replace("%p", configuration().deviceName)
+
+            return string
+        }
 
     private val _create_date = MutableLiveData<String>()
     val create_date: LiveData<String>
@@ -27,12 +59,11 @@ class ReportData private constructor(val __id: Int = 0): ViewModel() {
     val signatureData = SignatureData()
 
     init {
-        _id.value = __id
         _create_date.value = getCurrentDate()
     }
 
     private fun copyFromSerialized(r: ReportDataSerialized) {
-        _id.value = r.id
+        cnt = r.id
         _create_date.value = r.create_date
         project.copyFromSerialized(r.project)
         bill.copyFromSerialized(r.bill)
@@ -68,8 +99,12 @@ class ReportData private constructor(val __id: Int = 0): ViewModel() {
             return json
         }
 
-        fun createReport(id: Int): ReportData {
-            return ReportData(id)
+        fun createReport(idNr: Int): ReportData {
+            val d = Date()
+            val cal = Calendar.getInstance()
+            cal.time = d
+
+            return ReportData(idNr)
         }
     }
 }

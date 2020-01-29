@@ -7,10 +7,8 @@ import android.content.Context.MODE_PRIVATE
 import android.util.Log
 import com.google.gson.Gson
 import com.stemaker.arbeitsbericht.data.ReportData
-import com.stemaker.arbeitsbericht.helpers.showInfoDialog
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import com.stemaker.arbeitsbericht.data.ReportDataSerialized
+import kotlinx.serialization.json.Json
 import java.io.*
 
 fun storageHandler(): StorageHandler {
@@ -23,7 +21,7 @@ fun storageHandler(): StorageHandler {
 object StorageHandler {
     var inited: Boolean = false
     var gson = Gson()
-    var reports = mutableListOf<Int>()
+    var reports = mutableListOf<String>()
     lateinit var activeReport: ReportData
 
     private var _materialDictionary = mutableSetOf<String>()
@@ -38,67 +36,79 @@ object StorageHandler {
 
     fun initialize() {
         val c: Context = ArbeitsberichtApp.appContext
-        if(inited == false) {
+        if(!inited) {
             inited = true
-            // Read the configuration
+            // Read the configuration. This needs to be low level -> no configuration() invocation yet
             Log.d("Arbeitsbericht.StorageHandler.myInit", "start")
             loadConfigurationFromFile(c)
-            Log.d("Arbeitsbericht.StorageHandler.myInit", "Next free ID is ${configuration().currentId}")
 
-            // Read the list of files that match report$id.json
-            var maxId: Int = 0
+            // Read the list of files that match report*.rpt
             val appFiles = c.fileList()
             Log.d("Arbeitsbericht.StorageHandler.myInit", "Found ${appFiles.size} files")
             for (repFile in appFiles) {
-                val exp = Regex("report[0-9]{8}.rpt")
+                val exp = Regex("report(.*).rpt")
                 if (exp.matches(repFile)) {
                     Log.d("Arbeitsbericht.StorageHandler.myInit", "Found file $repFile matching the expected pattern")
-                    val rep: ReportData = readReportFromFile(repFile, c)
-                    reports.add(rep.id.value!!)
-                    if (rep.id.value!! > maxId)
-                        maxId = rep.id.value!!
+                    val repId = repFile.substring(repFile.lastIndexOf('/')+1).substringAfter("report").substringBefore(".rpt")
+                    reports.add(repId)
                 } else {
                     Log.d("Arbeitsbericht.StorageHandler.myInit", "Found file $repFile not matching the expected pattern")
                 }
             }
 
-            // Consistency check if the report IDs are beyond the next ID
-            if(maxId >= configuration().currentId) {
-                Log.w("Arbeitsbericht.StorageHandler.myInit", "A report has an ID which is higher than the next one to use")
-                GlobalScope.launch(Dispatchers.Main) {
-                    showInfoDialog(c.getString(R.string.report_id_mismatch), c, c.getString(R.string.report_id_mismatch_detail))
-                }
-            }
-            if(configuration().activeReportId > 0)
+            // Now we should be ready to do more
+            if(configuration().activeReportId != "")
                 selectReportById(configuration().activeReportId)
 
             Log.d("Arbeitsbericht.StorageHandler.myInit", "done")
         }
     }
 
-    fun getListOfReports(): MutableList<Int> {
+    // This must only be called by the configuration activity if the ID pattern was changed
+    // Or on app start if naming scheme was changed due to an app update
+    fun renameReportsIfNeeded() {
+        val appFiles = ArbeitsberichtApp.appContext.fileList()
+        reports.clear()
+        for (repFile in appFiles) {
+            val exp = Regex("report(.*).rpt")
+            if (exp.matches(repFile)) {
+                val rep: ReportData = readReportFromFile(repFile, ArbeitsberichtApp.appContext)
+                val fileName1 = "${ArbeitsberichtApp.appContext.filesDir}/${repFile.substring(repFile.lastIndexOf('/')+1)}"
+                val fileName2 = "${ArbeitsberichtApp.appContext.filesDir}/report${rep.id}.rpt"
+                if (fileName1 != fileName2) {
+                    val old = File(fileName1)
+                    val new = File(fileName2)
+                    val result = old.renameTo(new)
+                    reports.add(rep.id)
+                }
+            }
+        }
+        configuration().activeReportId = ""
+    }
+
+    fun getListOfReports(): MutableList<String> {
         return reports
     }
 
-    fun getReportById(reportId: Int, c: Context): ReportData {
-        return readReportFromFile("report${reportId.toString().padStart(8, '0')}.rpt", c)
+    fun getReportById(reportId: String, c: Context): ReportData {
+        return readReportFromFile(reportIdToReportFile(reportId), c)
     }
 
     fun getReport(): ReportData {
         return activeReport
     }
 
-    fun createNewReportAndSelect(c: Context) {
+    fun createNewReportAndSelect() {
         val rep = ReportData.createReport(configuration().currentId)
-        Log.d("Arbeitsbericht.StorageHandler.createNewReportAndSelect", "Created new report with ID ${rep.id.value!!}")
-        reports.add(rep.id.value!!)
+        Log.d("Arbeitsbericht.StorageHandler.createNewReportAndSelect", "Created new report with ID ${rep.id}")
+        reports.add(rep.id)
         activeReport = rep
-        configuration().activeReportId = rep.id.value!!
+        configuration().activeReportId = rep.id
         configuration().currentId += 1
         configuration().save()
     }
 
-    fun selectReportById(id: Int, c: Context = ArbeitsberichtApp.appContext) {
+    fun selectReportById(id: String, c: Context = ArbeitsberichtApp.appContext) {
         Log.d("Arbeitsbericht.StorageHandler.selectReportById", c.toString())
         configuration().activeReportId = id
         activeReport = readReportFromFile(reportIdToReportFile(id), c)
@@ -146,14 +156,13 @@ object StorageHandler {
     private fun readReportFromFile(fileName: String, c: Context) : ReportData {
         Log.d("Arbeitsbericht.StorageHandler.readReportFromFile", "Trying to read from file $fileName")
         val jsonString = readStringFromFile(fileName, c)
-        val rep = ReportData.getReportFromJson(jsonString)
-        return rep
+        return ReportData.getReportFromJson(jsonString)
     }
 
     fun saveActiveReportToFile(c: Context) {
         val jsonString = ReportData.getJsonFromReport(activeReport)
         activeReport.lastStoreHash = jsonString.hashCode()
-        val fileName = reportIdToReportFile(activeReport.id.value!!)
+        val fileName = reportIdToReportFile(activeReport.id)
         writeStringToFile(fileName, jsonString, c)
         Log.d("Arbeitsbericht.StorageHandler.saveReportToFile", "Saved to file $fileName")
 
@@ -171,11 +180,11 @@ object StorageHandler {
         }
     }
 
-    fun reportIdToReportFile(id: Int): String {
-        return "report${id.toString().padStart(8,'0')}.rpt"
+    fun reportIdToReportFile(id: String): String {
+        return "report${id}.rpt"
     }
 
-    fun deleteReport(id: Int, c: Context) {
+    fun deleteReport(id: String, c: Context) {
         Log.d("Arbeitsbericht.StorageHandler.deleteReport", "Deleting report with ID $id")
         c.deleteFile(reportIdToReportFile(id))
         reports.remove(id)
@@ -186,12 +195,10 @@ object StorageHandler {
         try {
             val fIn = c.openFileInput("configuration.json")
             val isr = InputStreamReader(fIn)
-            configuration().store = gson.fromJson(isr, ConfigurationStore::class.java)
-            Log.d("Arbeitsbericht.StorageHandler.loadConfigurationFromFile", "Next ID to be used: ${configuration().currentId}")
+            Configuration.store = gson.fromJson(isr, ConfigurationStore::class.java)
         }
         catch (e: FileNotFoundException){
-            Log.d("Arbeitsbericht.StorageHandler.loadConfigurationFromFile", "No configuration file found, creating a new one")
-            configuration().store = ConfigurationStore()
+            Configuration.store = ConfigurationStore()
             configuration().save()
         }
     }

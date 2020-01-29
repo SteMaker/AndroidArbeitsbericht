@@ -62,11 +62,10 @@
                         android:layout_height="wrap_content"
                         android:visibility="visible">
                     <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/config_mail_receiver"
+                            android:id="@+id/config_device_name"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:hint="@string/mail_receiver"
-                            android:inputType="textEmailAddress"
+                            android:hint="@string/device_name"
                             />
                 </com.google.android.material.textfield.TextInputLayout>
                 <com.google.android.material.textfield.TextInputLayout
@@ -74,11 +73,22 @@
                         android:layout_height="wrap_content"
                         android:visibility="visible">
                     <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/config_next_id"
+                            android:id="@+id/config_report_id_pattern"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:hint="@string/free_id"
-                            android:inputType="numberDecimal"
+                            android:hint="@string/report_id_pattern"
+                            />
+                </com.google.android.material.textfield.TextInputLayout>
+                <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:visibility="visible">
+                    <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/config_mail_receiver"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="@string/mail_receiver"
+                            android:inputType="textEmailAddress"
                             />
                 </com.google.android.material.textfield.TextInputLayout>
             </LinearLayout>

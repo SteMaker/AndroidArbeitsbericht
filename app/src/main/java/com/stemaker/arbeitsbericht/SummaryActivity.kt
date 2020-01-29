@@ -298,7 +298,7 @@ class SummaryActivity : AppCompatActivity() {
     }
 
     fun sendMail(xdfFile: File?, report: ReportData) {
-        val subj = "Arbeitsbericht von ${configuration().employeeName}: Kunde: ${report.project.name.value}, Berichtsnr: ${report.id.value}"
+        val subj = "Arbeitsbericht von ${configuration().employeeName}: Kunde: ${report.project.name.value}, Berichtsnr: ${report.id}"
         val emailIntent = Intent(Intent.ACTION_SENDTO)
         emailIntent.data = Uri.parse("mailto:" + configuration().recvMail)
         emailIntent.putExtra(Intent.EXTRA_SUBJECT, subj)

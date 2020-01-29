@@ -79,11 +79,11 @@ class OdfGenerator(val activity: Activity, val report: ReportData) {
             }
         }
 
-        val odfFileName = "report_${report.id.value}.odt"
+        val odfFileName = "report_${report.id}.odt"
         val odfF = File(path, odfFileName)
-        val clientSigFileName = "report_client_sig_${report.id.value}.png"
+        val clientSigFileName = "report_client_sig_${report.id}.png"
         val clientSigF = File(path, clientSigFileName)
-        val employeeSigFileName = "report_employee_sig_${report.id.value}.png"
+        val employeeSigFileName = "report_employee_sig_${report.id}.png"
         val employeeSigF = File(path, employeeSigFileName)
 
         try {
@@ -239,7 +239,7 @@ class OdfGenerator(val activity: Activity, val report: ReportData) {
         val reportIdNode = MetaUserDefinedElement(metaDom).apply {
             metaNameAttribute = "report_id"
             metaValueTypeAttribute = "string"
-            newTextNode(report.id.value.toString())
+            newTextNode(report.id.toString())
         }
         node.parentNode.replaceChild(reportIdNode, node)
 

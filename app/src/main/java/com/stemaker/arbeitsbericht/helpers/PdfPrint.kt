@@ -26,7 +26,7 @@ class PdfPrint(val activity: Activity, val report: ReportData) {
 
     var pdfPrintContinuation: Continuation<Unit>? = null
 
-    val jobName = "pdf_print_" + report.id.toString()
+    val jobName = "pdf_print_" + report.id
     val attributes = PrintAttributes.Builder()
         .setMediaSize(PrintAttributes.MediaSize.ISO_A4)
         .setResolution(PrintAttributes.Resolution("pdf", "pdf", 300, 300))
@@ -85,11 +85,11 @@ class PdfPrint(val activity: Activity, val report: ReportData) {
             }
         }
 
-        val pdfFileName = "report_${report.id.value}.pdf"
+        val pdfFileName = "report_${report.id}.pdf"
         val pdfFile = File(path, pdfFileName)
-        val clientSigFileName = "report_client_sig_${report.id.value}.png"
+        val clientSigFileName = "report_client_sig_${report.id}.png"
         val clientSigFile = File(path, clientSigFileName)
-        val employeeSigFileName = "report_employee_sig_${report.id.value}.png"
+        val employeeSigFileName = "report_employee_sig_${report.id}.png"
         val employeeSigFile = File(path, employeeSigFileName)
 
         try {

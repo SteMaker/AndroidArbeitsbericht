@@ -7,12 +7,12 @@
     <string name="date">Datum</string>
     <string name="unfold">Bereich aufklappen</string>
     <string name="extra">Zusatz</string>
+    <string name="back">Zurück</string>
     <string name="bill_address">Rechnungsadresse</string>
     <string name="name">Name</string>
     <string name="street">Strasse / Hausnummer</string>
     <string name="zip">PLZ</string>
     <string name="city">Ort</string>
-    <string name="back">Zurück</string>
     <string name="saved_reports">Gespeicherte Arbeitsberichte</string>
     <string name="create_new_report">Neuer Bericht</string>
     <string name="unknown">Unbekannt</string>
@@ -20,6 +20,7 @@
     <string name="_new">Neu</string>
     <string name="settings">Einstellungen</string>
     <string name="employee_name">Mitarbeiter</string>
+    <string name="device_name">Gerätename</string>
     <string name="mail_receiver">E-Mail Empfänger</string>
     <string name="save">Speichern</string>
     <string name="view">Voransicht</string>
@@ -49,6 +50,11 @@
     <string name="comment">Bemerkung</string>
     <string name="lump_sum_from_server">Pauschalendefinition von einem server beziehen</string>
     <string name="sftp_path_lump_sum">Pfad zur Pauschalendatei auf dem SFTP server</string>
+
+    <!-- Configuration -->
+    <string name="reportid_change_conf">Die laufende Nummer wurde geändert</string>
+    <string name="reportid_change_conf_detail">Das kann zu doppelter Vergabe von Berichtsnummern führen, sind Sie sich sicher?</string>
+    <string name="report_id_pattern">Vorlage Berichtsnummer</string>
 
     <!-- SFTP related -->
     <string name="sftp_settings">SFTP Einstellungen</string>

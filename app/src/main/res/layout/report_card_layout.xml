@@ -23,7 +23,7 @@
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 android:layout_marginStart="20dp"
-                android:text="@{@string/reportid(report_data.id)}"
+                android:text="@{@string/reportid(report_data.idLive)}"
                 android:textSize="12sp"
         />
         <TextView

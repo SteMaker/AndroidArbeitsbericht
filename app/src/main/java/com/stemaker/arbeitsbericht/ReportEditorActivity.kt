@@ -70,11 +70,6 @@ class ReportEditorActivity : AppCompatActivity(),
         saveAndBackToMain()
     }
 
-    override fun onSaveInstanceState(outState: Bundle?) {
-        super.onSaveInstanceState(outState)
-        outState?.putInt("activeReport", storageHandler().activeReport.id.value!!)
-    }
-
     fun onClickSummary(@Suppress("UNUSED_PARAMETER") btn: View) {
         saveReport()
         val intent = Intent(this, SummaryActivity::class.java).apply {}

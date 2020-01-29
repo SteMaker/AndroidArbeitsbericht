@@ -12,10 +12,13 @@ import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 
 private const val TAG = "Configuration"
-
+private const val VERSION = 100
 @Serializable
 class ConfigurationStore {
+    var vers: Int = 0
     var employeeName: String = ""
+    var deviceName: String = ""
+    var reportIdPattern: String = "%p-%y-%6c"
     var currentId: Int = 1
     var recvMail: String = ""
     var useOdfOutput: Boolean = true
@@ -28,7 +31,8 @@ class ConfigurationStore {
     var lumpSumServerPath: String = ""
     var odfTemplateServerPath: String = ""
     var lumpSums = listOf<String>()
-    var activeReportId: Int = -1
+    var activeReportId: Int = -1 // deprecated but needs to stay for json read
+    var activeReportId2: String = ""
     var workItemDictionary = setOf<String>()
     var materialDictionary = setOf<String>()
     var odfTemplateFile: String = ""
@@ -48,10 +52,20 @@ object Configuration {
 
     fun initialize() {
         if(!inited) {
-            storageHandler()
             inited = true
+            storageHandler()
+            if(store.vers < VERSION)
+                updateConfiguration(store.vers)
         }
     }
+
+    private fun updateConfiguration(oldVers: Int) {
+        if(oldVers == 0) {
+            storageHandler().renameReportsIfNeeded()
+        }
+        store.vers = VERSION
+    }
+
     var employeeName: String
         get(): String = store.employeeName
         set(value) {store.employeeName = value}
@@ -59,6 +73,14 @@ object Configuration {
     var currentId: Int
         get(): Int = store.currentId
         set(value) {store.currentId = value}
+
+    var deviceName: String
+        get(): String = store.deviceName
+        set(value) {store.deviceName = value}
+
+    var reportIdPattern: String
+        get(): String = store.reportIdPattern
+        set(value) {store.reportIdPattern = value}
 
     var recvMail: String
         get(): String = store.recvMail
@@ -92,9 +114,9 @@ object Configuration {
         get(): List<String> = store.lumpSums
         set(value) {store.lumpSums = value}
 
-    var activeReportId: Int
-        get(): Int = store.activeReportId
-            set(value) {store.activeReportId = value}
+    var activeReportId: String
+        get(): String = store.activeReportId2
+            set(value) {store.activeReportId2 = value}
 
     var workItemDictionary: Set<String>
         get(): Set<String> = store.workItemDictionary
@@ -194,6 +216,7 @@ object Configuration {
     }
 
     fun save() {
+        store.vers = VERSION
         storageHandler().saveConfigurationToFile(ArbeitsberichtApp.appContext)
     }
 }

@@ -239,7 +239,7 @@ class OdfGenerator(val activity: Activity, val report: ReportData) {
         val reportIdNode = MetaUserDefinedElement(metaDom).apply {
             metaNameAttribute = "report_id"
             metaValueTypeAttribute = "string"
-            newTextNode(report.id.toString())
+            newTextNode(report.id)
         }
         node.parentNode.replaceChild(reportIdNode, node)
 
@@ -356,7 +356,7 @@ class OdfGenerator(val activity: Activity, val report: ReportData) {
         val table = OdfTable.newTable(parent, report.lumpSumContainer.items.size, 3, 1, 0)
         table.getCellByPosition(0, 0).setDisplayText("Pauschale")
         table.getCellByPosition(1, 0).setDisplayText("Anzahl")
-        table.getCellByPosition(1, 0).setDisplayText("Bemerkung")
+        table.getCellByPosition(2, 0).setDisplayText("Bemerkung")
         var idx = 1
         for(item in report.lumpSumContainer.items) {
             table.getCellByPosition(0, idx).setDisplayText(item.item.value)
@@ -394,16 +394,22 @@ class OdfGenerator(val activity: Activity, val report: ReportData) {
         val container = parent.parentNode // this is one level above so the one that shall take the new text:p
 
         report.photoContainer.items.forEachIndexed { index, photoData ->
-            val textP = OdfTextParagraph(contentDom)
-            val frame = textP.newDrawFrameElement()
+            // Image
+            val textPImage = OdfTextParagraph(contentDom)
+            val frame = textPImage.newDrawFrameElement()
             frame.svgWidthAttribute = "17cm"
             val ratio: Float = photoData.imageHeight.toFloat() / photoData.imageWidth.toFloat()
             frame.svgHeightAttribute = "${17.0*ratio}cm"
             val drawImage = frame.newDrawImageElement() as OdfDrawImage
             drawImage.setImagePath("Pictures/photo$index.jpg")
             val pbreak = TextSoftPageBreakElement(contentDom)
-            textP.appendChild(pbreak)
-            container.insertBefore(textP, parent)
+            textPImage.appendChild(pbreak)
+
+            // Comment
+            val textPComment = OdfTextParagraph(contentDom)
+            textPComment.newTextNode(photoData.description.value)
+            container.insertBefore(textPImage, parent)
+            container.insertBefore(textPComment, parent)
         }
         container.removeChild(parent)
     }

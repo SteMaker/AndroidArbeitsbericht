@@ -34,6 +34,10 @@ class MainActivity : AppCompatActivity() {
         topBinding.lifecycleOwner = this
         // Nothing to bind right now topBinding.... = ...!!
 
+        setSupportActionBar(findViewById(R.id.main_activity_toolbar))
+        supportActionBar?.setTitle(R.string.saved_reports)
+
+
         val reportListScrollContainer = report_list_scroll_container
         val reportIds = storageHandler().getListOfReports()
         reportIds.forEach {

@@ -5,6 +5,9 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.content.Intent
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
 import androidx.databinding.DataBindingUtil
 import com.stemaker.arbeitsbericht.data.*
 import com.stemaker.arbeitsbericht.databinding.ActivityReportEditorBinding
@@ -28,6 +31,16 @@ class ReportEditorActivity : AppCompatActivity(),
         Log.d("Arbeitsbericht.ReportEditorActivity.onCreate", "start")
 
         topBinding = DataBindingUtil.setContentView(this, R.layout.activity_report_editor)
+
+        setSupportActionBar(findViewById(R.id.report_editor_activity_toolbar))
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.setTitle(R.string.editor)
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        val inflater: MenuInflater = menuInflater
+        inflater.inflate(R.menu.editor_menu, menu)
+        return true
     }
 
     override fun onStart() {
@@ -51,6 +64,18 @@ class ReportEditorActivity : AppCompatActivity(),
         super.onDestroy()
     }
 
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.goto_summary -> {
+                saveReport()
+                val intent = Intent(this, SummaryActivity::class.java).apply {}
+                startActivity(intent)
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
+
     fun saveAndBackToMain() {
         Log.d("Arbeitsbericht", "Kundenname ist ${storageHandler().getReport().project.name.value}")
         Log.d("Arbeitsbericht.debug","There are ${storageHandler().activeReport.photoContainer.items.size} photos, , object: ${storageHandler().activeReport.photoContainer.toString()}")
@@ -60,20 +85,9 @@ class ReportEditorActivity : AppCompatActivity(),
         startActivity(intent)
     }
 
-    fun onClickBack(@Suppress("UNUSED_PARAMETER") backButton: View) {
-        Log.d("Arbeitsbericht.ReportEditorActivity.onClickBack", "called")
-        saveAndBackToMain()
-    }
-
     override fun onBackPressed() {
         Log.d("Arbeitsbericht.ReportEditorActivity.onBackPressed", "called")
         saveAndBackToMain()
-    }
-
-    fun onClickSummary(@Suppress("UNUSED_PARAMETER") btn: View) {
-        saveReport()
-        val intent = Intent(this, SummaryActivity::class.java).apply {}
-        startActivity(intent)
     }
 
     fun saveReport() {

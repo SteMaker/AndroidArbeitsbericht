@@ -8,11 +8,10 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.net.Uri
 import android.util.Log
-import android.view.View
 import android.webkit.WebView
 import com.github.gcacace.signaturepad.views.SignaturePad
 import android.print.*
-import android.view.WindowManager
+import android.view.*
 import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.Toast
@@ -47,6 +46,10 @@ class SummaryActivity : AppCompatActivity() {
         binding.lifecycleOwner = this
         binding.signature = signatureData
 
+        setSupportActionBar(findViewById(R.id.summary_activity_toolbar))
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.setTitle(R.string.summary)
+
         if(signatureData.employeeSignatureSvg.value == "") {
             findViewById<SignaturePad>(R.id.employee_signature).visibility = View.VISIBLE
         } else {
@@ -63,6 +66,26 @@ class SummaryActivity : AppCompatActivity() {
         wv.loadDataWithBaseURL("", html, "text/html", "UTF-8", "")
     }
 
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        val inflater: MenuInflater = menuInflater
+        inflater.inflate(R.menu.summary_menu, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.show_preview-> {
+                preview()
+                true
+            }
+            R.id.send_report -> {
+                send()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
+
     fun saveAndBackToMain() {
         saveSignatures()
         val intent = Intent(this, ReportEditorActivity::class.java).apply {}
@@ -72,11 +95,6 @@ class SummaryActivity : AppCompatActivity() {
 
     override fun onBackPressed() {
         Log.d("Arbeitsbericht.SummaryActivity.onBackPressed", "called")
-        saveAndBackToMain()
-    }
-
-    fun onClickBack(@Suppress("UNUSED_PARAMETER") backButton: View) {
-        Log.d("Arbeitsbericht.ReportEditorActivity.onClickBack", "called")
         saveAndBackToMain()
     }
 
@@ -115,8 +133,8 @@ class SummaryActivity : AppCompatActivity() {
         storageHandler().saveActiveReportToFile(getApplicationContext())
     }
 
-    fun onClickView(@Suppress("UNUSED_PARAMETER") viewButton: View) {
-        Log.d(TAG, "Entry")
+    fun preview() {
+        Log.d(TAG, "Preview")
         saveSignatures()
 
         GlobalScope.launch(Dispatchers.Main) {
@@ -145,7 +163,7 @@ class SummaryActivity : AppCompatActivity() {
     }
 
     var pdfWritePermissionContinuation: Continuation<Boolean>? = null
-    fun onClickSend(@Suppress("UNUSED_PARAMETER") sendButton: View) {
+    fun send() {
         Log.d(TAG, "Entry")
         saveSignatures()
 

@@ -6,8 +6,7 @@ import android.content.pm.PackageManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
-import android.view.View
-import android.view.WindowManager
+import android.view.*
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
@@ -33,6 +32,10 @@ class ConfigurationActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_configuration)
 
+        setSupportActionBar(findViewById(R.id.configuration_activity_toolbar))
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.setTitle(R.string.settings)
+
         findViewById<EditText>(R.id.config_employee_name).setText(configuration().employeeName)
         findViewById<EditText>(R.id.config_device_name).setText(configuration().deviceName)
         findViewById<EditText>(R.id.config_report_id_pattern).setText(configuration().reportIdPattern)
@@ -47,6 +50,22 @@ class ConfigurationActivity : AppCompatActivity() {
         findViewById<EditText>(R.id.odf_template_ftp_path).setText(configuration().odfTemplateServerPath)
     }
 
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        val inflater: MenuInflater = menuInflater
+        inflater.inflate(R.menu.configuration_menu, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.config_save_button -> {
+                save()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
+
     fun checkForIdChange(): Boolean {
         val pat = findViewById<EditText>(R.id.config_report_id_pattern).getText().toString()
         val en = findViewById<EditText>(R.id.config_employee_name).getText().toString()
@@ -59,7 +78,7 @@ class ConfigurationActivity : AppCompatActivity() {
         return false
     }
 
-    fun onClickSave(@Suppress("UNUSED_PARAMETER") btn: View) {
+    fun save() {
         GlobalScope.launch(Dispatchers.Main) {
             getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
             findViewById<ProgressBar>(R.id.sftp_progress).visibility = View.VISIBLE

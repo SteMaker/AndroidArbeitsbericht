@@ -9,6 +9,7 @@
     <uses-feature android:name="android.hardware.camera"
                   android:required="false" />
 
+    <!--android:theme="@style/AppTheme"-->
     <application
             android:allowBackup="true"
             android:name="com.stemaker.arbeitsbericht.ArbeitsberichtApp"
@@ -16,17 +17,27 @@
             android:label="@string/app_name"
             android:roundIcon="@mipmap/ic_launcher_round"
             android:supportsRtl="true"
-            android:theme="@style/AppTheme">
-        <activity android:name=".LumpSumDefinitionActivity"></activity>
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+
+        <activity
+                android:name=".LumpSumDefinitionActivity"
+                android:parentActivityName=".MainActivity">
+        </activity>
         <activity
                 android:name=".SummaryActivity"
-                android:screenOrientation="portrait"></activity>
+                android:screenOrientation="portrait"
+                android:parentActivityName=".ReportEditorActivity">
+        </activity>
         <activity
                 android:name=".ConfigurationActivity"
-                android:screenOrientation="portrait"></activity>
+                android:screenOrientation="portrait"
+                android:parentActivityName=".MainActivity">
+        </activity>
         <activity
                 android:name=".ReportEditorActivity"
-                android:screenOrientation="portrait"></activity>
+                android:screenOrientation="portrait"
+                android:parentActivityName=".MainActivity">
+                </activity>
         <activity
                 android:name=".MainActivity"
                 android:screenOrientation="portrait">

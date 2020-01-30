@@ -23,7 +23,7 @@
     <string name="device_name">Gerätename</string>
     <string name="mail_receiver">E-Mail Empfänger</string>
     <string name="save">Speichern</string>
-    <string name="view">Voransicht</string>
+    <string name="preview">Voransicht</string>
     <string name="free_id">Nächste freie Berichtsnr</string>
     <string name="worktimes">Arbeitszeiten</string>
     <string name="workitems">Durchgeführte Arbeiten</string>
@@ -48,6 +48,7 @@
     <string name="photo">Fotos</string>
     <string name="description">Beschreibung</string>
     <string name="comment">Bemerkung</string>
+    <string name="editor">Bearbeiten</string>
     <string name="lump_sum_from_server">Pauschalendefinition von einem server beziehen</string>
     <string name="sftp_path_lump_sum">Pfad zur Pauschalendatei auf dem SFTP server</string>
 
@@ -55,6 +56,7 @@
     <string name="reportid_change_conf">Die laufende Nummer wurde geändert</string>
     <string name="reportid_change_conf_detail">Das kann zu doppelter Vergabe von Berichtsnummern führen, sind Sie sich sicher?</string>
     <string name="report_id_pattern">Vorlage Berichtsnummer</string>
+    <string name="lump_sum_load">Pauschalen aus entfernter Datei laden</string>
 
     <!-- SFTP related -->
     <string name="sftp_settings">SFTP Einstellungen</string>

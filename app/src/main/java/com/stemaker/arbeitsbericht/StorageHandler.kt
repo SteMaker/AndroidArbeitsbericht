@@ -57,8 +57,13 @@ object StorageHandler {
             }
 
             // Now we should be ready to do more
-            if(configuration().activeReportId != "")
-                selectReportById(configuration().activeReportId)
+            if(configuration().activeReportId != "") {
+                if (reports.contains(configuration().activeReportId)) {
+                    selectReportById(configuration().activeReportId)
+                } else {
+                    configuration().activeReportId = ""
+                }
+            }
 
             Log.d("Arbeitsbericht.StorageHandler.myInit", "done")
         }

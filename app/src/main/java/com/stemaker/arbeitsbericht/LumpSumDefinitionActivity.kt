@@ -7,8 +7,7 @@ import android.content.pm.PackageManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.View
+import android.view.*
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.cardview.widget.CardView
@@ -35,10 +34,30 @@ class LumpSumDefinitionActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_lump_sum_definition)
 
+        setSupportActionBar(findViewById(R.id.lump_sum_configuration_activity_toolbar))
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.setTitle(R.string.lump_sum_define)
+
         findViewById<EditText>(R.id.lump_sum_ftp_path).setText(configuration().lumpSumServerPath)
         val lumpSums = configuration().lumpSums
         for (ls in lumpSums) {
             addLumpSumView(ls)
+        }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        val inflater: MenuInflater = menuInflater
+        inflater.inflate(R.menu.lump_sum_configuration_menu, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.config_save_button -> {
+                save()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
         }
     }
 
@@ -61,8 +80,7 @@ class LumpSumDefinitionActivity : AppCompatActivity() {
         lump_sums_container.addView(cV, pos)
     }
 
-    @Suppress("UNUSED_PARAMETER")
-    fun onClickSave(btn: View) {
+    fun save() {
         Log.d("Arbeitsbericht.LumpSumDefinitionActivity.onClickSave", "saving ${lump_sums_container.getChildCount()} lump-sums ...")
         val lumpSums = mutableListOf<String>()
         for (pos in 0 until lump_sums_container.getChildCount()) {

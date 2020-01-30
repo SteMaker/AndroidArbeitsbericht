@@ -12,7 +12,7 @@
     </item>
     <item xmlns:app="http://schemas.android.com/apk/res-auto"
         android:id="@+id/main_menu_new_report"
-        android:icon="@drawable/ic_create_white_24dp"
+        android:icon="@drawable/ic_add_circle_black_24dp"
         android:title="@string/_new"
         app:showAsAction="ifRoom">
     </item>

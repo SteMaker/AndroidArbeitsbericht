@@ -84,6 +84,18 @@
     <string name="no_xdf_viewer">Es ist keine App installiert, die das %1$s Dokument anzeigen kann</string>
     <string name="odf_output">ODF-Ausgabe (unterstützt eigene Vorlagen)</string>
     <string name="pdf_output">PDF-Ausgabe</string>
+    <string name="status_add_pics">Bilderdateien einfügen</string>
+    <string name="status_add_base">Grunddaten einfügen</string>
+    <string name="status_add_bill">Rechnungsdaten einfügen</string>
+    <string name="status_add_project">Projektdaten einfügen</string>
+    <string name="status_add_worktime">Arbeitszeiten einfügen</string>
+    <string name="status_add_workitem">Arbeiten einfügen</string>
+    <string name="status_add_lumpsum">Pauschalen einfügen</string>
+    <string name="status_add_material">Materialien einfügen</string>
+    <string name="status_add_photo">Fotos einfügen</string>
+    <string name="status_add_signature">Unterschriften einfügen</string>
+    <string name="status_done">Fertig</string>
+    <string name="figure">Abbildung</string>
 
     <string name="no_mail_client">Es wurde kein E_Mail Programm gefunden</string>
     <string name="report_id_mismatch">Vorsicht! Inkonsistente laufende Nummer</string>

@@ -13,6 +13,7 @@ import com.github.gcacace.signaturepad.views.SignaturePad
 import android.print.*
 import android.view.*
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.annotation.NonNull
@@ -25,6 +26,7 @@ import com.stemaker.arbeitsbericht.data.ReportData
 import com.stemaker.arbeitsbericht.databinding.ActivitySummaryBinding
 import com.stemaker.arbeitsbericht.helpers.HtmlReport
 import com.stemaker.arbeitsbericht.helpers.showInfoDialog
+import kotlinx.android.synthetic.main.activity_summary.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -196,7 +198,7 @@ class SummaryActivity : AppCompatActivity() {
         Log.d(TAG, "Creating report")
         var ret: File? = null
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
-        findViewById<ProgressBar>(R.id.create_report_progress).visibility = View.VISIBLE
+        findViewById<LinearLayout>(R.id.create_report_progress_container).visibility = View.VISIBLE
         try {
             when {
                 configuration().useOdfOutput -> ret = createOdfReport()
@@ -205,14 +207,14 @@ class SummaryActivity : AppCompatActivity() {
         } catch (e:Exception) {
             showInfoDialog(getString(R.string.report_create_fail), this@SummaryActivity, e.message?:getString(R.string.unknown))
         }
-        findViewById<ProgressBar>(R.id.create_report_progress).visibility = View.GONE
+        findViewById<LinearLayout>(R.id.create_report_progress_container).visibility = View.GONE
         getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
         return ret
     }
 
     suspend fun createOdfReport(): File? {
         val report = storageHandler().getReport()
-        val odfGenerator = OdfGenerator(this@SummaryActivity, report)
+        val odfGenerator = OdfGenerator(this@SummaryActivity, report, create_report_progressbar, create_report_progress_text)
         val files = odfGenerator.getFilesForOdfGeneration()
         if(files != null) {
             if(odfGenerator.isOdfUpToDate(files[0], report)) {

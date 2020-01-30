@@ -3,6 +3,8 @@ package com.stemaker.arbeitsbericht
 import android.app.Activity
 import android.os.*
 import android.util.Log
+import android.widget.ProgressBar
+import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import com.stemaker.arbeitsbericht.data.ReportData
 import com.stemaker.arbeitsbericht.helpers.*
@@ -19,6 +21,7 @@ import org.odftoolkit.odfdom.incubator.doc.draw.OdfDrawImage
 import org.odftoolkit.odfdom.incubator.doc.text.OdfTextParagraph
 import org.odftoolkit.odfdom.pkg.OdfElement
 import org.odftoolkit.odfdom.pkg.OdfPackage
+import org.odftoolkit.odfdom.type.Color
 import org.w3c.dom.Node
 import java.io.File
 import java.io.FileInputStream
@@ -32,11 +35,13 @@ import kotlin.coroutines.suspendCoroutine
 private const val TAG = "OdfGenerator"
 
 private const val MSG_CREATE = 0x01
+private const val MSG_PROGRESS_INFO = 0x02
 
 private class Create(val odfFile: File, val clientSigFile: File, val employeeSigFile: File?, val cont: Continuation<CreateReturn>)
 private class CreateReturn(val success: Boolean, val error: String = "")
+private class ProgressInfo(val progress: Int, val status: String)
 
-class OdfGenerator(val activity: Activity, val report: ReportData) {
+class OdfGenerator(val activity: Activity, val report: ReportData, val progressBar: ProgressBar?, val textView: TextView?) {
 
     fun isOdfUpToDate(odfFile: File, report: ReportData): Boolean {
         lateinit var doc: OdfTextDocument
@@ -150,28 +155,44 @@ class OdfGenerator(val activity: Activity, val report: ReportData) {
     }
 
 
-    /* This class is used to handle messages within the UI thread -> not used right now
+    /* This class is used to handle messages within the UI thread */
     private inner class UiThreadHandler(looper: Looper): Handler(looper) {
         override fun handleMessage(msg: Message?) {
             super.handleMessage(msg)
             Log.d(TAG, "handleMessage ${msg?.what?:-1} in UI Thread")
             when (msg?.what) {
-                MSG_DONE -> {
-                }
+                MSG_PROGRESS_INFO -> handleProgressInfo(msg)
             }
         }
-    } */
+    }
 
     private val odfHandlerThread = HandlerThread("ODF Thread").apply {
         start()
     }
     private val odfHandler = OdfThreadHandler(odfHandlerThread.looper)
-    //private val uiHandler = UiThreadHandler(Looper.getMainLooper())
+    private val uiHandler = UiThreadHandler(Looper.getMainLooper())
+
+    ///////////////////////////////////////////////////////
+    // BELOW FUNCTIONS ARE SUPPOSED TO RUN IN THE UI THREAD
+    ///////////////////////////////////////////////////////
+    fun handleProgressInfo(msg: Message) {
+        val info = msg.obj as ProgressInfo
+        progressBar?.progress = info.progress
+        textView?.text = info.status
+    }
 
     ////////////////////////////////////////////////////////
     // BELOW FUNCTIONS ARE SUPPOSED TO RUN IN THE ODF THREAD
     ////////////////////////////////////////////////////////
+    private fun progressInfo(progress: Int, status: String) {
+        val msg = Message()
+        msg.what = MSG_PROGRESS_INFO
+        msg.obj = ProgressInfo(progress, status)
+        uiHandler.sendMessage(msg)
+    }
+
     private fun handleCreate(msg: Message) {
+
         Log.d(TAG, "create()")
         val cm = msg.obj as Create
         // TODO: Add the template File object
@@ -180,19 +201,29 @@ class OdfGenerator(val activity: Activity, val report: ReportData) {
         employeeSigFile = cm.employeeSigFile
 
         try {
+            progressInfo(10, activity.getString(R.string.status_add_pics))
             addImagesToPackage()
 
             val doc = getDoc(odfFile!!)
             val metaDom = doc.metaDom
             val contentDom = doc.contentDom
+            progressInfo(15, activity.getString(R.string.status_add_base))
             setBaseData(metaDom)
+            progressInfo(20, activity.getString(R.string.status_add_bill))
             setBillData(metaDom)
+            progressInfo(30, activity.getString(R.string.status_add_project))
             setProjectData(metaDom)
+            progressInfo(40, activity.getString(R.string.status_add_worktime))
             setWorkTime(contentDom)
+            progressInfo(50, activity.getString(R.string.status_add_workitem))
             setWorkItem(contentDom)
+            progressInfo(60, activity.getString(R.string.status_add_lumpsum))
             setLumpSum(contentDom)
+            progressInfo(70, activity.getString(R.string.status_add_material))
             setMaterial(contentDom)
+            progressInfo(80, activity.getString(R.string.status_add_photo))
             setPhoto(contentDom)
+            progressInfo(90, activity.getString(R.string.status_add_signature))
             setSignatures(contentDom)
 
             // Create a checksum so that we can check later if the report has been changed compared to the ODF
@@ -201,6 +232,7 @@ class OdfGenerator(val activity: Activity, val report: ReportData) {
 
             // Save document
             doc.save(odfFile)
+            progressInfo(100, activity.getString(R.string.status_done))
             cm.cont.resume(CreateReturn((true)))
         } catch (e:Exception) {
             cm.cont.resume(CreateReturn(false, e.message?:activity.getString(R.string.unknown)))
@@ -305,17 +337,20 @@ class OdfGenerator(val activity: Activity, val report: ReportData) {
         node.parentNode.replaceChild(newNode, node)
     }
 
+    private fun fillTableHeads(table: OdfTable, heads: Array<String>) {
+        heads.forEachIndexed { index, head ->
+            val cell = table.getCellByPosition(index,0)
+            cell.setDisplayText(head)
+            cell.cellBackgroundColor = Color.SILVER
+        }
+    }
+
     private fun setWorkTime(contentDom: OdfContentDom) {
         if(report.workTimeContainer.items.size == 0) return
         val node = getParagraphOfTaggedNode(contentDom, "worktimetag")
         val parent = node.parentNode as OdfElement
         val table = OdfTable.newTable(parent, report.workTimeContainer.items.size, 6, 1, 0)
-        table.getCellByPosition(0,0).setDisplayText("Datum")
-        table.getCellByPosition(1,0).setDisplayText("Mitarbeiter")
-        table.getCellByPosition(2,0).setDisplayText("Arbeitsanfang")
-        table.getCellByPosition(3,0).setDisplayText("Arbeitsende")
-        table.getCellByPosition(4,0).setDisplayText("Fahrzeit [h:m]")
-        table.getCellByPosition(5,0).setDisplayText("Fahrstrecke [km]")
+        fillTableHeads(table, arrayOf("Datum", "Mitarbeiter", "Arbeitsanfang", "Arbeitsende", "Fahrzeit [h:m]", "Fahrstrecke [km]"))
         var idx = 1
         for(item in report.workTimeContainer.items) {
             table.getCellByPosition(0, idx).setDisplayText(item.date.value)
@@ -338,7 +373,7 @@ class OdfGenerator(val activity: Activity, val report: ReportData) {
         val node = getParagraphOfTaggedNode(contentDom, "workitemtag")
         val parent = node.parentNode as OdfElement
         val table = OdfTable.newTable(parent, report.workItemContainer.items.size, 1, 1, 0)
-        table.getCellByPosition(0, 0).setDisplayText("Arbeit")
+        fillTableHeads(table, arrayOf("Arbeit"))
         var idx = 1
         for(item in report.workItemContainer.items) {
             table.getCellByPosition(0, idx).setDisplayText(item.item.value)
@@ -354,9 +389,7 @@ class OdfGenerator(val activity: Activity, val report: ReportData) {
         val node = getParagraphOfTaggedNode(contentDom, "lumpsumtag")
         val parent = node.parentNode as OdfElement
         val table = OdfTable.newTable(parent, report.lumpSumContainer.items.size, 3, 1, 0)
-        table.getCellByPosition(0, 0).setDisplayText("Pauschale")
-        table.getCellByPosition(1, 0).setDisplayText("Anzahl")
-        table.getCellByPosition(2, 0).setDisplayText("Bemerkung")
+        fillTableHeads(table, arrayOf("Pauschale", "Anzahl", "Bemerkung"))
         var idx = 1
         for(item in report.lumpSumContainer.items) {
             table.getCellByPosition(0, idx).setDisplayText(item.item.value)
@@ -374,8 +407,7 @@ class OdfGenerator(val activity: Activity, val report: ReportData) {
         val node = getParagraphOfTaggedNode(contentDom, "materialtag")
         val parent = node.parentNode as OdfElement
         val table = OdfTable.newTable(parent, report.materialContainer.items.size, 2, 1, 0)
-        table.getCellByPosition(0, 0).setDisplayText("Material")
-        table.getCellByPosition(1, 0).setDisplayText("Anzahl")
+        fillTableHeads(table, arrayOf("Material", "Anzahl"))
         var idx = 1
         for(item in report.materialContainer.items) {
             table.getCellByPosition(0, idx).setDisplayText(item.item.value)
@@ -393,23 +425,29 @@ class OdfGenerator(val activity: Activity, val report: ReportData) {
         val parent = getParentParagraphOfNode(node) // this is the level we want the text:p to be located
         val container = parent.parentNode // this is one level above so the one that shall take the new text:p
 
+        /* Hierarchy from outer to inner
+         * container (existent)
+         *   text:p
+         *     draw:frame (anchor-type=paragraph)
+         *       draw:text-box
+         *         text:p
+         *           draw:frame (anchor-type=as-char)
+         *             draw:image (the jpg/png)
+         *           caption (text node)
+         */
         report.photoContainer.items.forEachIndexed { index, photoData ->
             // Image
-            val textPImage = OdfTextParagraph(contentDom)
-            val frame = textPImage.newDrawFrameElement()
+            val textP = OdfTextParagraph(contentDom)
+            val frame = textP.newDrawFrameElement()
             frame.svgWidthAttribute = "17cm"
             val ratio: Float = photoData.imageHeight.toFloat() / photoData.imageWidth.toFloat()
             frame.svgHeightAttribute = "${17.0*ratio}cm"
             val drawImage = frame.newDrawImageElement() as OdfDrawImage
             drawImage.setImagePath("Pictures/photo$index.jpg")
+            textP.newTextNode("${activity.getString(R.string.figure)} ${index+1}: ${photoData.description.value}")
             val pbreak = TextSoftPageBreakElement(contentDom)
-            textPImage.appendChild(pbreak)
-
-            // Comment
-            val textPComment = OdfTextParagraph(contentDom)
-            textPComment.newTextNode(photoData.description.value)
-            container.insertBefore(textPImage, parent)
-            container.insertBefore(textPComment, parent)
+            textP.appendChild(pbreak)
+            container.insertBefore(textP, parent)
         }
         container.removeChild(parent)
     }

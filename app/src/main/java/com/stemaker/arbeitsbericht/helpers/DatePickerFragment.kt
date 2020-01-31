@@ -2,6 +2,7 @@ package com.stemaker.arbeitsbericht.helpers
 
 import android.app.DatePickerDialog
 import android.app.Dialog
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.widget.DatePicker
@@ -12,7 +13,7 @@ import java.util.*
 // TODO: Put the button and TextView into a separate layout xml and inflate it here directly using data binding instead of letting the higher level
 //       XML handle it
 
-class DatePickerFragment(_dateString: MutableLiveData<String>) : DialogFragment(), DatePickerDialog.OnDateSetListener {
+class DatePickerFragment(_dateString: MutableLiveData<String>, val ctx: Context) : DialogFragment(), DatePickerDialog.OnDateSetListener {
     val dateString = _dateString
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val year: Int
@@ -33,7 +34,7 @@ class DatePickerFragment(_dateString: MutableLiveData<String>) : DialogFragment(
         }
 
         // Create a new instance of DatePickerDialog and return it
-        return DatePickerDialog(activity, this, year, month-1, day)
+        return DatePickerDialog(ctx, this, year, month-1, day)
     }
 
     override fun onDateSet(view: DatePicker, year: Int, month: Int, day: Int) {

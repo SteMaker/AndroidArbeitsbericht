@@ -8,6 +8,7 @@ import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import com.stemaker.arbeitsbericht.data.ReportData
 import com.stemaker.arbeitsbericht.helpers.*
+import kotlinx.coroutines.selects.whileSelect
 import org.odftoolkit.odfdom.doc.OdfTextDocument
 import org.odftoolkit.odfdom.doc.table.OdfTable
 import org.odftoolkit.odfdom.dom.OdfContentDom
@@ -16,7 +17,9 @@ import org.odftoolkit.odfdom.dom.element.meta.MetaUserDefinedElement
 import org.odftoolkit.odfdom.dom.element.office.OfficeMetaElement
 import org.odftoolkit.odfdom.dom.element.text.TextSoftPageBreakElement
 import org.odftoolkit.odfdom.dom.style.OdfStyleFamily
+import org.odftoolkit.odfdom.dom.style.props.OdfDrawingPageProperties
 import org.odftoolkit.odfdom.dom.style.props.OdfGraphicProperties
+import org.odftoolkit.odfdom.incubator.doc.draw.OdfDrawFrame
 import org.odftoolkit.odfdom.incubator.doc.draw.OdfDrawImage
 import org.odftoolkit.odfdom.incubator.doc.text.OdfTextParagraph
 import org.odftoolkit.odfdom.pkg.OdfElement
@@ -208,11 +211,11 @@ class OdfGenerator(val activity: Activity, val report: ReportData, val progressB
             val metaDom = doc.metaDom
             val contentDom = doc.contentDom
             progressInfo(15, activity.getString(R.string.status_add_base))
-            setBaseData(metaDom)
+            setBaseData(metaDom, contentDom)
             progressInfo(20, activity.getString(R.string.status_add_bill))
-            setBillData(metaDom)
+            setBillData(metaDom, contentDom)
             progressInfo(30, activity.getString(R.string.status_add_project))
-            setProjectData(metaDom)
+            setProjectData(metaDom, contentDom)
             progressInfo(40, activity.getString(R.string.status_add_worktime))
             setWorkTime(contentDom)
             progressInfo(50, activity.getString(R.string.status_add_workitem))
@@ -265,15 +268,17 @@ class OdfGenerator(val activity: Activity, val report: ReportData, val progressB
         return pkg
     }
 
-    private fun setBaseData(metaDom: OdfMetaDom) {
+    private fun setBaseData(metaDom: OdfMetaDom, contentDom: OdfContentDom) {
         // Report ID
+        val repId = report.id
         val node = metaDom.xPath.evaluate("//office:document-meta/office:meta/meta:user-defined[@meta:name='report_id']", metaDom, XPathConstants.NODE) as Node
         val reportIdNode = MetaUserDefinedElement(metaDom).apply {
             metaNameAttribute = "report_id"
             metaValueTypeAttribute = "string"
-            newTextNode(report.id)
+            newTextNode(repId)
         }
         node.parentNode.replaceChild(reportIdNode, node)
+        setTextUserDefinedNode(contentDom, "report_id", repId)
 
         // Creation date
         val node2 = metaDom.xPath.evaluate("//office:document-meta/office:meta/meta:user-defined[@meta:name='create_date']", metaDom, XPathConstants.NODE) as Node
@@ -283,9 +288,10 @@ class OdfGenerator(val activity: Activity, val report: ReportData, val progressB
             newTextNode(report.create_date.value)
         }
         node2.parentNode.replaceChild(reportIdNode2, node2)
+        setTextUserDefinedNode(contentDom, "create_date", report.create_date.value!!)
     }
 
-    private fun setBillData(metaDom: OdfMetaDom) {
+    private fun setBillData(metaDom: OdfMetaDom, contentDom: OdfContentDom) {
         var node = metaDom.xPath.evaluate("//office:document-meta/office:meta/meta:user-defined[@meta:name='bill_name']", metaDom, XPathConstants.NODE) as Node
         var newNode = MetaUserDefinedElement(metaDom).apply {
             metaNameAttribute = "bill_name"
@@ -293,6 +299,7 @@ class OdfGenerator(val activity: Activity, val report: ReportData, val progressB
             newTextNode(report.bill.name.value)
         }
         node.parentNode.replaceChild(newNode, node)
+        setTextUserDefinedNode(contentDom, "bill_name", report.bill.name.value!!)
 
         node = metaDom.xPath.evaluate("//office:document-meta/office:meta/meta:user-defined[@meta:name='bill_street']", metaDom, XPathConstants.NODE) as Node
         newNode = MetaUserDefinedElement(metaDom).apply {
@@ -301,6 +308,7 @@ class OdfGenerator(val activity: Activity, val report: ReportData, val progressB
             newTextNode(report.bill.street.value)
         }
         node.parentNode.replaceChild(newNode, node)
+        setTextUserDefinedNode(contentDom, "bill_street", report.bill.street.value!!)
 
         node = metaDom.xPath.evaluate("//office:document-meta/office:meta/meta:user-defined[@meta:name='bill_zip']", metaDom, XPathConstants.NODE) as Node
         newNode = MetaUserDefinedElement(metaDom).apply {
@@ -309,6 +317,7 @@ class OdfGenerator(val activity: Activity, val report: ReportData, val progressB
             newTextNode(report.bill.zip.value.toString())
         }
         node.parentNode.replaceChild(newNode, node)
+        setTextUserDefinedNode(contentDom, "bill_zip", report.bill.zip.value!!)
 
         node = metaDom.xPath.evaluate("//office:document-meta/office:meta/meta:user-defined[@meta:name='bill_city']", metaDom, XPathConstants.NODE) as Node
         newNode = MetaUserDefinedElement(metaDom).apply {
@@ -317,9 +326,10 @@ class OdfGenerator(val activity: Activity, val report: ReportData, val progressB
             newTextNode(report.bill.city.value)
         }
         node.parentNode.replaceChild(newNode, node)
+        setTextUserDefinedNode(contentDom, "bill_city", report.bill.city.value!!)
     }
 
-    private fun setProjectData(metaDom: OdfMetaDom) {
+    private fun setProjectData(metaDom: OdfMetaDom, contentDom: OdfContentDom) {
         var node = metaDom.xPath.evaluate("//office:document-meta/office:meta/meta:user-defined[@meta:name='project_name']", metaDom, XPathConstants.NODE) as Node
         var newNode = MetaUserDefinedElement(metaDom).apply {
             metaNameAttribute = "project_name"
@@ -327,6 +337,7 @@ class OdfGenerator(val activity: Activity, val report: ReportData, val progressB
             newTextNode(report.project.name.value)
         }
         node.parentNode.replaceChild(newNode, node)
+        setTextUserDefinedNode(contentDom, "project_name", report.project.name.value!!)
 
         node = metaDom.xPath.evaluate("//office:document-meta/office:meta/meta:user-defined[@meta:name='project_extra1']", metaDom, XPathConstants.NODE) as Node
         newNode = MetaUserDefinedElement(metaDom).apply {
@@ -335,6 +346,7 @@ class OdfGenerator(val activity: Activity, val report: ReportData, val progressB
             newTextNode(report.project.extra1.value)
         }
         node.parentNode.replaceChild(newNode, node)
+        setTextUserDefinedNode(contentDom, "project_extra1", report.project.extra1.value!!)
     }
 
     private fun fillTableHeads(table: OdfTable, heads: Array<String>) {
@@ -346,9 +358,12 @@ class OdfGenerator(val activity: Activity, val report: ReportData, val progressB
     }
 
     private fun setWorkTime(contentDom: OdfContentDom) {
-        if(report.workTimeContainer.items.size == 0) return
         val node = getParagraphOfTaggedNode(contentDom, "worktimetag")
         val parent = node.parentNode as OdfElement
+        if(report.workTimeContainer.items.size == 0) {
+            parent.removeChild(node)
+            return
+        }
         val table = OdfTable.newTable(parent, report.workTimeContainer.items.size, 6, 1, 0)
         fillTableHeads(table, arrayOf("Datum", "Mitarbeiter", "Arbeitsanfang", "Arbeitsende", "Fahrzeit [h:m]", "Fahrstrecke [km]"))
         var idx = 1
@@ -369,9 +384,12 @@ class OdfGenerator(val activity: Activity, val report: ReportData, val progressB
     }
 
     private fun setWorkItem(contentDom: OdfContentDom) {
-        if(report.workItemContainer.items.size == 0) return
         val node = getParagraphOfTaggedNode(contentDom, "workitemtag")
         val parent = node.parentNode as OdfElement
+        if(report.workItemContainer.items.size == 0) {
+            parent.removeChild(node)
+            return
+        }
         val table = OdfTable.newTable(parent, report.workItemContainer.items.size, 1, 1, 0)
         fillTableHeads(table, arrayOf("Arbeit"))
         var idx = 1
@@ -385,9 +403,12 @@ class OdfGenerator(val activity: Activity, val report: ReportData, val progressB
     }
 
     private fun setLumpSum(contentDom: OdfContentDom) {
-        if(report.lumpSumContainer.items.size == 0) return
         val node = getParagraphOfTaggedNode(contentDom, "lumpsumtag")
         val parent = node.parentNode as OdfElement
+        if(report.lumpSumContainer.items.size == 0) {
+            parent.removeChild(node)
+            return
+        }
         val table = OdfTable.newTable(parent, report.lumpSumContainer.items.size, 3, 1, 0)
         fillTableHeads(table, arrayOf("Pauschale", "Anzahl", "Bemerkung"))
         var idx = 1
@@ -403,9 +424,12 @@ class OdfGenerator(val activity: Activity, val report: ReportData, val progressB
     }
 
     private fun setMaterial(contentDom: OdfContentDom) {
-        if(report.materialContainer.items.size == 0) return
         val node = getParagraphOfTaggedNode(contentDom, "materialtag")
         val parent = node.parentNode as OdfElement
+        if(report.materialContainer.items.size == 0) {
+            parent.removeChild(node)
+            return
+        }
         val table = OdfTable.newTable(parent, report.materialContainer.items.size, 2, 1, 0)
         fillTableHeads(table, arrayOf("Material", "Anzahl"))
         var idx = 1
@@ -420,34 +444,44 @@ class OdfGenerator(val activity: Activity, val report: ReportData, val progressB
     }
 
     private fun setPhoto(contentDom: OdfContentDom) {
-        if(report.photoContainer.items.size == 0) return
         val node = getTaggedNode(contentDom, "phototag")
         val parent = getParentParagraphOfNode(node) // this is the level we want the text:p to be located
+        if(report.photoContainer.items.size == 0) {
+            parent.removeChild(node)
+            return
+        }
         val container = parent.parentNode // this is one level above so the one that shall take the new text:p
 
         /* Hierarchy from outer to inner
          * container (existent)
-         *   text:p
-         *     draw:frame (anchor-type=paragraph)
-         *       draw:text-box
-         *         text:p
-         *           draw:frame (anchor-type=as-char)
-         *             draw:image (the jpg/png)
+         *   text:p -> variable name outerTextP
+         *     draw:frame (anchor-type=paragraph) -> variable name outerDrawF
+         *       draw:text-box -> variable name drawTextB
+         *         text:p -> variable name innerTextP
+         *           draw:frame (anchor-type=as-char) -> variable name innerDrawF
+         *             draw:image (the jpg/png) -> variable name drawI
+         *           newline
          *           caption (text node)
          */
         report.photoContainer.items.forEachIndexed { index, photoData ->
-            // Image
-            val textP = OdfTextParagraph(contentDom)
-            val frame = textP.newDrawFrameElement()
-            frame.svgWidthAttribute = "17cm"
+            val outerTextP = OdfTextParagraph(contentDom)
+            val outerDrawF = outerTextP.newDrawFrameElement() as OdfDrawFrame
+            outerDrawF.textAnchorTypeAttribute = "as-char"
+            val drawTextB = outerDrawF.newDrawTextBoxElement()
+            val innerTextP = drawTextB.newTextPElement() as OdfTextParagraph
+            val innerDrawF = innerTextP.newDrawFrameElement() as OdfDrawFrame
+            innerDrawF.svgWidthAttribute = "17cm"
+            outerDrawF.svgWidthAttribute = "17cm"
             val ratio: Float = photoData.imageHeight.toFloat() / photoData.imageWidth.toFloat()
-            frame.svgHeightAttribute = "${17.0*ratio}cm"
-            val drawImage = frame.newDrawImageElement() as OdfDrawImage
-            drawImage.setImagePath("Pictures/photo$index.jpg")
-            textP.newTextNode("${activity.getString(R.string.figure)} ${index+1}: ${photoData.description.value}")
-            val pbreak = TextSoftPageBreakElement(contentDom)
-            textP.appendChild(pbreak)
-            container.insertBefore(textP, parent)
+            innerDrawF.svgHeightAttribute = "${17.0*ratio}cm"
+            innerDrawF.textAnchorTypeAttribute = "as-char"
+            outerDrawF.svgHeightAttribute = "${17.0*ratio}cm"
+            val drawI = innerDrawF.newDrawImageElement() as OdfDrawImage
+            drawI.setImagePath("Pictures/photo$index.jpg")
+            outerTextP.newTextNode("${activity.getString(R.string.figure)} ${index + 1}: ${photoData.description.value}")
+            outerTextP.newTextLineBreakElement()
+            outerTextP.newTextSoftPageBreakElement()
+            container.insertBefore(outerTextP, parent)
         }
         container.removeChild(parent)
     }
@@ -513,5 +547,12 @@ class OdfGenerator(val activity: Activity, val report: ReportData, val progressB
         val node = getTaggedNode(contentDom, tag)
 
         return getParentParagraphOfNode(node)
+    }
+
+    private fun setTextUserDefinedNode(contentDom: OdfContentDom, fieldName: String, value: String) {
+        try {
+            val node = contentDom.xPath.evaluate("//text:user-defined[@text:name='${fieldName}']", contentDom, XPathConstants.NODE) as Node
+            node.textContent = value
+        } catch(e: Exception) {}
     }
 }

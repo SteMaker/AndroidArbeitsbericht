@@ -9,7 +9,7 @@ apply plugin: 'kotlinx-serialization'
 apply plugin: 'kotlin-kapt'
 
 android {
-    compileSdkVersion 28
+    compileSdkVersion 29
     buildToolsVersion "29.0.2"
     defaultConfig {
         applicationId "com.stemaker.arbeitsbericht"

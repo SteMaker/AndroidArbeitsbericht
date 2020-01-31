@@ -103,7 +103,7 @@ class WorkTimeEditorFragment : ReportEditorSectionFragment(),
 
         workTimeDataBinding.root.findViewById<ImageButton>(R.id.work_time_date_change).setOnClickListener(object: View.OnClickListener {
             override fun onClick(btn: View) {
-                val newFragment = DatePickerFragment(wt.date)
+                val newFragment = DatePickerFragment(wt.date, btn.context)
                 newFragment.show(fragmentManager, "datePicker")
             }
         })

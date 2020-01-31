@@ -6,6 +6,9 @@ import android.os.Bundle
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
 import android.net.Uri
 import android.util.Log
 import android.webkit.WebView
@@ -14,7 +17,6 @@ import android.print.*
 import android.view.*
 import android.widget.ImageView
 import android.widget.LinearLayout
-import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.annotation.NonNull
 import androidx.core.app.ActivityCompat
@@ -22,6 +24,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.core.graphics.drawable.toBitmap
 import androidx.databinding.DataBindingUtil
+import com.caverock.androidsvg.SVG
 import com.stemaker.arbeitsbericht.data.ReportData
 import com.stemaker.arbeitsbericht.databinding.ActivitySummaryBinding
 import com.stemaker.arbeitsbericht.helpers.HtmlReport
@@ -224,7 +227,7 @@ class SummaryActivity : AppCompatActivity() {
                 Log.d(TAG, "creating odf")
                 report.signatureData.clientSignaturePngFile = files[1]
                 report.signatureData.employeeSignaturePngFile = files[2]
-                createSigPngs(files[1], files[2])
+                createSigPngs(report, files[1], files[2])
                 odfGenerator.create(files[0], files[1], files[2])
                 return files[0]
             }
@@ -243,7 +246,7 @@ class SummaryActivity : AppCompatActivity() {
             Log.d(TAG, "creating pdf")
             report.signatureData.clientSignaturePngFile = files[1]
             report.signatureData.employeeSignaturePngFile = files[2]
-            createSigPngs(files[1], files[2])
+            createSigPngs(report, files[1], files[2])
             pdfPrint.print(pdfFile)
             return files[0]
         } else {
@@ -252,35 +255,36 @@ class SummaryActivity : AppCompatActivity() {
         }
     }
 
-    fun createSigPngs(cSigFile: File, eSigFile: File) {
-        val cSigPad = findViewById<SignaturePad>(R.id.client_signature)
-        val eSigPad = findViewById<SignaturePad>(R.id.employee_signature)
-        val cSigV = findViewById<ImageView>(R.id.client_signature_view)
-        val eSigV = findViewById<ImageView>(R.id.employee_signature_view)
+    fun createSigPngs(report: ReportData, cSigFile: File, eSigFile: File) {
+        // client signature
+        var w = client_signature.signatureBitmap.width
+        if(w == 0) w = 100
+        var h = client_signature.signatureBitmap.height
+        if(h == 0) h = 30
+        val cBitmap = Bitmap.createBitmap(w, h, Bitmap.Config.RGB_565)
+        cBitmap.eraseColor(Color.WHITE)
+        val cCanvas = Canvas(cBitmap)
+        val cSvg = SVG.getFromString(report.signatureData.clientSignatureSvg.value)
+        cSvg.renderToCanvas(cCanvas)
+        val cSigfOut = FileOutputStream(cSigFile)
+        cBitmap.compress(Bitmap.CompressFormat.PNG, 85, cSigfOut)
+        cSigfOut.flush()
+        cSigfOut.close()
 
-        val vis = arrayOf(cSigPad.visibility, eSigPad.visibility, cSigV.visibility, eSigV.visibility)
-        cSigPad.visibility = View.GONE
-        eSigPad.visibility = View.GONE
-        cSigV.visibility = View.VISIBLE
-        eSigV.visibility = View.VISIBLE
-
-        cSigV.drawable?.toBitmap().apply {
-            val cSigfOut = FileOutputStream(cSigFile)
-            this?.compress(Bitmap.CompressFormat.PNG, 85, cSigfOut)
-            cSigfOut.flush()
-            cSigfOut.close()
-        }
-
-        eSigV.drawable?.toBitmap().apply {
-            val eSigfOut = FileOutputStream(eSigFile)
-            this?.compress(Bitmap.CompressFormat.PNG, 85, eSigfOut)
-            eSigfOut.flush()
-            eSigfOut.close()
-        }
-        cSigPad.visibility = vis[0]
-        eSigPad.visibility = vis[1]
-        cSigV.visibility = vis[2]
-        eSigV.visibility = vis[3]
+        // employee signature
+        var w2 = employee_signature.signatureBitmap.width
+        if(w2 == 0) w2 = 100
+        var h2 = employee_signature.signatureBitmap.height
+        if(h2 == 0) h2 = 30
+        val eBitmap = Bitmap.createBitmap(w2, h2, Bitmap.Config.RGB_565)
+        eBitmap.eraseColor(Color.WHITE)
+        val eCanvas = Canvas(eBitmap)
+        val eSvg = SVG.getFromString(report.signatureData.employeeSignatureSvg.value)
+        eSvg.renderToCanvas(eCanvas)
+        val eSigfOut = FileOutputStream(eSigFile)
+        eBitmap.compress(Bitmap.CompressFormat.PNG, 85, eSigfOut)
+        eSigfOut.flush()
+        eSigfOut.close()
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, @NonNull permissions: Array<String>, @NonNull grantResults: IntArray) {

@@ -80,21 +80,21 @@
                             android:onClick="onClickClearEmployeeSignature"
                             android:contentDescription="@string/clear"
                             />
+                    <ImageButton
+                            android:id="@+id/lock_employee_signature_btn"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:src="@drawable/ic_done_black_24dp"
+                            android:onClick="onClickLockEmployeeSignature"
+                            android:contentDescription="@string/status_done"
+                            />
                 </LinearLayout>
-                <com.github.gcacace.signaturepad.views.SignaturePad
+                <com.stemaker.arbeitsbericht.LockableSignaturePad
                         android:id="@+id/employee_signature"
                         android:layout_width="match_parent"
                         android:layout_height="0dp"
                         android:layout_weight="1"
                         app:penColor="@android:color/black"
-                        android:visibility="gone"
-                        />
-                <ImageView
-                        android:id="@+id/employee_signature_view"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:visibility="gone"
-                        app:svgString="@{signature.employeeSignatureSvg}"
                         />
             </LinearLayout>
         </androidx.cardview.widget.CardView>
@@ -129,22 +129,21 @@
                             android:onClick="onClickClearClientSignature"
                             android:contentDescription="@string/clear"
                             />
+                    <ImageButton
+                            android:id="@+id/lock_client_signature_btn"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:src="@drawable/ic_done_black_24dp"
+                            android:onClick="onClickLockClientSignature"
+                            android:contentDescription="@string/status_done"
+                            />
                 </LinearLayout>
-                <com.github.gcacace.signaturepad.views.SignaturePad
+                <com.stemaker.arbeitsbericht.LockableSignaturePad
                         android:id="@+id/client_signature"
                         android:layout_width="match_parent"
                         android:layout_height="0dp"
                         android:layout_weight="1"
-                        android:visibility="gone"
                         app:penColor="@android:color/black"
-                        />
-                <ImageView
-                        android:id="@+id/client_signature_view"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:visibility="gone"
-                        android:background="@android:color/white"
-                        app:svgString="@{signature.clientSignatureSvg}"
                         />
             </LinearLayout>
         </androidx.cardview.widget.CardView>

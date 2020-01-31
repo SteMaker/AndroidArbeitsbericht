@@ -1,5 +1,7 @@
 package com.stemaker.arbeitsbericht.data
 
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -44,5 +46,13 @@ class PhotoData: ViewModel() {
         description.value = p.description
         imageHeight = p.imageHeight
         imageWidth = p.imageWidth
+        // Normally this was already filled in at the time of taking the photo. But in case this was taken with an older app version, it might not
+        if(imageWidth <= 0 || imageHeight <= 0) {
+            val options = BitmapFactory.Options()
+            options.inPreferredConfig = Bitmap.Config.ARGB_8888;
+            val bitmap = BitmapFactory.decodeFile(p.file, options)
+            imageWidth = bitmap.width
+            imageHeight = bitmap.height
+        }
     }
 }

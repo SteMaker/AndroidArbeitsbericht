@@ -472,7 +472,7 @@ class OdfGenerator(val activity: Activity, val report: ReportData, val progressB
             val innerDrawF = innerTextP.newDrawFrameElement() as OdfDrawFrame
             innerDrawF.svgWidthAttribute = "17cm"
             outerDrawF.svgWidthAttribute = "17cm"
-            val ratio: Float = photoData.imageHeight.toFloat() / photoData.imageWidth.toFloat()
+            val ratio = photoData.imageHeight.toFloat() / photoData.imageWidth.toFloat()
             innerDrawF.svgHeightAttribute = "${17.0*ratio}cm"
             innerDrawF.textAnchorTypeAttribute = "as-char"
             outerDrawF.svgHeightAttribute = "${17.0*ratio}cm"
@@ -491,7 +491,7 @@ class OdfGenerator(val activity: Activity, val report: ReportData, val progressB
         style.setProperty(OdfGraphicProperties.Wrap, "none")
         style.setAttribute("style:name", "signatureStyle")
         if(clientSigFile != null) {
-            val node = getTaggedNode(contentDom, "signatureemployeetag")
+            val node = getTaggedNode(contentDom, "signatureclienttag")
             val parent = getParentParagraphOfNode(node) // this is the level we want the text:p to be located
             val container = parent.parentNode // this is one level above so the one that shall take the new text:p
 
@@ -510,8 +510,8 @@ class OdfGenerator(val activity: Activity, val report: ReportData, val progressB
             container.removeChild(parent)
         }
 
-        if(clientSigFile != null) {
-            val node = getTaggedNode(contentDom, "signatureclienttag")
+        if(employeeSigFile != null) {
+            val node = getTaggedNode(contentDom, "signatureemployeetag")
             val parent = getParentParagraphOfNode(node) // this is the level we want the text:p to be located
             val container = parent.parentNode // this is one level above so the one that shall take the new text:p
 

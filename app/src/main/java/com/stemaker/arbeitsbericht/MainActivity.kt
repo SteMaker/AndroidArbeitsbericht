@@ -8,7 +8,10 @@ import kotlinx.android.synthetic.main.activity_main.*
 import android.content.Context
 import android.view.*
 import android.widget.ImageButton
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.widget.PopupMenu
+import androidx.appcompat.widget.Toolbar
 import androidx.databinding.DataBindingUtil
 import com.stemaker.arbeitsbericht.data.ReportData
 import com.stemaker.arbeitsbericht.databinding.ActivityMainBinding
@@ -24,6 +27,8 @@ import kotlinx.coroutines.launch
    TODO: Remove the buttons from the ReportEditorActivity and SummaryActivity and put them in the header
 */
 
+private const val TAG = "MainActivity"
+
 class MainActivity : AppCompatActivity() {
     lateinit var topBinding: ActivityMainBinding
 
@@ -34,9 +39,21 @@ class MainActivity : AppCompatActivity() {
         topBinding.lifecycleOwner = this
         // Nothing to bind right now topBinding.... = ...!!
 
-        setSupportActionBar(findViewById(R.id.main_activity_toolbar))
-        supportActionBar?.setTitle(R.string.saved_reports)
+        val toolbar = findViewById<Toolbar>(R.id.main_activity_toolbar)
+        setSupportActionBar(toolbar)
+        toolbar.setNavigationIcon(R.drawable.ic_apps_black_24dp)
+        toolbar.setNavigationOnClickListener {
+            val popup = PopupMenu(this@MainActivity, toolbar)
+            popup.menuInflater.inflate(R.menu.tasks_menu, popup.getMenu())
+            popup.setOnMenuItemClickListener {
+                Toast.makeText(this@MainActivity, "You Clicked : " + it?.getTitle(), Toast.LENGTH_SHORT).show()
+                true
+            }
+            popup.show()
+        }
 
+        supportActionBar?.setTitle(R.string.saved_reports)
+        supportActionBar?.setHomeButtonEnabled(true)
 
         val reportListScrollContainer = report_list_scroll_container
         val reportIds = storageHandler().getListOfReports()

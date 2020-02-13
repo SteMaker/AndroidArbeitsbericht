@@ -2,9 +2,9 @@
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
         xmlns:app="http://schemas.android.com/apk/res-auto"
-        tools:context=".editor_fragments.ProjectEditorFragment">
+        tools:context=".workreport.ProjectEditorFragment">
     <data>
-        <variable name="project_data" type="com.stemaker.arbeitsbericht.data.ProjectData"/>
+        <variable name="project_data" type="com.stemaker.arbeitsbericht.data.workreport.ProjectData"/>
     </data>
 
         <com.stemaker.arbeitsbericht.helpers.LinearLayoutVisListener

@@ -9,6 +9,7 @@ class ArbeitsberichtApp: Application() {
     override fun onCreate() {
         super.onCreate()
         appContext = getApplicationContext()
+        storageHandler()
     }
 
     companion object {

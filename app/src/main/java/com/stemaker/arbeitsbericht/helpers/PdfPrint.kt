@@ -11,7 +11,7 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
-import com.stemaker.arbeitsbericht.data.ReportData
+import com.stemaker.arbeitsbericht.data.workreport.ReportData
 import com.stemaker.arbeitsbericht.helpers.HtmlReport
 import com.stemaker.arbeitsbericht.helpers.showConfirmationDialog
 import java.io.File

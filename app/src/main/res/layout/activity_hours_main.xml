@@ -6,10 +6,10 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical"
-            tools:context=".workreport.WorkReportMainActivity">
+            tools:context=".workreport.HoursReportMainActivity">
 
         <androidx.appcompat.widget.Toolbar
-                android:id="@+id/main_activity_toolbar"
+                android:id="@+id/hours_main_activity_toolbar"
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
                 android:background="?attr/colorPrimary"
@@ -27,7 +27,7 @@
                 android:paddingRight="16dp">
             <LinearLayout
                     android:orientation="vertical"
-                    android:id="@+id/report_list_scroll_container"
+                    android:id="@+id/hours_report_list_scroll_container"
                     android:layout_width="match_parent"
                     android:layout_height="0dp">
             </LinearLayout>
@@ -35,7 +35,7 @@
 
         <!-- New report button -->
         <ImageButton
-                android:id="@+id/new_report_button"
+                android:id="@+id/new_hours_report_button"
                 android:layout_width="100dp"
                 android:layout_height="wrap_content"
                 android:layout_gravity="right"

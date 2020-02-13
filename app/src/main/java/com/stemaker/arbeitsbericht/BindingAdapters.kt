@@ -11,6 +11,7 @@ import androidx.databinding.InverseBindingAdapter
 import androidx.databinding.InverseBindingListener
 import com.caverock.androidsvg.SVG
 import com.google.android.material.textfield.TextInputEditText
+import com.stemaker.arbeitsbericht.data.configuration.configuration
 import com.stemaker.arbeitsbericht.helpers.LinearLayoutVisListener
 import java.io.File
 

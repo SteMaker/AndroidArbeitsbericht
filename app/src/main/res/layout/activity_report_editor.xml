@@ -2,7 +2,7 @@
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
         xmlns:app="http://schemas.android.com/apk/res-auto"
-        tools:context=".ReportEditorActivity">
+        tools:context=".workreport.ReportEditorActivity">
     <data>
     </data>
 
@@ -27,37 +27,37 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
-                <fragment android:name="com.stemaker.arbeitsbericht.editor_fragments.ProjectEditorFragment"
+                <fragment android:name="com.stemaker.arbeitsbericht.workreport.ProjectEditorFragment"
                     android:id="@+id/project_editor_fragment"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                 />
-                <fragment android:name="com.stemaker.arbeitsbericht.editor_fragments.BillEditorFragment"
+                <fragment android:name="com.stemaker.arbeitsbericht.workreport.BillEditorFragment"
                     android:id="@+id/bill_editor_fragment"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                 />
-                <fragment android:name="com.stemaker.arbeitsbericht.editor_fragments.WorkTimeEditorFragment"
+                <fragment android:name="com.stemaker.arbeitsbericht.workreport.WorkTimeEditorFragment"
                     android:id="@+id/work_time_editor_fragment"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                 />
-                <fragment android:name="com.stemaker.arbeitsbericht.editor_fragments.WorkItemEditorFragment"
+                <fragment android:name="com.stemaker.arbeitsbericht.workreport.WorkItemEditorFragment"
                     android:id="@+id/work_item_editor_fragment"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                 />
-                <fragment android:name="com.stemaker.arbeitsbericht.editor_fragments.LumpSumEditorFragment"
+                <fragment android:name="com.stemaker.arbeitsbericht.workreport.LumpSumEditorFragment"
                     android:id="@+id/lump_sum_editor_fragment"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                 />
-                <fragment android:name="com.stemaker.arbeitsbericht.editor_fragments.MaterialEditorFragment"
+                <fragment android:name="com.stemaker.arbeitsbericht.workreport.MaterialEditorFragment"
                     android:id="@+id/material_editor_fragment"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                 />
-                <fragment android:name="com.stemaker.arbeitsbericht.editor_fragments.PhotoEditorFragment"
+                <fragment android:name="com.stemaker.arbeitsbericht.workreport.PhotoEditorFragment"
                     android:id="@+id/photo_editor_fragment"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"

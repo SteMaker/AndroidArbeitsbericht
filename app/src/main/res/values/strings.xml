@@ -3,6 +3,8 @@
     <string name="reportid">Berichtsnr: %1$s</string>
     <string name="creationdate">Erstellt am: %1$s</string>
     <string name="changedate">Letzte Änderung am: %1$s</string>
+    <string name="project">Bauvorhaben / Projekt</string>
+    <string name="projectNr">Projekt Nummer</string>
     <string name="client_project">Kunde / Projekt</string>
     <string name="date">Datum</string>
     <string name="unfold">Bereich aufklappen</string>
@@ -13,7 +15,7 @@
     <string name="street">Strasse / Hausnummer</string>
     <string name="zip">PLZ</string>
     <string name="city">Ort</string>
-    <string name="saved_reports">Gespeicherte Arbeitsberichte</string>
+    <string name="saved_reports">Arbeitsberichte</string>
     <string name="create_new_report">Neuer Bericht</string>
     <string name="unknown">Unbekannt</string>
     <string name="send">Senden</string>
@@ -100,6 +102,8 @@
     <string name="no_mail_client">Es wurde kein E_Mail Programm gefunden</string>
     <string name="report_id_mismatch">Vorsicht! Inkonsistente laufende Nummer</string>
     <string name="report_id_mismatch_detail">Ein Bericht verwendet eine laufende Nummer, die größer ist als die aktuelle</string>
+
+    <string name="saved_hours_reports">Stundenberichte</string>
 
     <!-- IDs -->
     <item name="TAG_REPORT_ID" type="id" />

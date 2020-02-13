@@ -417,9 +417,18 @@ class OdfGenerator(val activity: Activity, val report: ReportData, val progressB
         fillTableHeads(table, arrayOf("Pauschale", "Anzahl", "Bemerkung"))
         var idx = 1
         for(item in report.lumpSumContainer.items) {
-            table.getCellByPosition(0, idx).setDisplayText(item.item.value)
-            table.getCellByPosition(1, idx).setDisplayText(item.amount.value.toString())
-            table.getCellByPosition(2, idx).setDisplayText(item.comment.value)
+            table.getCellByPosition(0, idx).apply {
+                setDisplayText(item.item.value)
+                cellBackgroundColor = Color.WHITE
+            }
+            table.getCellByPosition(1, idx).apply {
+                setDisplayText(item.amount.value.toString())
+                cellBackgroundColor = Color.WHITE
+            }
+            table.getCellByPosition(2, idx).apply {
+                setDisplayText(item.comment.value)
+                cellBackgroundColor = Color.WHITE
+            }
             idx++
         }
         parent.insertBefore(table.odfElement.cloneNode(true), node)

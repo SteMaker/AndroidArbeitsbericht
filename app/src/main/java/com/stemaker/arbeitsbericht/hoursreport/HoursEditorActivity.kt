@@ -16,6 +16,8 @@ import com.stemaker.arbeitsbericht.data.workreport.WorkTimeData
 import com.stemaker.arbeitsbericht.databinding.ActivityHoursEditorBinding
 import com.stemaker.arbeitsbericht.databinding.EmployeeEntryLayoutBinding
 import com.stemaker.arbeitsbericht.databinding.HoursWorkItemLayoutBinding
+import com.stemaker.arbeitsbericht.helpers.DatePickerFragment
+import com.stemaker.arbeitsbericht.helpers.TimePickerFragment
 import com.stemaker.arbeitsbericht.helpers.showConfirmationDialog
 import com.stemaker.arbeitsbericht.storageHandler
 import kotlinx.coroutines.Dispatchers
@@ -83,5 +85,21 @@ class HoursEditorActivity : AppCompatActivity() {
 
         val pos = container.getChildCount()
         container.addView(workItemDataBinding.root, pos)
+    }
+
+    fun onClickDateChange(btn: View) {
+        val newFragment = DatePickerFragment(hoursReportData.date, btn.context)
+        newFragment.show(supportFragmentManager, "datePicker")
+
+    }
+
+    fun onClickStartChange(btn: View) {
+        val newFragment = TimePickerFragment(hoursReportData.startTime)
+        newFragment.show(supportFragmentManager, "timePicker")
+    }
+
+    fun onClickEndChange(btn: View) {
+        val newFragment = TimePickerFragment(hoursReportData.endTime)
+        newFragment.show(supportFragmentManager, "timePicker")
     }
 }

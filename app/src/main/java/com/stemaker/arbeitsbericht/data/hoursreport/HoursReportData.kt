@@ -12,9 +12,7 @@ class HoursReportData private constructor(): ViewModel() {
 
     var id = System.currentTimeMillis()
 
-    private val _date = MutableLiveData<String>()
-    val date: LiveData<String>
-        get() = _date
+    val date = MutableLiveData<String>()
 
     val project = MutableLiveData<String>().apply { value = "" }
 
@@ -29,7 +27,7 @@ class HoursReportData private constructor(): ViewModel() {
     var lastStoreHash: Int = 0
 
     init {
-        _date.value = getCurrentDate()
+        date.value = getCurrentDate()
     }
 
     fun addWorkItem(): MutableLiveData<String> {
@@ -44,7 +42,7 @@ class HoursReportData private constructor(): ViewModel() {
 
     private fun copyFromSerialized(r: HoursReportDataSerialized) {
         id = r.id
-        _date.value = r.date
+        date.value = r.date
         project.value = r.project
         projectNr.value = r.projectNr
         workItems.clear()

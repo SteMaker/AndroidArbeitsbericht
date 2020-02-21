@@ -35,6 +35,7 @@
     <string name="overwrite_confirmation">Der Bericht exisitiert bereits als PDF, soll er überschrieben werden?</string>
     <string name="ok">OK</string>
     <string name="cancel">Abbrechen</string>
+    <string name="nouse">Nicht verwenden</string>
     <string name="work_item">Durchgeführte Arbeit</string>
     <string name="amount">Anzahl</string>
     <string name="employee_signature">Unterschrift Auftragnehmer</string>
@@ -57,12 +58,15 @@
     <string name="reportid_change_conf_detail">Das kann zu doppelter Vergabe von Berichtsnummern führen, sind Sie sich sicher?</string>
     <string name="report_id_pattern">Vorlage Berichtsnummer</string>
     <string name="lump_sum_load">Pauschalen aus entfernter Datei laden</string>
+    <string name="only_jpeg_supported">Es werden nur JPEG (.jpg oder .jpeg) Dateien unterstützt</string>
 
     <!-- SFTP related -->
     <string name="sftp_settings">SFTP Einstellungen</string>
     <string name="sftp_host">SFTP server Adresse</string>
     <string name="sftp_port">SFTP server Port</string>
     <string name="sftp_path_odf">Pfad zur ODF Vorlage (.ott Datei) auf dem SFTP server</string>
+    <string name="sftp_path_logo">Pfad zu einem JPEG Logo auf dem SFTP server</string>
+    <string name="sftp_path_footer">Pfad zu einer JPEG Fusszeile auf dem SFTP server</string>
     <string name="sftp_user">Benutzername (user name) SFTP server</string>
     <string name="sftp_pwd">Passwort SFTP server</string>
     <string name="file_load">Datei laden</string>

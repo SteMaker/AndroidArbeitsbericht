@@ -3,12 +3,14 @@ package com.stemaker.arbeitsbericht
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.BitmapFactory
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.*
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
+import androidx.cardview.widget.CardView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.stemaker.arbeitsbericht.helpers.SftpProvider
@@ -18,6 +20,7 @@ import kotlinx.android.synthetic.main.activity_lump_sum_definition.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import java.io.File
 import java.lang.Exception
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.suspendCoroutine
@@ -43,11 +46,51 @@ class ConfigurationActivity : AppCompatActivity() {
         findViewById<EditText>(R.id.sftp_host).setText(configuration().sFtpHost)
         findViewById<EditText>(R.id.sftp_port).setText(configuration().sFtpPort.toString())
         findViewById<EditText>(R.id.sftp_user).setText(configuration().sFtpUser)
-        if(configuration().useOdfOutput)
+        if(configuration().useOdfOutput) {
             findViewById<RadioButton>(R.id.radio_odf_output).toggle()
-        else
+            findViewById<CardView>(R.id.odf_config_container).visibility = View.VISIBLE
+            findViewById<CardView>(R.id.pdf_config_container).visibility = View.GONE
+        } else {
             findViewById<RadioButton>(R.id.radio_pdf_output).toggle()
+            findViewById<CardView>(R.id.odf_config_container).visibility = View.GONE
+            findViewById<CardView>(R.id.pdf_config_container).visibility = View.VISIBLE
+        }
         findViewById<EditText>(R.id.odf_template_ftp_path).setText(configuration().odfTemplateServerPath)
+        findViewById<EditText>(R.id.logo_ftp_path).setText(configuration().logoServerPath)
+        findViewById<EditText>(R.id.footer_ftp_path).setText(configuration().footerServerPath)
+        val radioGroup = findViewById<RadioGroup>(R.id.output_type_select_radiogroup)
+        radioGroup.setOnCheckedChangeListener(object: RadioGroup.OnCheckedChangeListener {
+            override fun onCheckedChanged(group: RadioGroup, checkedId: Int) {
+                Log.d(TAG, "Radio: $checkedId")
+                when(checkedId) {
+                    R.id.radio_odf_output -> {
+                        findViewById<CardView>(R.id.odf_config_container).visibility = View.VISIBLE
+                        findViewById<CardView>(R.id.pdf_config_container).visibility = View.GONE
+                    }
+                    R.id.radio_pdf_output -> {
+                        findViewById<CardView>(R.id.odf_config_container).visibility = View.GONE
+                        findViewById<CardView>(R.id.pdf_config_container).visibility = View.VISIBLE
+                    }
+                }
+            }
+        })
+        showFileInImageView(configuration().footerFile, R.id.footer_image)
+        showFileInImageView(configuration().logoFile, R.id.logo_image)
+    }
+
+    fun showFileInImageView(fileName: String, id: Int) {
+        val imgV = findViewById<ImageView>(id)
+        if(fileName == "") {
+            imgV.setImageResource(R.drawable.ic_clear_black_24dp)
+        } else {
+            val file = File(fileName)
+            if (file.exists()) {
+                val bitmap = BitmapFactory.decodeFile(file.absolutePath)
+                imgV.setImageBitmap(bitmap)
+            } else {
+                imgV.setImageResource(R.drawable.ic_clear_black_24dp)
+            }
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -100,6 +143,8 @@ class ConfigurationActivity : AppCompatActivity() {
             if (pwd != "") // only overwrite if a new one has been set
                 configuration().sFtpEncryptedPassword = pwd
             configuration().odfTemplateServerPath = findViewById<EditText>(R.id.odf_template_ftp_path).text.toString()
+            configuration().logoServerPath = findViewById<EditText>(R.id.logo_ftp_path).text.toString()
+            configuration().footerServerPath = findViewById<EditText>(R.id.footer_ftp_path).text.toString()
             storageHandler().saveConfigurationToFile(getApplicationContext())
 
             findViewById<ProgressBar>(R.id.sftp_progress).visibility = View.GONE
@@ -137,14 +182,14 @@ class ConfigurationActivity : AppCompatActivity() {
     fun onClickLoadTemplate(@Suppress("UNUSED_PARAMETER") btn: View) {
         GlobalScope.launch(Dispatchers.Main) {
             if(checkAndObtainInternetPermission()) {
-                getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
+                window.setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
                 findViewById<ProgressBar>(R.id.sftp_progress).visibility = View.VISIBLE
                 val host = findViewById<AutoCompleteTextView>(R.id.sftp_host).text.toString()
                 val port = findViewById<AutoCompleteTextView>(R.id.sftp_port).text.toString().toInt()
                 val user = findViewById<AutoCompleteTextView>(R.id.sftp_user).text.toString()
                 var pwd = findViewById<AutoCompleteTextView>(R.id.sftp_pwd).text.toString()
-                if (pwd == "") pwd = configuration().sFtpEncryptedPassword
                 try {
+                    if (pwd == "") pwd = configuration().sFtpEncryptedPassword
                     val sftpProvider = SftpProvider(this@ConfigurationActivity)
                     sftpProvider.connect(user, pwd, host, port)
                     Log.d(TAG, "Connection success")
@@ -157,9 +202,85 @@ class ConfigurationActivity : AppCompatActivity() {
                     showInfoDialog(getString(R.string.sftp_getfile_error), this@ConfigurationActivity, e.message?:getString(R.string.unknown))
                 }
                 findViewById<ProgressBar>(R.id.sftp_progress).visibility = View.GONE
-                getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
+                window.clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
             }
         }
+    }
+
+    fun onClickLoadLogo(@Suppress("UNUSED_PARAMETER") btn: View) {
+        GlobalScope.launch(Dispatchers.Main) {
+            if(checkAndObtainInternetPermission()) {
+                window.setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
+                findViewById<ProgressBar>(R.id.sftp_progress).visibility = View.VISIBLE
+                val host = findViewById<AutoCompleteTextView>(R.id.sftp_host).text.toString()
+                val port = findViewById<AutoCompleteTextView>(R.id.sftp_port).text.toString().toInt()
+                val user = findViewById<AutoCompleteTextView>(R.id.sftp_user).text.toString()
+                var pwd = findViewById<AutoCompleteTextView>(R.id.sftp_pwd).text.toString()
+                val src = findViewById<AutoCompleteTextView>(R.id.logo_ftp_path).text.toString()
+                if (!src.endsWith(".jpg", true) && !src.endsWith(".jpeg", true)) {
+                    showInfoDialog(getString(R.string.only_jpeg_supported), this@ConfigurationActivity)
+                } else {
+                    try {
+                        if (pwd == "") pwd = configuration().sFtpEncryptedPassword
+                        val sftpProvider = SftpProvider(this@ConfigurationActivity)
+                        sftpProvider.connect(user, pwd, host, port)
+                        Log.d(TAG, "Connection success")
+                        val dst = "${filesDir}/logo.jpg"
+                        sftpProvider.copyFile(src, dst)
+                        sftpProvider.disconnect()
+                        configuration().logoFile = dst
+                        showFileInImageView(dst, R.id.logo_image)
+                    } catch (e: Exception) {
+                        showInfoDialog(getString(R.string.sftp_getfile_error), this@ConfigurationActivity, e.message ?: getString(R.string.unknown))
+                    }
+                }
+                findViewById<ProgressBar>(R.id.sftp_progress).visibility = View.GONE
+                window.clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
+            }
+        }
+    }
+
+    fun onClickDelLogo(@Suppress("UNUSED_PARAMETER") btn: View) {
+        configuration().logoFile = ""
+        showFileInImageView("", R.id.logo_image)
+    }
+
+    fun onClickLoadFooter(@Suppress("UNUSED_PARAMETER") btn: View) {
+        GlobalScope.launch(Dispatchers.Main) {
+            if(checkAndObtainInternetPermission()) {
+                window.setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
+                findViewById<ProgressBar>(R.id.sftp_progress).visibility = View.VISIBLE
+                val host = findViewById<AutoCompleteTextView>(R.id.sftp_host).text.toString()
+                val port = findViewById<AutoCompleteTextView>(R.id.sftp_port).text.toString().toInt()
+                val user = findViewById<AutoCompleteTextView>(R.id.sftp_user).text.toString()
+                var pwd = findViewById<AutoCompleteTextView>(R.id.sftp_pwd).text.toString()
+                val src = findViewById<AutoCompleteTextView>(R.id.footer_ftp_path).text.toString()
+                if(!src.endsWith(".jpg", true) && !src.endsWith(".jpeg", true)) {
+                    showInfoDialog(getString(R.string.only_jpeg_supported), this@ConfigurationActivity)
+                } else {
+                    try {
+                        if (pwd == "") pwd = configuration().sFtpEncryptedPassword
+                        val sftpProvider = SftpProvider(this@ConfigurationActivity)
+                        sftpProvider.connect(user, pwd, host, port)
+                        Log.d(TAG, "Connection success")
+                        val dst = "${filesDir}/footer.jpg"
+                        sftpProvider.copyFile(src, dst)
+                        sftpProvider.disconnect()
+                        configuration().footerFile = dst
+                        showFileInImageView(dst, R.id.footer_image)
+                    } catch (e: Exception) {
+                        showInfoDialog(getString(R.string.sftp_getfile_error), this@ConfigurationActivity, e.message ?: getString(R.string.unknown))
+                    }
+                }
+                findViewById<ProgressBar>(R.id.sftp_progress).visibility = View.GONE
+                window.clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
+            }
+        }
+    }
+
+    fun onClickDelFooter(@Suppress("UNUSED_PARAMETER") btn: View) {
+        configuration().footerFile = ""
+        showFileInImageView("", R.id.footer_image)
     }
 
     private suspend fun checkAndObtainInternetPermission(): Boolean {

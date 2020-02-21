@@ -100,6 +100,9 @@ class PdfPrint(val activity: Activity, val report: ReportData) {
                     showConfirmationDialog("Der Bericht exisitiert bereits als PDF, soll er überschrieben werden?", ctx)
                 if(answer != AlertDialog.BUTTON_POSITIVE) {
                     return null
+                } else {
+                    pdfFile.delete()
+                    pdfFile.createNewFile()
                 }
             } else {
                 pdfFile.createNewFile()

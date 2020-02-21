@@ -1,17 +1,52 @@
 package com.stemaker.arbeitsbericht.helpers
 
+import android.os.FileUtils
+import android.util.Base64
 import android.util.Log
+import com.stemaker.arbeitsbericht.configuration
 import com.stemaker.arbeitsbericht.data.ReportData
+import kotlinx.io.IOException
+import java.io.File
+import java.io.FileInputStream
 
 object HtmlReport {
+
+    fun readFileToBytes(f: File): ByteArray {
+        val size = f.length().toInt()
+        val bytes = ByteArray(size)
+        val tmpBuff = ByteArray(size)
+        val fis= FileInputStream(f)
+        try {
+            var read = fis.read(bytes, 0, size)
+            if (read < size) {
+                var remain = size - read;
+                while (remain > 0) {
+                    read = fis.read(tmpBuff, 0, remain);
+                    System.arraycopy(tmpBuff, 0, bytes, size - remain, read);
+                    remain -= read;
+                }
+            }
+        }  catch (e: IOException){
+            throw e
+        } finally {
+            fis.close()
+        }
+        return bytes
+    }
 
     fun encodeReport(rep: ReportData, inclSignatures: Boolean = true): String {
         Log.d("Arbeitsbericht.HtmlReport.encodeReport", "Generating HTML report for ID:${rep.id}, Name: ${rep.project.name.value}")
         var html: String =
             "<!DOCTYPE html>" +
-                    "<html>" +
-                    "<body>" +
-                    "<h1>Arbeitsbericht Nr. ${rep.id}</h1>" +
+                    "<html lang=\"de\">" +
+                    "<head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"/></head>"
+                    "<body>"
+        if(configuration().logoFile != "") {
+            val logoFileContent = readFileToBytes(File(configuration().logoFile))
+            val logo = Base64.encodeToString(logoFileContent, Base64.DEFAULT)
+            html += "<img src=\"data:image/jpg;base64,${logo}\" style=\"height: 100%; width: 100%; object-fit: contain\"/>"
+        }
+        html +=     "<h1>Arbeitsbericht Nr. ${rep.id}</h1>" +
                     "<table style=\"border: 2px solid black;border-collapse: collapse;\">" +
                     "<tr>" +
                         "<th style=\"padding: 15px;font-size:18px;text-align:left;border: 2px solid black;border-collapse: collapse;\">Kunde / Projekt</th>" +
@@ -112,22 +147,34 @@ object HtmlReport {
         }
         if(inclSignatures) {
             // Employee signature
-            html += "<h2>Unterschrift Auftragnehmer</h2>"
+            html += "<h2>Unterschriften</h2>"
             if (rep.signatureData.employeeSignatureSvg.value == "" || rep.signatureData.employeeSignaturePngFile == null) {
-                html += "Keine Unterschrift vorhanden"
+                html += "Keine Unterschrift vorhanden<hr>"
             } else {
-                html += "<img src=\"file://${rep.signatureData.employeeSignaturePngFile!!.absoluteFile}\" style=\"max-width:50%\">"
+                html += "<table>" +
+                        "<tr>" +
+                        "<th>Auftragnehmer</th>" +
+                        "<th>Auftraggeber</th>" +
+                        "</tr>" +
+                        "<tr>" +
+                        "<th><img src=\"file://${rep.signatureData.employeeSignaturePngFile!!.absoluteFile}\" style=\"max-width:50%\"></th>" +
+                        "<th><img src=\"file://${rep.signatureData.clientSignaturePngFile!!.absoluteFile}\" style=\"max-width:50%\"></th>" +
+                        "</tr>" +
+                        "</table><hr>"
             }
-            // Client signature
-            html += "<h2>Unterschrift Auftraggeber</h2>"
-            if (rep.signatureData.clientSignatureSvg.value == "" || rep.signatureData.clientSignaturePngFile == null) {
-                html += "Keine Unterschrift vorhanden"
-            } else {
-                html += "<img src=\"file://${rep.signatureData.clientSignaturePngFile!!.absoluteFile}\" style=\"max-width:50%\">"
-            }
+        }
+        if(configuration().footerFile != "") {
+            Log.d("html", "we have a footer file: ${configuration().footerFile}")
+            val footerFileContent = readFileToBytes(File(configuration().footerFile))
+            val footer = Base64.encodeToString(footerFileContent, Base64.DEFAULT)
+            html += "<img src=\"data:image/jpg;base64,${footer}\" style=\"height: 100%; width: 100%; object-fit: contain\"/>"
+        } else {
+            Log.d("html", "we have no footer file: ${configuration().footerFile}")
+
         }
         html += "</body></html>"
 
+        Log.d("html", html)
         return html
     }
 }

@@ -6,6 +6,7 @@ import android.util.Base64
 import android.util.Log
 import kotlinx.serialization.*
 import java.security.KeyStore
+import java.security.UnrecoverableKeyException
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
@@ -30,12 +31,16 @@ class ConfigurationStore {
     var sFtpTagLength: Int = 0
     var lumpSumServerPath: String = ""
     var odfTemplateServerPath: String = ""
+    var logoServerPath: String = ""
+    var footerServerPath: String = ""
     var lumpSums = listOf<String>()
     var activeReportId: Int = -1 // deprecated but needs to stay for json read
     var activeReportId2: String = ""
     var workItemDictionary = setOf<String>()
     var materialDictionary = setOf<String>()
     var odfTemplateFile: String = ""
+    var logoFile: String = ""
+    var footerFile: String = ""
 }
 
 fun configuration(): Configuration{
@@ -104,7 +109,15 @@ object Configuration {
 
     var odfTemplateServerPath: String
         get(): String = store.odfTemplateServerPath
-            set(value) {store.odfTemplateServerPath = value}
+        set(value) {store.odfTemplateServerPath = value}
+
+    var logoServerPath: String
+        get(): String = store.logoServerPath
+        set(value) {store.logoServerPath = value}
+
+    var footerServerPath: String
+        get(): String = store.footerServerPath
+            set(value) {store.footerServerPath = value}
 
     var sFtpUser: String
         get(): String = store.sFtpUser
@@ -144,6 +157,14 @@ object Configuration {
         get(): String = store.odfTemplateFile
         set(value) {store.odfTemplateFile = value}
 
+    var logoFile: String
+        get(): String = store.logoFile
+        set(value) {store.logoFile = value}
+
+    var footerFile: String
+        get(): String = store.footerFile
+        set(value) {store.footerFile = value}
+
     private fun encryptPassword(pwd: String): String {
         /* Now we try to store the password in an encrypted way. First we retrieve a key
            from the Android key store */
@@ -154,8 +175,12 @@ object Configuration {
             if (!keyStore.containsAlias(KEY_ALIAS)) {
                 createPasswordEncryptionKey()
             } else {
+                val secretKey: SecretKey = keyStore.getKey(KEY_ALIAS, null) as SecretKey
                 Log.d(TAG, "Encryption key already exists")
             }
+        } catch(e:UnrecoverableKeyException) {
+            // Try to recreate the key
+            createPasswordEncryptionKey()
         } catch(e: Exception) {
             throw UnsupportedOperationException("Verschlüsseln des Passworts wird von ihrem Gerät nicht unterstützt. Das Passwort kann nicht gespeichert werden")
         }

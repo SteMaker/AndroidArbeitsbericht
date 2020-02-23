@@ -41,6 +41,7 @@ class ConfigurationStore {
     var odfTemplateFile: String = ""
     var logoFile: String = ""
     var footerFile: String = ""
+    var fontSize: Int = 12
 }
 
 fun configuration(): Configuration{
@@ -164,6 +165,10 @@ object Configuration {
     var footerFile: String
         get(): String = store.footerFile
         set(value) {store.footerFile = value}
+
+    var fontSize: Int
+        get(): Int = store.fontSize
+        set(value) {store.fontSize = value}
 
     private fun encryptPassword(pwd: String): String {
         /* Now we try to store the password in an encrypted way. First we retrieve a key

@@ -59,6 +59,7 @@
     <string name="report_id_pattern">Vorlage Berichtsnummer</string>
     <string name="lump_sum_load">Pauschalen aus entfernter Datei laden</string>
     <string name="only_jpeg_supported">Es werden nur JPEG (.jpg oder .jpeg) Dateien unterstützt</string>
+    <string name="fontsize">Schriftgröße</string>
 
     <!-- SFTP related -->
     <string name="sftp_settings">SFTP Einstellungen</string>

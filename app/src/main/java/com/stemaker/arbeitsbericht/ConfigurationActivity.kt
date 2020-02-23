@@ -76,6 +76,19 @@ class ConfigurationActivity : AppCompatActivity() {
         })
         showFileInImageView(configuration().footerFile, R.id.footer_image)
         showFileInImageView(configuration().logoFile, R.id.logo_image)
+        val fontsb = findViewById<SeekBar>(R.id.fontsize_seekbar)
+        val fontst = findViewById<TextView>(R.id.fontsize_text)
+        fontsb.progress = configuration().fontSize
+        fontst.text = "${getString(R.string.fontsize)}: ${fontsb.progress}"
+        fontsb.setOnSeekBarChangeListener(object: SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                fontst.text = "${getString(R.string.fontsize)}: ${fontsb.progress}"
+            }
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {
+            }
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+            }
+        })
     }
 
     fun showFileInImageView(fileName: String, id: Int) {
@@ -145,6 +158,7 @@ class ConfigurationActivity : AppCompatActivity() {
             configuration().odfTemplateServerPath = findViewById<EditText>(R.id.odf_template_ftp_path).text.toString()
             configuration().logoServerPath = findViewById<EditText>(R.id.logo_ftp_path).text.toString()
             configuration().footerServerPath = findViewById<EditText>(R.id.footer_ftp_path).text.toString()
+            configuration().fontSize = findViewById<SeekBar>(R.id.fontsize_seekbar).progress
             storageHandler().saveConfigurationToFile(getApplicationContext())
 
             findViewById<ProgressBar>(R.id.sftp_progress).visibility = View.GONE

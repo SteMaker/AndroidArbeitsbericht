@@ -343,6 +343,19 @@
                                         android:onClick="onClickLoadFooter"
                                         />
                             </LinearLayout>
+                            <TextView
+                                    android:id="@+id/fontsize_text"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:textSize="18dp"
+                                    />
+                            <SeekBar
+                                    android:id="@+id/fontsize_seekbar"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:max="20"
+                                    android:min="8"
+                                    />
                         </LinearLayout>
                     </androidx.cardview.widget.CardView>
                 </LinearLayout>

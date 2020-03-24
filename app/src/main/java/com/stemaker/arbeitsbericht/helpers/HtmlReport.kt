@@ -77,7 +77,9 @@ object HtmlReport {
                         "<th style=\"padding: 15px;$fs;text-align:left;border: 2px solid black;border-collapse: collapse;\">Arbeits-ende</th>" +
                         "<th style=\"padding: 15px;$fs;text-align:left;border: 2px solid black;border-collapse: collapse;\">Fahrzeit<br>[h:m]</th>" +
                         "<th style=\"padding: 15px;$fs;text-align:left;border: 2px solid black;border-collapse: collapse;\">Fahr-strecke [km]</th>" +
-                    "</tr>"
+                        "<th style=\"padding: 15px;$fs;text-align:left;border: 2px solid black;border-collapse: collapse;\">Pause<br>[h:m]</th>" +
+                        "<th style=\"padding: 15px;$fs;text-align:left;border: 2px solid black;border-collapse: collapse;\">Arbeits-zeit [h:m]</th>" +
+                "</tr>"
             rep.workTimeContainer.items.forEach {
             html += "<tr>" +
                         "<td style=\"padding: 10px;$fs;border: 2px solid black;border-collapse: collapse;\"> ${it.date.value}</td>" +
@@ -89,6 +91,8 @@ object HtmlReport {
                         "<td style=\"padding: 10px;$fs;border: 2px solid black;border-collapse: collapse;\"> ${it.endTime.value} Uhr</td>" +
                         "<td style=\"padding: 10px;$fs;border: 2px solid black;border-collapse: collapse;\"> ${it.driveTime.value}</td>" +
                         "<td style=\"padding: 10px;$fs;border: 2px solid black;border-collapse: collapse;\"> ${it.distance.value}</td>" +
+                        "<td style=\"padding: 10px;$fs;border: 2px solid black;border-collapse: collapse;\"> ${it.pauseDuration.value}</td>" +
+                        "<td style=\"padding: 10px;$fs;border: 2px solid black;border-collapse: collapse;\"> ${it.workDuration.value}</td>" +
                     "</tr>"
         }
         html += "</table><hr>"

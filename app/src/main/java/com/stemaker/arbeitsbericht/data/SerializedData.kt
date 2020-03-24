@@ -131,6 +131,7 @@ class WorkTimeDataSerialized() {
     var employees = mutableListOf(configuration().employeeName)
     var startTime: String = "00:00"
     var endTime: String = "00:00"
+    var pauseDuration: String = "00:00"
     var driveTime: String = "00:00"
     var distance: Int = 0
 
@@ -142,6 +143,7 @@ class WorkTimeDataSerialized() {
             employees.add(empData.value!!)
         startTime = w.startTime.value!!
         endTime = w.endTime.value!!
+        pauseDuration = w.pauseDuration.value!!
         driveTime = w.driveTime.value!!
         distance = w.distance.value!!
     }

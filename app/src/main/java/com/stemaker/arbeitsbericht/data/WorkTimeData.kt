@@ -1,10 +1,12 @@
 package com.stemaker.arbeitsbericht.data
 
+import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.stemaker.arbeitsbericht.Configuration
 import com.stemaker.arbeitsbericht.configuration
 import com.stemaker.arbeitsbericht.storageHandler
+import java.lang.Exception
 import java.util.*
 
 class WorkTimeContainerData(): ViewModel() {
@@ -44,6 +46,48 @@ class WorkTimeData: ViewModel() {
 
     val endTime = MutableLiveData<String>().apply { value =  ""} // Empty string will lead to pre-setting current time when clicking the edit button
 
+    val pauseDuration = MutableLiveData<String>().apply { value =  "00:00"}
+
+    // Will be reworked as part of the "Stundenbericht" to use jodatime for all time objects
+    // As a quick fix we'll do this ugly stuff
+    val workDuration = MediatorLiveData<String>()
+
+    fun calcWorkDuration(): String {
+        var h: Int
+        var m: Int
+        try {
+            val etH = endTime.value!!.substring(0,2).toInt()
+            val etM = endTime.value!!.substring(3,5).toInt()
+            val stH = startTime.value!!.substring(0,2).toInt()
+            val stM = startTime.value!!.substring(3,5).toInt()
+            val pH = pauseDuration.value!!.substring(0,2).toInt()
+            val pM = pauseDuration.value!!.substring(3,5).toInt()
+            h = etH - stH
+            if(h < 0)
+                h += 24
+            m = etM - stM
+            if(m < 0) {
+                m += 60
+                h--
+            }
+            h -= pH
+            m -= pM
+            if(m < 0) {
+                m += 60
+                h--
+            }
+        } catch(e: Exception) {
+            return "00:00"
+        }
+        return "${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}"
+    }
+
+    init {
+        workDuration.addSource(startTime) { workDuration.value = calcWorkDuration() }
+        workDuration.addSource(endTime) { workDuration.value = calcWorkDuration() }
+        workDuration.addSource(pauseDuration) { workDuration.value = calcWorkDuration() }
+    }
+
     val driveTime = MutableLiveData<String>().apply { value =  "00:00"}
 
     var distance = MutableLiveData<Int>().apply { value = 0 }
@@ -76,6 +120,7 @@ class WorkTimeData: ViewModel() {
         }
         startTime.value = w.startTime
         endTime.value = w.endTime
+        pauseDuration.value = w.pauseDuration
         driveTime.value = w.driveTime
         distance.value = w.distance
     }
@@ -106,6 +151,7 @@ class WorkTimeData: ViewModel() {
         }
         startTime.value = w.startTime.value!!
         endTime.value = w.endTime.value!!
+        pauseDuration.value = w.pauseDuration.value!!
         driveTime.value = w.driveTime.value!!
         distance.value = w.distance.value!!
     }

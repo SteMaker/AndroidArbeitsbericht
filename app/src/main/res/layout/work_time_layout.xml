@@ -139,6 +139,52 @@
                     android:layout_height="wrap_content"
                     android:orientation="horizontal">
                 <RelativeLayout
+                        android:id="@+id/pausetime_container"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginLeft="10dp">
+                    <TextView
+                            android:id="@+id/pause_time_duration"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_centerInParent="true"
+                            android:layout_alignParentLeft="true"
+                            android:text='@{"Pause: "+work_time.pauseDuration}'
+                            android:paddingRight="10dp"
+                            />
+                    <ImageButton
+                            android:id="@+id/work_time_pause_duration_change"
+                            android:layout_width="80dp"
+                            android:layout_height="wrap_content"
+                            android:layout_centerInParent="true"
+                            android:layout_alignParentRight="true"
+                            android:src="@drawable/ic_access_time_white_24dp"
+                            />
+                </RelativeLayout>
+                <TextView
+                        android:id="@+id/pause_time"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_centerInParent="true"
+                        android:text='@{"Arbeitszeit: "+work_time.workDuration}'
+                        android:layout_marginTop="10dp"
+                        android:layout_marginLeft="10dp"
+                        />
+                <RelativeLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginLeft="10dp">
+                </RelativeLayout>
+            </LinearLayout>
+            <!-- fourth line -->
+            <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+                <RelativeLayout
                         android:id="@+id/drivetime_container"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"

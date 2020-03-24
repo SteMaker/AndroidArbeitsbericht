@@ -365,7 +365,7 @@ class OdfGenerator(val activity: Activity, val report: ReportData, val progressB
             return
         }
         val table = OdfTable.newTable(parent, report.workTimeContainer.items.size, 6, 1, 0)
-        fillTableHeads(table, arrayOf("Datum", "Mitarbeiter", "Arbeitsanfang", "Arbeitsende", "Fahrzeit [h:m]", "Fahrstrecke [km]"))
+        fillTableHeads(table, arrayOf("Datum", "Mitarbeiter", "Arbeitsanfang", "Arbeitsende", "Fahrzeit [h:m]", "Fahrstrecke [km]", "Pause [h:m]", "Arbeitszeit [h:m]"))
         var idx = 1
         for(item in report.workTimeContainer.items) {
             table.getCellByPosition(0, idx).setDisplayText(item.date.value)
@@ -376,6 +376,8 @@ class OdfGenerator(val activity: Activity, val report: ReportData, val progressB
             table.getCellByPosition(3, idx).setDisplayText(item.endTime.value)
             table.getCellByPosition(4, idx).setDisplayText(item.driveTime.value)
             table.getCellByPosition(5, idx).setDisplayText(item.distance.value.toString())
+            table.getCellByPosition(6, idx).setDisplayText(item.pauseDuration.value)
+            table.getCellByPosition(7, idx).setDisplayText(item.workDuration.value)
             idx++
         }
         parent.insertBefore(table.odfElement.cloneNode(true), node)

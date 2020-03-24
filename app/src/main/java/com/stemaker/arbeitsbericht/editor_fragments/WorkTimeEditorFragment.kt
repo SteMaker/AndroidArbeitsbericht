@@ -119,6 +119,12 @@ class WorkTimeEditorFragment : ReportEditorSectionFragment(),
                 newFragment.show(fragmentManager, "timePicker")
             }
         })
+        workTimeDataBinding.root.findViewById<ImageButton>(R.id.work_time_pause_duration_change).setOnClickListener(object: View.OnClickListener {
+            override fun onClick(btn: View) {
+                val newFragment = TimePickerFragment(wt.pauseDuration)
+                newFragment.show(fragmentManager, "timePicker")
+            }
+        })
         workTimeDataBinding.root.findViewById<ImageButton>(R.id.work_time_drive_duration_change).setOnClickListener(object: View.OnClickListener {
             override fun onClick(btn: View) {
                 val newFragment = TimePickerFragment(wt.driveTime)

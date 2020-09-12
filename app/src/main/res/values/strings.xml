@@ -52,6 +52,7 @@
     <string name="editor">Bearbeiten</string>
     <string name="lump_sum_from_server">Pauschalendefinition von einem server beziehen</string>
     <string name="sftp_path_lump_sum">Pfad zur Pauschalendatei auf dem SFTP server</string>
+    <string name="crashlog_enable">Im Falle eines Absturzes Bericht an Autor senden</string>
 
     <!-- Configuration -->
     <string name="reportid_change_conf">Die laufende Nummer wurde geändert</string>
@@ -119,5 +120,10 @@
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <!--
+    This string is used for square devices and overridden by hello_world in
+    values-round/strings.xml for round devices.
+    -->
+    <string name="hello_world">Hello Square World!</string>
 
 </resources>

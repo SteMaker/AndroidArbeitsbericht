@@ -13,6 +13,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.cardview.widget.CardView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.stemaker.arbeitsbericht.helpers.SftpProvider
 import com.stemaker.arbeitsbericht.helpers.showConfirmationDialog
 import com.stemaker.arbeitsbericht.helpers.showInfoDialog
@@ -43,6 +44,8 @@ class ConfigurationActivity : AppCompatActivity() {
         findViewById<EditText>(R.id.config_device_name).setText(configuration().deviceName)
         findViewById<EditText>(R.id.config_report_id_pattern).setText(configuration().reportIdPattern)
         findViewById<EditText>(R.id.config_mail_receiver).setText(configuration().recvMail)
+        findViewById<Switch>(R.id.crashlog_enable).isChecked = configuration().crashlyticsEnabled
+        FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(configuration().crashlyticsEnabled);
         findViewById<EditText>(R.id.sftp_host).setText(configuration().sFtpHost)
         findViewById<EditText>(R.id.sftp_port).setText(configuration().sFtpPort.toString())
         findViewById<EditText>(R.id.sftp_user).setText(configuration().sFtpUser)
@@ -148,6 +151,8 @@ class ConfigurationActivity : AppCompatActivity() {
                 storageHandler().renameReportsIfNeeded()
 
             configuration().recvMail = findViewById<EditText>(R.id.config_mail_receiver).getText().toString()
+            configuration().crashlyticsEnabled = findViewById<Switch>(R.id.crashlog_enable).isChecked
+            FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(configuration().crashlyticsEnabled);
             configuration().useOdfOutput = findViewById<RadioButton>(R.id.radio_odf_output).isChecked
             configuration().sFtpHost = findViewById<EditText>(R.id.sftp_host).text.toString()
             configuration().sFtpPort = findViewById<EditText>(R.id.sftp_port).text.toString().toInt()

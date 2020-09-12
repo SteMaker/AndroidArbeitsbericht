@@ -73,6 +73,7 @@ class MainActivity : AppCompatActivity() {
         storageHandler().createNewReportAndSelect()
         val intent = Intent(this, ReportEditorActivity::class.java).apply {}
         startActivity(intent)
+
     }
 
     fun onClickNewReport(@Suppress("UNUSED_PARAMETER") newReportButton: View) {

@@ -8,6 +8,10 @@ apply plugin: 'kotlinx-serialization'
 
 apply plugin: 'kotlin-kapt'
 
+apply plugin: 'com.google.gms.google-services'
+
+apply plugin: 'com.google.firebase.crashlytics'
+
 android {
     compileSdkVersion 29
     buildToolsVersion "29.0.2"
@@ -62,4 +66,7 @@ dependencies {
     // ODF Toolkit
     implementation 'org.apache.odftoolkit:odfdom-java:0.8.11-incubating'
     implementation 'com.fasterxml.woodstox:woodstox-core:6.0.3'
+    // Google Analytics, crashlytics
+    implementation 'com.google.firebase:firebase-analytics-ktx:17.5.0'
+    implementation 'com.google.firebase:firebase-crashlytics-ktx:17.2.1'
 }

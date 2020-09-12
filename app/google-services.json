@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "8597730855",
+    "firebase_url": "https://androidarbeitsbericht.firebaseio.com",
+    "project_id": "androidarbeitsbericht",
+    "storage_bucket": "androidarbeitsbericht.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:8597730855:android:3c5433aaddd69d1bc6c002",
+        "android_client_info": {
+          "package_name": "com.stemaker.arbeitsbericht"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "8597730855-f5ktveka5sg1rs5qoobemjrpv283ri3n.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.stemaker.arbeitsbericht",
+            "certificate_hash": "41a04bd202ffc6e7ef3fc91383a8060e98a2dcc6"
+          }
+        },
+        {
+          "client_id": "8597730855-tmmqghcr5audodtikt7vjtmf18c2uqka.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD2nCWIPynOWEUh9k6-mNsC5XNQ7ChH07E"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "8597730855-tmmqghcr5audodtikt7vjtmf18c2uqka.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

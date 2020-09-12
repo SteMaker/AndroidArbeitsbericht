@@ -99,6 +99,11 @@
                             android:inputType="textEmailAddress"
                             />
                 </com.google.android.material.textfield.TextInputLayout>
+                <Switch
+                        android:id="@+id/crashlog_enable"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/crashlog_enable"/>
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 

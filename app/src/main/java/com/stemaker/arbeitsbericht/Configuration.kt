@@ -42,6 +42,7 @@ class ConfigurationStore {
     var logoFile: String = ""
     var footerFile: String = ""
     var fontSize: Int = 12
+    var crashlyticsEnabled: Boolean = false
 }
 
 fun configuration(): Configuration{
@@ -169,6 +170,10 @@ object Configuration {
     var fontSize: Int
         get(): Int = store.fontSize
         set(value) {store.fontSize = value}
+
+    var crashlyticsEnabled:Boolean
+        get(): Boolean = store.crashlyticsEnabled
+        set(value) {store.crashlyticsEnabled = value}
 
     private fun encryptPassword(pwd: String): String {
         /* Now we try to store the password in an encrypted way. First we retrieve a key

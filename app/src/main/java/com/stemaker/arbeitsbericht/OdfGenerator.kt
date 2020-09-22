@@ -29,6 +29,7 @@ import org.w3c.dom.Node
 import java.io.File
 import java.io.FileInputStream
 import java.io.IOException
+import java.io.InputStream
 import javax.xml.xpath.XPathConstants
 import javax.xml.xpath.XPathExpressionException
 import kotlin.coroutines.Continuation
@@ -247,20 +248,25 @@ class OdfGenerator(val activity: Activity, val report: ReportData, val progressB
     }
 
     private fun addImagesToPackage(): OdfPackage {
-        val templateFile = when(configuration().odfTemplateFile){
-            "" ->  activity.assets.open("output_template.ott")
-            else -> FileInputStream(File(configuration().odfTemplateFile))
-        }
+        val templateFile: InputStream
+        if(configuration().odfTemplateFile != "" && File(configuration().odfTemplateFile).exists())
+            templateFile = FileInputStream(File(configuration().odfTemplateFile))
+        else
+            templateFile = activity.assets.open("output_template.ott")
 
         val pkg = OdfPackage.loadPackage(templateFile)
         report.photoContainer.items.forEachIndexed { index, elem ->
-            pkg.insert(File(elem.file.value).toURI(), "Pictures/photo$index.jpg", "image/jpg")
+            if(File(elem.file.value).exists()) {
+                pkg.insert(File(elem.file.value).toURI(), "Pictures/photo$index.jpg", "image/jpg")
+            }
         }
-        if (clientSigFile != null) {
-            pkg.insert(clientSigFile!!.toURI(), "Pictures/clientSig.png", "image/png")
+        val csf = clientSigFile
+        if (csf != null && csf.exists()) {
+            pkg.insert(csf.toURI(), "Pictures/clientSig.png", "image/png")
         }
-        if (employeeSigFile != null) {
-            pkg.insert(employeeSigFile!!.toURI(), "Pictures/employeeSig.png", "image/png")
+        val esf = employeeSigFile
+        if (esf != null && esf.exists()) {
+            pkg.insert(esf.toURI(), "Pictures/employeeSig.png", "image/png")
         }
 
         // Save document

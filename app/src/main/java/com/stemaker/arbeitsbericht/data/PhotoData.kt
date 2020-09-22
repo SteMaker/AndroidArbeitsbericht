@@ -46,13 +46,20 @@ class PhotoData: ViewModel() {
         description.value = p.description
         imageHeight = p.imageHeight
         imageWidth = p.imageWidth
+        Log.d("Arbeitsbericht.debug", "imageWidth is ${imageWidth}, imageHeight is ${imageHeight}")
         // Normally this was already filled in at the time of taking the photo. But in case this was taken with an older app version, it might not
         if(imageWidth <= 0 || imageHeight <= 0) {
             val options = BitmapFactory.Options()
             options.inPreferredConfig = Bitmap.Config.ARGB_8888;
             val bitmap = BitmapFactory.decodeFile(p.file, options)
-            imageWidth = bitmap.width
-            imageHeight = bitmap.height
+            Log.d("Arbeitsbericht.debug", "bitmap is ${bitmap}")
+            if(bitmap != null) {
+                imageWidth = bitmap.width
+                imageHeight = bitmap.height
+            } else { // image not found
+                imageWidth = 1
+                imageHeight = 1
+            }
         }
     }
 }

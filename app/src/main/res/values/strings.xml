@@ -71,15 +71,19 @@
     <string name="sftp_path_footer">Pfad zu einer JPEG Fusszeile auf dem SFTP server</string>
     <string name="sftp_user">Benutzername (user name) SFTP server</string>
     <string name="sftp_pwd">Passwort SFTP server</string>
-    <string name="file_load">Datei laden</string>
-    <string name="sftp_connect_error">Verbindung zum SFTP Server fehlgeschlagen: Fehlermedlung: %1s</string>
+    <string name="file_load">Auf Gerät öffnen</string>
+    <string name="sftp_file_load">Über SFTP laden</string>
+    <string name="sftp_connect_error">Verbindung zum SFTP Server fehlgeschlagen: Fehlermeldung: %1s</string>
     <string name="sftp_connect_done">Verbindung zum SFTP Server war erfolgreich</string>
     <string name="sftp_file_get_error">Datei konnte nicht geladen werden: </string>
     <string name="no_internet_access_abort">Berechtigungen abgelehnt, die App kann die Datei ohne Netzwerkzugriff nicht laden</string>
     <string name="lump_sums_found">%1d Pauschalen gefunden. Sollen diese übernommen werden?</string>
     <string name="no_lump_sums_found">Keine Pauschalen gefunden. Sollen alle vorhandenen glöscht werden?</string>
     <string name="sftp_connect_test">Testen</string>
-    <string name="sftp_getfile_error">Fehler beim Laden der Datei</string>
+    <string name="getfile_error">Fehler beim Laden der Datei</string>
+    <string name="odf_file_choose">ODF Vorlage auswählen</string>
+    <string name="logo_file_choose">Logo auswählen</string>
+    <string name="footer_file_choose">Fusszeile auswählen</string>
 
     <!-- ODF / PDF generation -->
     <string name="cannot_createdocs_dir">Konnte erforderlichen Ordner für die Berichtsdatei nicht erstellen</string>

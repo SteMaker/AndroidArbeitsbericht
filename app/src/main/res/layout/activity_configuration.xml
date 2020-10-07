@@ -229,13 +229,16 @@
                             app:cardPreventCornerOverlap="true"
                             app:cardUseCompatPadding="true"
                             android:clickable="false">
-                        <LinearLayout
+                        <RelativeLayout
+                                android:id="@+id/odf_config_sftp_container"
                                 android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:orientation="vertical">
+                                android:layout_height="wrap_content">
                             <com.google.android.material.textfield.TextInputLayout
+                                    android:id="@+id/odf_template_ftp_path_til"
                                     android:layout_width="match_parent"
-                                    android:layout_height="wrap_content">
+                                    android:layout_height="wrap_content"
+                                    android:layout_alignParentLeft="true"
+                                    android:layout_alignParentTop="true">
                                 <AutoCompleteTextView
                                         android:id="@+id/odf_template_ftp_path"
                                         android:layout_width="match_parent"
@@ -248,12 +251,23 @@
                                     android:id="@+id/odf_template_load_button"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
+                                    android:layout_toLeftOf="@id/odf_template_sftp_load_button"
+                                    android:layout_below="@id/odf_template_ftp_path_til"
                                     android:layout_marginLeft="16dp"
-                                    android:layout_gravity="end"
+                                    android:text="@string/sftp_file_load"
+                                    android:onClick="onClickSftpLoadTemplate"
+                                    />
+                            <Button
+                                    android:id="@+id/odf_template_sftp_load_button"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_alignEnd="@id/odf_template_ftp_path_til"
+                                    android:layout_below="@id/odf_template_ftp_path_til"
+                                    android:layout_marginLeft="16dp"
                                     android:text="@string/file_load"
                                     android:onClick="onClickLoadTemplate"
                                     />
-                        </LinearLayout>
+                        </RelativeLayout>
                     </androidx.cardview.widget.CardView>
                     <androidx.cardview.widget.CardView
                             android:id="@+id/pdf_config_container"
@@ -266,11 +280,11 @@
                             app:cardPreventCornerOverlap="true"
                             app:cardUseCompatPadding="true"
                             android:clickable="false">
-                        <LinearLayout
+                        <RelativeLayout
                                 android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:orientation="vertical">
+                                android:layout_height="wrap_content">
                             <com.google.android.material.textfield.TextInputLayout
+                                    android:id="@+id/logo_ftp_path_til"
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content">
                                 <AutoCompleteTextView
@@ -281,22 +295,24 @@
                                         android:hint="@string/sftp_path_logo"
                                         />
                             </com.google.android.material.textfield.TextInputLayout>
-                            <LinearLayout
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:orientation="horizontal">
                                 <ImageView
                                         android:id="@+id/logo_image"
-                                        android:layout_width="0dp"
+                                        android:layout_width="fill_parent"
                                         android:layout_height="wrap_content"
-                                        android:layout_weight="1"
+                                        android:layout_alignLeft="@id/logo_ftp_path_til"
+                                        android:layout_toLeftOf="@id/logo_del_button"
+                                        android:layout_below="@id/logo_ftp_path_til"
+                                        android:layout_alignBottom="@id/logo_del_button"
                                         android:scaleType="centerInside"
+                                        android:src="@drawable/ic_assignment_black_24dp"
                                         />
                                 <Button
                                         android:id="@+id/logo_del_button"
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
                                         android:layout_marginLeft="16dp"
+                                        android:layout_toLeftOf="@id/logo_load_button"
+                                        android:layout_below="@id/logo_ftp_path_til"
                                         android:text="@string/nouse"
                                         android:onClick="onClickDelLogo"
                                         />
@@ -304,14 +320,27 @@
                                         android:id="@+id/logo_load_button"
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
+                                        android:layout_toLeftOf="@id/logo_sftp_load_button"
+                                        android:layout_below="@id/logo_ftp_path_til"
+                                        android:layout_marginLeft="16dp"
+                                        android:text="@string/sftp_file_load"
+                                        android:onClick="onClickSftpLoadLogo"
+                                        />
+                                <Button
+                                        android:id="@+id/logo_sftp_load_button"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_alignRight="@id/logo_ftp_path_til"
+                                        android:layout_below="@id/logo_ftp_path_til"
                                         android:layout_marginLeft="16dp"
                                         android:text="@string/file_load"
                                         android:onClick="onClickLoadLogo"
                                         />
-                            </LinearLayout>
                             <com.google.android.material.textfield.TextInputLayout
+                                    android:id="@+id/footer_ftp_path_til"
                                     android:layout_width="match_parent"
-                                    android:layout_height="wrap_content">
+                                    android:layout_height="wrap_content"
+                                    android:layout_below="@id/logo_sftp_load_button">
                                 <AutoCompleteTextView
                                         android:id="@+id/footer_ftp_path"
                                         android:layout_width="match_parent"
@@ -320,14 +349,14 @@
                                         android:hint="@string/sftp_path_footer"
                                         />
                             </com.google.android.material.textfield.TextInputLayout>
-                            <LinearLayout
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:orientation="horizontal">
                                 <ImageView
                                         android:id="@+id/footer_image"
                                         android:layout_width="0dp"
                                         android:layout_height="wrap_content"
+                                        android:layout_below="@id/footer_ftp_path_til"
+                                        android:layout_alignLeft="@id/footer_ftp_path_til"
+                                        android:layout_toLeftOf="@id/footer_del_button"
+                                        android:layout_alignBottom="@id/footer_del_button"
                                         android:layout_weight="1"
                                         android:scaleType="centerInside"
                                     />
@@ -335,33 +364,50 @@
                                         android:id="@+id/footer_del_button"
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
+                                        android:layout_below="@id/footer_ftp_path_til"
+                                        android:layout_toLeftOf="@id/footer_sftp_load_button"
                                         android:layout_marginLeft="16dp"
                                         android:text="@string/nouse"
                                         android:onClick="onClickDelFooter"
                                         />
                                 <Button
+                                        android:id="@+id/footer_sftp_load_button"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_below="@id/footer_ftp_path_til"
+                                        android:layout_toLeftOf="@id/footer_load_button"
+                                        android:layout_marginLeft="16dp"
+                                        android:text="@string/sftp_file_load"
+                                        android:onClick="onClickSftpLoadFooter"
+                                        />
+                                <Button
                                         android:id="@+id/footer_load_button"
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
+                                        android:layout_below="@id/footer_ftp_path_til"
+                                        android:layout_alignRight="@id/footer_ftp_path_til"
                                         android:layout_marginLeft="16dp"
                                         android:text="@string/file_load"
                                         android:onClick="onClickLoadFooter"
                                         />
-                            </LinearLayout>
                             <TextView
                                     android:id="@+id/fontsize_text"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
+                                    android:layout_below="@id/footer_load_button"
+                                    android:layout_alignParentLeft="true"
                                     android:textSize="18dp"
                                     />
                             <SeekBar
                                     android:id="@+id/fontsize_seekbar"
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
+                                    android:layout_below="@id/fontsize_text"
+                                    android:layout_alignParentLeft="true"
                                     android:max="20"
                                     android:min="8"
                                     />
-                        </LinearLayout>
+                        </RelativeLayout>
                     </androidx.cardview.widget.CardView>
                 </LinearLayout>
             </androidx.cardview.widget.CardView>

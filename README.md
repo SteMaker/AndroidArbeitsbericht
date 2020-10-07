@@ -23,7 +23,7 @@ Als E-Mail client eignen sich nicht alle E-Mail Apps, da nicht alle von ihnen An
 Falls mehrere E-Mail clients installiert sind fragt die App welcher verwendet werden soll. Einfach probieren, die meisten E-Mail clients kommen mit verschiedene
 E-Mail Konten zurecht.
 
-Eine Liste der Pauschalen und die ODF Vorlage können zur Zeit nur von einem SFTP Server heruntergeladen werden.
+Eine Liste der Pauschalen und die ODF Vorlage können direkt vom Gerät oder von einem SFTP Server heruntergeladen werden.
 
 Diese App ist ein Hobbyprojekt, das ich kostenlos zur Verfügung stelle. Ich übernehme keinerlei Verantwortung für Schäden, die durch die Installation oder 
 Nutzung dieser App entstehen könnten.

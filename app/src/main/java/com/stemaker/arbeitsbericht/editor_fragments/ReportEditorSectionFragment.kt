@@ -1,6 +1,7 @@
 package com.stemaker.arbeitsbericht.editor_fragments
 
 import android.content.Context
+import android.content.res.Configuration
 import android.os.Bundle
 import android.util.Log
 import androidx.fragment.app.Fragment
@@ -31,6 +32,12 @@ abstract class ReportEditorSectionFragment : Fragment() {
                 onClickExpandContentButton(imgV)
             }
         })
+        rootView.findViewById<TextView>(R.id.resh_headline_textview).textSize =
+            when(resources.configuration.screenLayout and Configuration.SCREENLAYOUT_SIZE_MASK) {
+            Configuration.SCREENLAYOUT_SIZE_NORMAL ->  20.toFloat()
+            Configuration.SCREENLAYOUT_SIZE_SMALL -> 16.toFloat()
+            else -> 26.toFloat()
+        }
         return rootView
     }
 

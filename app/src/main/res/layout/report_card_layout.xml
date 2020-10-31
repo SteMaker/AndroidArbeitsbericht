@@ -17,32 +17,31 @@
         android:layout_height="wrap_content"
         android:padding="16dp">
         <TextView
-                android:id="@+id/report_card_id"
+                android:id="@+id/report_card_client"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                android:layout_marginStart="20dp"
+                android:text="@{report_data.project.name}"
+                android:textSize="26sp"
+                />
+        <TextView
+                android:id="@+id/report_card_id"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/report_card_client"
                 android:text="@{@string/reportid(report_data.idLive)}"
                 android:textSize="12sp"
-        />
-        <TextView
-            android:id="@+id/report_card_client"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/report_card_id"
-            android:text="@{report_data.project.name}"
-            android:textSize="26sp"
         />
         <TextView
                 android:id="@+id/report_card_create_date"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/report_card_client"
+                app:layout_constraintTop_toBottomOf="@+id/report_card_id"
                 android:text="@{@string/creationdate(report_data.create_date)}"
-                android:textSize="20sp"
+                android:textSize="12sp"
         />
         <ImageButton
             android:id="@+id/report_card_del_button"

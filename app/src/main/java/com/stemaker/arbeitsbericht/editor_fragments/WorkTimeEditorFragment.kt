@@ -9,6 +9,7 @@ import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.LinearLayout
 import androidx.appcompat.app.AlertDialog
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.lifecycle.MutableLiveData
 import com.stemaker.arbeitsbericht.helpers.DatePickerFragment
 import com.stemaker.arbeitsbericht.R
@@ -101,34 +102,34 @@ class WorkTimeEditorFragment : ReportEditorSectionFragment(),
             addEmployeeView(workTimeDataBinding.root, wt, empl)
         }
 
-        workTimeDataBinding.root.findViewById<ImageButton>(R.id.work_time_date_change).setOnClickListener(object: View.OnClickListener {
+        workTimeDataBinding.root.findViewById<ConstraintLayout>(R.id.date_container).setOnClickListener(object: View.OnClickListener {
             override fun onClick(btn: View) {
                 val newFragment = DatePickerFragment(wt.date, btn.context)
-                newFragment.show(fragmentManager, "datePicker")
+                newFragment.show(fragmentManager!!, "datePicker")
             }
         })
-        workTimeDataBinding.root.findViewById<ImageButton>(R.id.work_time_work_start_change).setOnClickListener(object: View.OnClickListener {
+        workTimeDataBinding.root.findViewById<ConstraintLayout>(R.id.start_container).setOnClickListener(object: View.OnClickListener {
             override fun onClick(btn: View) {
                 val newFragment = TimePickerFragment(wt.startTime)
-                newFragment.show(fragmentManager, "timePicker")
+                newFragment.show(fragmentManager!!, "timePicker")
             }
         })
-        workTimeDataBinding.root.findViewById<ImageButton>(R.id.work_time_work_end_change).setOnClickListener(object: View.OnClickListener {
+        workTimeDataBinding.root.findViewById<ConstraintLayout>(R.id.end_container).setOnClickListener(object: View.OnClickListener {
             override fun onClick(btn: View) {
                 val newFragment = TimePickerFragment(wt.endTime)
-                newFragment.show(fragmentManager, "timePicker")
+                newFragment.show(fragmentManager!!, "timePicker")
             }
         })
-        workTimeDataBinding.root.findViewById<ImageButton>(R.id.work_time_pause_duration_change).setOnClickListener(object: View.OnClickListener {
+        workTimeDataBinding.root.findViewById<ConstraintLayout>(R.id.pausetime_container).setOnClickListener(object: View.OnClickListener {
             override fun onClick(btn: View) {
                 val newFragment = TimePickerFragment(wt.pauseDuration)
-                newFragment.show(fragmentManager, "timePicker")
+                newFragment.show(fragmentManager!!, "timePicker")
             }
         })
-        workTimeDataBinding.root.findViewById<ImageButton>(R.id.work_time_drive_duration_change).setOnClickListener(object: View.OnClickListener {
+        workTimeDataBinding.root.findViewById<ConstraintLayout>(R.id.drivetime_container).setOnClickListener(object: View.OnClickListener {
             override fun onClick(btn: View) {
                 val newFragment = TimePickerFragment(wt.driveTime)
-                newFragment.show(fragmentManager, "timePicker")
+                newFragment.show(fragmentManager!!, "timePicker")
             }
         })
         workTimeDataBinding.root.findViewById<ImageButton>(R.id.work_time_add_employee).setOnClickListener(object: View.OnClickListener {

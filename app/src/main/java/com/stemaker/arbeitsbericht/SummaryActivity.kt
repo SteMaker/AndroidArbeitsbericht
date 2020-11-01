@@ -15,10 +15,8 @@ import android.webkit.WebView
 import com.github.gcacace.signaturepad.views.SignaturePad
 import android.print.*
 import android.view.*
-import android.widget.ImageButton
-import android.widget.ImageView
-import android.widget.LinearLayout
-import android.widget.Toast
+import android.view.animation.AccelerateDecelerateInterpolator
+import android.widget.*
 import androidx.annotation.NonNull
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -73,6 +71,19 @@ class SummaryActivity : AppCompatActivity() {
             lockBtn!!.setEnabled(false)
             lockBtn.setImageResource(R.drawable.ic_lock_grey_24)
         }
+        /* Make headline text area of signature also clickable */
+        val employeeSigText = findViewById<TextView>(R.id.employee_signature_text)
+        employeeSigText!!.setOnClickListener(object: View.OnClickListener {
+            override fun onClick(cV: View) {
+                onClickHideShowEmployeeSignature(findViewById<ImageButton>(R.id.hide_employee_signature_btn))
+            }
+        })
+        val clientSigText = findViewById<TextView>(R.id.client_signature_text)
+        clientSigText!!.setOnClickListener(object: View.OnClickListener {
+            override fun onClick(cV: View) {
+                onClickHideShowClientSignature(findViewById<ImageButton>(R.id.hide_client_signature_btn))
+            }
+        })
 
         val html = HtmlReport.encodeReport(storageHandler().getReport(), false)
         val wv = findViewById<WebView>(R.id.webview)
@@ -143,11 +154,15 @@ class SummaryActivity : AppCompatActivity() {
         lockEmployeeSignature()
     }
 
-    fun onClickHideShowEmployeeSignature(@Suppress("UNUSED_PARAMETER") btn: View) {
+    fun onClickHideShowEmployeeSignature(@Suppress("UNUSED_PARAMETER") b: View) {
+        val btn = b as ImageButton
         val sigPad = findViewById<LockableSignaturePad>(R.id.employee_signature)
-        sigPad!!.visibility = when(sigPad!!.visibility) {
-            View.VISIBLE -> View.GONE
-            else -> View.VISIBLE
+        if(sigPad!!.visibility == View.VISIBLE) {
+            sigPad!!.visibility = View.GONE
+            btn.rotation = 180F
+        } else {
+            sigPad!!.visibility = View.VISIBLE
+            btn.rotation = 0F
         }
     }
 
@@ -178,11 +193,15 @@ class SummaryActivity : AppCompatActivity() {
         lockClientSignature()
     }
 
-    fun onClickHideShowClientSignature(@Suppress("UNUSED_PARAMETER") btn: View) {
+    fun onClickHideShowClientSignature(@Suppress("UNUSED_PARAMETER") b: View) {
+        val btn = b as ImageButton
         val sigPad = findViewById<LockableSignaturePad>(R.id.client_signature)
-        sigPad!!.visibility = when(sigPad!!.visibility) {
-            View.VISIBLE -> View.GONE
-            else -> View.VISIBLE
+        if(sigPad!!.visibility == View.VISIBLE) {
+            sigPad!!.visibility = View.GONE
+            btn.rotation = 180F
+        } else {
+            sigPad!!.visibility = View.VISIBLE
+            btn.rotation = 0F
         }
     }
 

@@ -69,14 +69,16 @@
                     app:constraint_referenced_ids="employee_signature_text,clear_employee_signature_btn,lock_employee_signature_btn"/>
                 <TextView
                     android:id="@+id/employee_signature_text"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintBottom_toTopOf="@id/barrier1"
                     app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintRight_toLeftOf="@id/clear_employee_signature_btn"
                     android:text="@string/employee_signature"
                     android:textSize="20sp"
-                    />
+                    android:clickable="true"
+                        />
                 <ImageButton
                     android:id="@+id/clear_employee_signature_btn"
                     android:layout_width="wrap_content"
@@ -108,6 +110,7 @@
                     app:layout_constraintRight_toRightOf="parent"
                     android:src="@drawable/ic_expand_more_black_24dp"
                     android:onClick="onClickHideShowEmployeeSignature"
+                    android:rotation="180"
                     />
                 <com.stemaker.arbeitsbericht.LockableSignaturePad
                     android:id="@+id/employee_signature"
@@ -139,13 +142,16 @@
                     app:barrierDirection="bottom"
                     app:constraint_referenced_ids="client_signature_text,clear_client_signature_btn,lock_client_signature_btn"/>
                 <TextView
-                    android:layout_width="wrap_content"
+                    android:id="@+id/client_signature_text"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintBottom_toTopOf="@id/barrier2"
                     app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintRight_toLeftOf="@id/clear_client_signature_btn"
                     android:text="@string/client_signature"
                     android:textSize="20sp"
+                    android:clickable="true"
                     />
                 <ImageButton
                     android:id="@+id/clear_client_signature_btn"
@@ -178,6 +184,7 @@
                     app:layout_constraintRight_toRightOf="parent"
                     android:src="@drawable/ic_expand_more_black_24dp"
                     android:onClick="onClickHideShowClientSignature"
+                    android:rotation="180"
                     />
                 <com.stemaker.arbeitsbericht.LockableSignaturePad
                     android:id="@+id/client_signature"

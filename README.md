@@ -1,8 +1,6 @@
 # AndroidArbeitsbericht
 **App zum Erstellen von Arbeitsberichten**
 
-Diese App unterstützt zur Zeit nur Tablets.
-
 Mit der App kann ein Handwerker folgende Daten erfassen und als Bericht per E-Mail verschicken:
  - Kunde / Projekt
  - Rechnungsadresse

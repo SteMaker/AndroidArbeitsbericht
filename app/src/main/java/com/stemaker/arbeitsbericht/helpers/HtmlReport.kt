@@ -39,7 +39,7 @@ object HtmlReport {
         var html: String =
             "<!DOCTYPE html>" +
                     "<html lang=\"de\">" +
-                    "<head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"/></head>"
+                    "<head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"/></head>" +
                     "<body>"
         if(configuration().logoFile != "") {
             val logoFileContent = readFileToBytes(File(configuration().logoFile))
@@ -152,18 +152,24 @@ object HtmlReport {
         if(inclSignatures) {
             // Employee signature
             html += "<h2>Unterschriften</h2>"
-            if (rep.signatureData.employeeSignatureSvg.value == "" || rep.signatureData.employeeSignaturePngFile == null) {
-                html += "Keine Unterschrift vorhanden<hr>"
+            if (rep.signatureData.clientSignatureSvg.value == "" && rep.signatureData.employeeSignatureSvg.value == "") {
+                html += "Keine Unterschriften vorhanden<hr>"
             } else {
                 html += "<table>" +
                         "<tr>" +
                         "<th>Auftragnehmer</th>" +
                         "<th>Auftraggeber</th>" +
                         "</tr>" +
-                        "<tr>" +
-                        "<th><img src=\"file://${rep.signatureData.employeeSignaturePngFile!!.absoluteFile}\" style=\"max-width:50%\"></th>" +
-                        "<th><img src=\"file://${rep.signatureData.clientSignaturePngFile!!.absoluteFile}\" style=\"max-width:50%\"></th>" +
-                        "</tr>" +
+                        "<tr>"
+                if(rep.signatureData.employeeSignatureSvg.value != "" && rep.signatureData.employeeSignaturePngFile != null)
+                    html += "<th><img src=\"file://${rep.signatureData.employeeSignaturePngFile!!.absoluteFile}\" style=\"max-width:50%\"></th>"
+                else
+                    html += "<th>Keine Unterschrift</th>"
+                if(rep.signatureData.clientSignatureSvg.value != "" && rep.signatureData.clientSignaturePngFile != null)
+                    html += "<th><img src=\"file://${rep.signatureData.clientSignaturePngFile!!.absoluteFile}\" style=\"max-width:50%\"></th>"
+                else
+                    html += "<th>Keine Unterschrift</th>"
+                html += "</tr>" +
                         "</table><hr>"
             }
         }

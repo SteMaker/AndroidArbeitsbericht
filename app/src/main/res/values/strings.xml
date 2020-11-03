@@ -13,7 +13,7 @@
     <string name="street">Strasse / Hausnummer</string>
     <string name="zip">PLZ</string>
     <string name="city">Ort</string>
-    <string name="saved_reports">Gespeicherte Arbeitsberichte</string>
+    <string name="saved_reports">Arbeitsberichte</string>
     <string name="create_new_report">Neuer Bericht</string>
     <string name="unknown">Unbekannt</string>
     <string name="send">Senden</string>
@@ -25,6 +25,10 @@
     <string name="save">Speichern</string>
     <string name="preview">Voransicht</string>
     <string name="free_id">Nächste freie Berichtsnr</string>
+    <string name="workstart">Anfangszeit</string>
+    <string name="workend">Endzeit</string>
+    <string name="workpause">Pausezeit</string>
+    <string name="workdrive">Fahrzeit</string>
     <string name="worktimes">Arbeitszeiten</string>
     <string name="workitems">Durchgeführte Arbeiten</string>
     <string name="material">Material</string>
@@ -32,6 +36,7 @@
     <string name="driveduration">Fahrzeit</string>
     <string name="distance">Entfernung [km]</string>
     <string name="del_confirmation">Sind sie sich sicher, dass sie das Element löschen wollen?</string>
+    <string name="del_signature">Sind sie sich sicher, dass sie die Unterschrift löschen wollen?</string>
     <string name="overwrite_confirmation">Der Bericht exisitiert bereits als PDF, soll er überschrieben werden?</string>
     <string name="ok">OK</string>
     <string name="cancel">Abbrechen</string>

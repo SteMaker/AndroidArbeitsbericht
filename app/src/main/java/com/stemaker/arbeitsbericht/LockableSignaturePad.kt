@@ -46,7 +46,7 @@ class LockableSignaturePad(context: Context, attrs: AttributeSet): SignaturePad(
             }
             val h2 = when {
                 h > 0-> h
-                else -> w/3
+                else -> w2/3
             }
             val bitmap = Bitmap.createBitmap(w2, h2, Bitmap.Config.RGB_565)
             bitmap.eraseColor(Color.WHITE)

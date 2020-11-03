@@ -22,8 +22,16 @@ class AboutDialogFragment : DialogFragment() {
         })
         Log.d("Arbeitsbericht.AboutDialogFragment.onCreateView", "loading about.html into WebView")
         val wv = v.findViewById<WebView>(R.id.about_webview)
-        //wv.loadDataWithBaseURL("", "<!DOCTYPE html><html><body><h1>Lizenz</h1></body></html>", "text/html", "UTF-8", "")
         wv.loadUrl("file:///android_asset/about.html")
         return v
     }
+
+    override fun onResume() {
+        super.onResume()
+        val params = dialog!!.window!!.attributes!!
+        params.width = ViewGroup.LayoutParams.MATCH_PARENT
+        params.height = ViewGroup.LayoutParams.MATCH_PARENT
+        dialog!!.window!!.attributes = params
+    }
 }
+

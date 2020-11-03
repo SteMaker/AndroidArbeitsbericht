@@ -15,11 +15,10 @@ import android.webkit.WebView
 import com.github.gcacace.signaturepad.views.SignaturePad
 import android.print.*
 import android.view.*
-import android.widget.ImageButton
-import android.widget.ImageView
-import android.widget.LinearLayout
-import android.widget.Toast
+import android.view.animation.AccelerateDecelerateInterpolator
+import android.widget.*
 import androidx.annotation.NonNull
+import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
@@ -29,6 +28,7 @@ import com.caverock.androidsvg.SVG
 import com.stemaker.arbeitsbericht.data.ReportData
 import com.stemaker.arbeitsbericht.databinding.ActivitySummaryBinding
 import com.stemaker.arbeitsbericht.helpers.HtmlReport
+import com.stemaker.arbeitsbericht.helpers.showConfirmationDialog
 import com.stemaker.arbeitsbericht.helpers.showInfoDialog
 import kotlinx.android.synthetic.main.activity_summary.*
 import kotlinx.coroutines.Dispatchers
@@ -61,14 +61,31 @@ class SummaryActivity : AppCompatActivity() {
             Log.d(TAG, "create eSig svg ${signatureData.employeeSignatureSvg.value!!.length}")
             eSigPad.setSvg(signatureData.employeeSignatureSvg.value!!)
             eSigPad.locked = true
-            findViewById<ImageButton>(R.id.lock_employee_signature_btn).setEnabled(false)
+            val lockBtn = findViewById<ImageButton>(R.id.lock_employee_signature_btn)
+            lockBtn!!.setEnabled(false)
+            lockBtn.setImageResource(R.drawable.ic_lock_grey_24)
         }
         val cSigPad = findViewById<LockableSignaturePad>(R.id.client_signature)
         if(signatureData.clientSignatureSvg.value!! != "") {
             cSigPad.setSvg(signatureData.clientSignatureSvg.value!!)
             cSigPad.locked = true
-            findViewById<ImageButton>(R.id.lock_client_signature_btn).setEnabled(false)
+            val lockBtn = findViewById<ImageButton>(R.id.lock_client_signature_btn)
+            lockBtn!!.setEnabled(false)
+            lockBtn.setImageResource(R.drawable.ic_lock_grey_24)
         }
+        /* Make headline text area of signature also clickable */
+        val employeeSigText = findViewById<TextView>(R.id.employee_signature_text)
+        employeeSigText!!.setOnClickListener(object: View.OnClickListener {
+            override fun onClick(cV: View) {
+                onClickHideShowEmployeeSignature(findViewById<ImageButton>(R.id.hide_employee_signature_btn))
+            }
+        })
+        val clientSigText = findViewById<TextView>(R.id.client_signature_text)
+        clientSigText!!.setOnClickListener(object: View.OnClickListener {
+            override fun onClick(cV: View) {
+                onClickHideShowClientSignature(findViewById<ImageButton>(R.id.hide_client_signature_btn))
+            }
+        })
 
         val html = HtmlReport.encodeReport(storageHandler().getReport(), false)
         val wv = findViewById<WebView>(R.id.webview)
@@ -115,10 +132,22 @@ class SummaryActivity : AppCompatActivity() {
     fun onClickClearEmployeeSignature(@Suppress("UNUSED_PARAMETER") btn: View) {
         Log.d("Arbeitsbericht.SummaryActivity.onClickClearEmployeeSignature", "called")
         val pad = findViewById<LockableSignaturePad>(R.id.employee_signature)
-        pad.clear()
-        pad.locked = false
-        findViewById<ImageButton>(R.id.lock_employee_signature_btn).setEnabled(true)
-        signatureData.employeeSignatureSvg.value = ""
+        if(pad.isEmpty())
+            return
+        GlobalScope.launch(Dispatchers.Main) {
+            val answer =
+                showConfirmationDialog(getString(R.string.del_signature), btn.context)
+            if (answer == AlertDialog.BUTTON_POSITIVE) {
+                pad.clear()
+                pad.locked = false
+                val lockBtn = findViewById<ImageButton>(R.id.lock_employee_signature_btn)
+                lockBtn!!.setEnabled(true)
+                lockBtn.setImageResource(R.drawable.ic_lock_black_24)
+                signatureData.employeeSignatureSvg.value = ""
+            } else {
+                Log.d("Arbeitsbericht.SummaryActivity.onClickClearEmployeeSignature", "cancelled deleting")
+            }
+        }
     }
 
     fun lockEmployeeSignature() {
@@ -126,7 +155,9 @@ class SummaryActivity : AppCompatActivity() {
         if(!pad.isEmpty && !pad.locked) {
             signatureData.employeeSignatureSvg.value = pad.signatureSvg
             pad.setSvg(signatureData.employeeSignatureSvg.value!!)
-            findViewById<ImageButton>(R.id.lock_employee_signature_btn).setEnabled(false)
+            val lockBtn = findViewById<ImageButton>(R.id.lock_employee_signature_btn)
+            lockBtn!!.setEnabled(false)
+            lockBtn.setImageResource(R.drawable.ic_lock_grey_24)
             pad.locked = true
         }
     }
@@ -135,13 +166,37 @@ class SummaryActivity : AppCompatActivity() {
         lockEmployeeSignature()
     }
 
+    fun onClickHideShowEmployeeSignature(@Suppress("UNUSED_PARAMETER") b: View) {
+        val btn = b as ImageButton
+        val sigPad = findViewById<LockableSignaturePad>(R.id.employee_signature)
+        if(sigPad!!.visibility == View.VISIBLE) {
+            sigPad.visibility = View.GONE
+            btn.rotation = 180F
+        } else {
+            sigPad.visibility = View.VISIBLE
+            btn.rotation = 0F
+        }
+    }
+
     fun onClickClearClientSignature(@Suppress("UNUSED_PARAMETER") btn: View) {
         Log.d("Arbeitsbericht.SummaryActivity.onClickClearClientSignature", "called")
         val pad = findViewById<LockableSignaturePad>(R.id.client_signature)
-        pad.clear()
-        pad.locked = false
-        findViewById<ImageButton>(R.id.lock_client_signature_btn).setEnabled(true)
-        signatureData.clientSignatureSvg.value = ""
+        if(pad.isEmpty())
+            return
+        GlobalScope.launch(Dispatchers.Main) {
+            val answer =
+                showConfirmationDialog(getString(R.string.del_signature), btn.context)
+            if (answer == AlertDialog.BUTTON_POSITIVE) {
+                pad.clear()
+                pad.locked = false
+                val lockBtn = findViewById<ImageButton>(R.id.lock_client_signature_btn)
+                lockBtn.setEnabled(true)
+                lockBtn!!.setImageResource(R.drawable.ic_lock_black_24)
+                signatureData.clientSignatureSvg.value = ""
+            } else {
+                Log.d("Arbeitsbericht.SummaryActivity.onClickClearClientSignature", "cancelled deleting")
+            }
+        }
     }
 
     fun lockClientSignature() {
@@ -149,13 +204,27 @@ class SummaryActivity : AppCompatActivity() {
         if(!pad.isEmpty && !pad.locked) {
             signatureData.clientSignatureSvg.value = pad.signatureSvg
             pad.setSvg(signatureData.clientSignatureSvg.value!!)
-            findViewById<ImageButton>(R.id.lock_client_signature_btn).setEnabled(false)
+            val lockBtn = findViewById<ImageButton>(R.id.lock_client_signature_btn)
+            lockBtn!!.setEnabled(false)
+            lockBtn.setImageResource(R.drawable.ic_lock_grey_24)
             pad.locked = true
         }
     }
 
     fun onClickLockClientSignature(@Suppress("UNUSED_PARAMETER") btn: View) {
         lockClientSignature()
+    }
+
+    fun onClickHideShowClientSignature(@Suppress("UNUSED_PARAMETER") b: View) {
+        val btn = b as ImageButton
+        val sigPad = findViewById<LockableSignaturePad>(R.id.client_signature)
+        if(sigPad!!.visibility == View.VISIBLE) {
+            sigPad.visibility = View.GONE
+            btn.rotation = 180F
+        } else {
+            sigPad.visibility = View.VISIBLE
+            btn.rotation = 0F
+        }
     }
 
     fun saveSignatures() {
@@ -282,8 +351,17 @@ class SummaryActivity : AppCompatActivity() {
     }
 
     fun createSigPngs(cSigFile: File, eSigFile: File) {
+        val sigPadC = findViewById<LockableSignaturePad>(R.id.client_signature)
+        val sigPadCV = sigPadC!!.visibility
+        sigPadC.visibility = View.VISIBLE
         client_signature.saveBitmapToFile(cSigFile)
+        sigPadC.visibility = sigPadCV
+
+        val sigPadE = findViewById<LockableSignaturePad>(R.id.employee_signature)
+        val sigPadEV = sigPadE!!.visibility
+        sigPadE.visibility = View.VISIBLE
         employee_signature.saveBitmapToFile(eSigFile)
+        sigPadE.visibility = sigPadEV
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, @NonNull permissions: Array<String>, @NonNull grantResults: IntArray) {

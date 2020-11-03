@@ -39,7 +39,7 @@ object HtmlReport {
         var html: String =
             "<!DOCTYPE html>" +
                     "<html lang=\"de\">" +
-                    "<head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"/></head>"
+                    "<head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"/></head>" +
                     "<body>"
         if(configuration().logoFile != "") {
             val logoFileContent = readFileToBytes(File(configuration().logoFile))

@@ -13,7 +13,7 @@ import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 
 private const val TAG = "Configuration"
-private const val VERSION = 100
+private const val VERSION = 101
 @Serializable
 class ConfigurationStore {
     var vers: Int = 0
@@ -56,13 +56,25 @@ object Configuration {
     var inited = false
     var store = ConfigurationStore()
     val KEY_ALIAS = "ArbeitsberichtPasswordEncryptionKey"
+    var _appUpdateWasDone = false
+    val appUpdateWasDone: Boolean
+        get(): Boolean {
+            if(_appUpdateWasDone) {
+                _appUpdateWasDone = false
+                return true
+            } else {
+                return false
+            }
+        }
 
     fun initialize() {
         if(!inited) {
             inited = true
             storageHandler()
-            if(store.vers < VERSION)
+            if(store.vers < VERSION) {
+                _appUpdateWasDone = true
                 updateConfiguration(store.vers)
+            }
         }
     }
 

@@ -59,7 +59,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="16dp"
                     android:layout_gravity="right"
-                    android:text="@string/file_load"
+                    android:text="@string/sftp_file_load"
                     android:onClick="onClickLoad"
                     />
         </LinearLayout>

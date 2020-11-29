@@ -61,8 +61,10 @@ class MainActivity : AppCompatActivity() {
             Log.d("Arbeitsbericht", "Adding report card $pos to UI")
             reportListScrollContainer.addView(reportBinding.root, pos)
         }
-        if(configuration().appUpdateWasDone)
-            Log.d("Arbeitsbericht", "We shall show a dialog that presents the App updates")
+        if(configuration().appUpdateWasDone) {
+            val versionDialog = VersionDialogFragment()
+            versionDialog.show(supportFragmentManager, "VersionDialog")
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {

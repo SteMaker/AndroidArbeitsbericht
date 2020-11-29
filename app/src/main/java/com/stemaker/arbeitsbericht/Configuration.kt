@@ -13,7 +13,6 @@ import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 
 private const val TAG = "Configuration"
-private const val VERSION = 101
 @Serializable
 class ConfigurationStore {
     var vers: Int = 0
@@ -71,7 +70,9 @@ object Configuration {
         if(!inited) {
             inited = true
             storageHandler()
-            if(store.vers < VERSION) {
+            // Had to add 100 because this is the value I used previously
+            val versionCode = ArbeitsberichtApp.getVersionCode()+100
+            if(store.vers < versionCode) {
                 _appUpdateWasDone = true
                 updateConfiguration(store.vers)
             }
@@ -82,7 +83,7 @@ object Configuration {
         if(oldVers == 0) {
             storageHandler().renameReportsIfNeeded()
         }
-        store.vers = VERSION
+        store.vers = ArbeitsberichtApp.getVersionCode()+100
     }
 
     var employeeName: String
@@ -263,7 +264,7 @@ object Configuration {
     }
 
     fun save() {
-        store.vers = VERSION
+        store.vers = ArbeitsberichtApp.getVersionCode()+100
         storageHandler().saveConfigurationToFile(ArbeitsberichtApp.appContext)
     }
 }

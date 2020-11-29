@@ -9,7 +9,11 @@ class ArbeitsberichtApp: Application() {
         appContext = getApplicationContext()
     }
 
+
     companion object {
         lateinit var appContext: Context
+        fun getVersionCode(): Int {
+            return appContext.packageManager.getPackageInfo(appContext.packageName!!, 0).versionCode
+        }
     }
 }

@@ -32,7 +32,7 @@ https://github.com/SteMaker/AndroidArbeitsbericht heruntergeladen werden. Pull r
 
 **Berichtsnummer**
 Für die Berichtsnummer kann man mit Hilfe von Platzhaltern ein Muster definieren, so dass nicht nur eine laufende Nummer verwendet wird, sondern z.B. auch eine
-Jahresnummer beinhaltet sein kann. Die Standardeinstellung (%p-%y-%c) führt zu einer Berichtsnummer: <Gerätename>-<Jahr der Erstellung>-<laufende Nummer>. 
+Jahresnummer beinhaltet sein kann. Die Standardeinstellung (%p-%y-%c) führt zu einer Berichtsnummer: Gerätename-Jahr der Erstellung-laufende Nummer. 
 Folgende Platzhalter gibt es (achten Sie auf Groß-/Kleinschreibung!):
   - %c -> laufende Nummer
   - %y -> Jahr der Erstellung

@@ -77,7 +77,7 @@ class LumpSumContainerDataSerialized() {
 @Serializable
 class MaterialDataSerialized() {
     var item: String = ""
-    var amount: Int = 0
+    var amount: Float = 0f
 
     fun copyFromData(w: MaterialData) {
         item = w.item.value!!

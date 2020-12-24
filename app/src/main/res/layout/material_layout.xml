@@ -52,7 +52,7 @@
                         android:layout_height="wrap_content"
                         android:inputType="numberDecimal"
                         android:selectAllOnFocus="true"
-                        app:textInt="@={material.amount}"
+                        app:textFloat="@={material.amount}"
                         android:hint="@string/amount"
                     />
             </com.google.android.material.textfield.TextInputLayout>

@@ -13,6 +13,7 @@ import com.caverock.androidsvg.SVG
 import com.google.android.material.textfield.TextInputEditText
 import com.stemaker.arbeitsbericht.helpers.LinearLayoutVisListener
 import java.io.File
+import java.util.*
 
 object BindingAdapters {
     /******************************************************************/
@@ -58,6 +59,59 @@ object BindingAdapters {
         } catch(e: NumberFormatException) {
         }
         Log.d("Arbeitsbericht.BindingAdapters.textInt.getTextFromInt","ret = $ret")
+        return ret
+    }
+
+    /***************************************************************/
+    /* Binding Adapters to bind an EditText with a float data value*/
+    /***************************************************************/
+    @JvmStatic
+    @BindingAdapter("textFloatAttrChanged")
+    fun setListener2(editText: TextInputEditText, listener: InverseBindingListener?) {
+        if (listener != null) {
+            editText.addTextChangedListener(object : TextWatcher {
+                override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+                }
+
+                override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+                }
+
+                override fun afterTextChanged(editable: Editable) {
+                    Log.d("textFloat.setListener","afterTextChanged")
+                    listener.onChange()
+                }
+            })
+        }
+    }
+
+    @JvmStatic
+    @BindingAdapter("textFloat")
+    fun setTextFromFloat(view: TextInputEditText, value: Float) {
+        Log.d("setTextFromFloat","Value = $value")
+        try {
+            val old = view.text.toString().toFloat()
+            if (old == value) return
+        } catch(e:NumberFormatException) {
+        }
+
+        if(value == value.toInt().toFloat())
+            view.setText(value.toInt().toString())
+        else {
+            /*val sb = StringBuilder()
+            val formatter = Formatter(sb)*/
+            view.setText(value.toString().format("%.2f"))
+        }
+    }
+
+    @JvmStatic
+    @InverseBindingAdapter(attribute="textFloat")
+    fun getTextFromFloat(editText: TextInputEditText): Float {
+        var ret = 0f
+        try {
+            ret = editText.text.toString().toFloat()
+        } catch(e: NumberFormatException) {
+        }
+        Log.d("getTextFromInt","ret = $ret")
         return ret
     }
 

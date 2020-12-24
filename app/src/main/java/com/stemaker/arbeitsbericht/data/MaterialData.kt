@@ -36,7 +36,7 @@ class MaterialContainerData(): ViewModel() {
 
 class MaterialData(): ViewModel() {
     var item = MutableLiveData<String>().apply { value = "" }
-    var amount = MutableLiveData<Int>().apply { value = 0 }
+    var amount = MutableLiveData<Float>().apply { value = 0f }
 
     fun copyFromSerialized(m: MaterialDataSerialized) {
         item.value = m.item

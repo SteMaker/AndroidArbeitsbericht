@@ -13,6 +13,7 @@ import com.caverock.androidsvg.SVG
 import com.google.android.material.textfield.TextInputEditText
 import com.stemaker.arbeitsbericht.helpers.LinearLayoutVisListener
 import java.io.File
+import java.text.DecimalFormatSymbols
 
 object BindingAdapters {
     /******************************************************************/
@@ -61,6 +62,66 @@ object BindingAdapters {
         return ret
     }
 
+    /***************************************************************/
+    /* Binding Adapters to bind an EditText with a float data value*/
+    /***************************************************************/
+    @JvmStatic
+    @BindingAdapter("textFloatAttrChanged")
+    fun setListener2(editText: TextInputEditText, listener: InverseBindingListener?) {
+        if (listener != null) {
+            editText.addTextChangedListener(object : TextWatcher {
+                override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+                }
+
+                override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+                }
+
+                override fun afterTextChanged(editable: Editable) {
+                    val localizedSeparator = DecimalFormatSymbols.getInstance().getDecimalSeparator()
+                    Log.d("textFloat.setListener","afterTextChanged ${editable.toString()} ${localizedSeparator} ${editText.text}")
+                    editText.removeTextChangedListener(this)
+                    val withDecimalComma = editable.toString().replace('.', localizedSeparator)
+                    editable.replace(0, withDecimalComma.length, withDecimalComma)
+                    Log.d("textFloat.setListener","afterTextChanged ${editable.toString()} ${localizedSeparator} ${editText.text}")
+                    editText.addTextChangedListener(this)
+                    listener.onChange()
+                }
+            })
+        }
+    }
+
+    @JvmStatic
+    @BindingAdapter("textFloat")
+    fun setTextFromFloat(view: TextInputEditText, value: Float) {
+        Log.d("setTextFromFloat","Value = $value ${view.text}")
+        val localizedSeparator = DecimalFormatSymbols.getInstance().getDecimalSeparator()
+        try {
+            val old = view.text.toString().replace(localizedSeparator, '.').toFloat()
+            if (old == value) return
+        } catch(e:NumberFormatException) {
+        }
+
+        if(value == value.toInt().toFloat()) {
+            val i = value.toInt().toString()
+            view.setText(i)
+        } else {
+            val t = value.toString().replace('.', localizedSeparator)
+            view.setText(t)
+        }
+    }
+
+    @JvmStatic
+    @InverseBindingAdapter(attribute="textFloat")
+    fun getTextFromFloat(editText: TextInputEditText): Float {
+        var ret = 0f
+        try {
+            val localizedSeparator = DecimalFormatSymbols.getInstance().getDecimalSeparator()
+            ret = editText.text.toString().replace(localizedSeparator, '.').toFloat()
+        } catch(e: NumberFormatException) {
+        }
+        Log.d("getTextFromFloat","in: ${editText.text}, ret:$ret")
+        return ret
+    }
     /***************************************/
     /* Binding Adapters for a Spinner View */
     /***************************************/

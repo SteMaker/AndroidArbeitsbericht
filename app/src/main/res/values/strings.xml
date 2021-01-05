@@ -32,6 +32,7 @@
     <string name="worktimes">Arbeitszeiten</string>
     <string name="workitems">Durchgeführte Arbeiten</string>
     <string name="material">Material</string>
+    <string name="unit">Einheit</string>
     <string name="worktime">Arbeitszeit</string>
     <string name="driveduration">Fahrzeit</string>
     <string name="distance">Entfernung [km]</string>

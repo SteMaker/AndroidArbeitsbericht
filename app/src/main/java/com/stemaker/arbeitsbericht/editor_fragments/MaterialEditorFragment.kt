@@ -6,6 +6,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.AutoCompleteTextView
 import android.widget.ImageButton
 import android.widget.LinearLayout
 import androidx.appcompat.app.AlertDialog
@@ -108,6 +109,10 @@ class MaterialEditorFragment : ReportEditorSectionFragment(),
                 }
             }
         })
+        materialDataBinding.root.findViewById<AutoCompleteTextView>(R.id.material_unit).setOnFocusChangeListener { v, hasFocus -> run {
+            val tv = v as AutoCompleteTextView
+            if(hasFocus && tv.text.toString() == "") tv.showDropDown()
+        } }
 
         val pos = container.getChildCount()
         Log.d("Arbeitsbericht", "Adding material card $pos to UI")

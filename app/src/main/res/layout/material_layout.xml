@@ -9,62 +9,81 @@
         <variable name="material_container" type="com.stemaker.arbeitsbericht.data.MaterialContainerData"/>
     </data>
 
-<androidx.cardview.widget.CardView
-    android:id="@+id/material_card_top"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    card_view:cardCornerRadius="4dp"
-    card_view:cardElevation="4dp"
-    app:contentPadding="10dp"
-    app:contentPaddingBottom="0dp"
-    app:cardPreventCornerOverlap="true"
-    app:cardUseCompatPadding="true"
-    android:clickable="false">
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
-        <LinearLayout
+    <androidx.cardview.widget.CardView
+            android:id="@+id/material_card_top"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            card_view:cardCornerRadius="4dp"
+            card_view:cardElevation="4dp"
+            app:contentPadding="10dp"
+            app:contentPaddingBottom="0dp"
+            app:cardPreventCornerOverlap="true"
+            app:cardUseCompatPadding="true"
+            android:clickable="false">
+        <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
             <com.google.android.material.textfield.TextInputLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="2">
-                <AutoCompleteTextView
-                    android:id="@+id/material_item"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:inputType="textCapSentences"
-                    app:dictionary="@{material_container.dictionary}"
-                    android:text="@={material.item}"
-                    android:hint="@string/material"
-                />
-            </com.google.android.material.textfield.TextInputLayout>
-            <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/material_item_layout"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1">
-                    <com.google.android.material.textfield.TextInputEditText
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintRight_toLeftOf="@id/material_del_button"
+                    app:layout_constraintTop_toTopOf="parent">
+                <AutoCompleteTextView
+                        android:id="@+id/material_item"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textCapSentences"
+                        app:dictionary="@{material_container.dictionary}"
+                        android:text="@={material.item}"
+                        android:hint="@string/material"
+                        />
+            </com.google.android.material.textfield.TextInputLayout>
+            <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/material_amount_layout"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintLeft_toLeftOf="@id/material_item_layout"
+                    app:layout_constraintRight_toLeftOf="@id/material_unit_layout"
+                    app:layout_constraintTop_toBottomOf="@id/material_item_layout">
+                <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/material_amount"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:inputType="numberDecimal"
+                        android:digits="0123456789.,"
                         android:selectAllOnFocus="true"
-                        app:textInt="@={material.amount}"
+                        app:textFloat="@={material.amount}"
                         android:hint="@string/amount"
-                    />
+                        />
             </com.google.android.material.textfield.TextInputLayout>
-        </LinearLayout>
-        <ImageButton
-                android:id="@+id/material_del_button"
-                android:layout_width="50dp"
-                android:layout_height="wrap_content"
-                android:src="@drawable/ic_delete_black_24dp"
-                android:layout_gravity="right"
-        />
-    </LinearLayout>
+            <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/material_unit_layout"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintLeft_toRightOf="@id/material_amount_layout"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintTop_toTopOf="@id/material_amount_layout">
+                <AutoCompleteTextView
+                        android:id="@+id/material_unit"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="text"
+                        app:dictionary="@{material_container.units}"
+                        android:text="@={material.unit}"
+                        android:hint="@string/unit"
+                        />
+            </com.google.android.material.textfield.TextInputLayout>
+            <ImageButton
+                    android:id="@+id/material_del_button"
+                    android:layout_width="50dp"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    android:src="@drawable/ic_delete_black_24dp"
+                    />
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
-</androidx.cardview.widget.CardView>
+    </androidx.cardview.widget.CardView>
 </layout>

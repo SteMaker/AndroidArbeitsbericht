@@ -12,6 +12,16 @@ class MaterialContainerData(): ViewModel() {
     val dictionary: LiveData<Set<String>>
         get() = _dictionary
     val visibility = MutableLiveData<Boolean>().apply { value = false }
+    private var _units = MutableLiveData<Set<String>>().apply { value = setOf("Stück", "Meter", "Packung", "Liter", "VPE") }
+    val units: LiveData<Set<String>>
+        get() = _units
+
+    fun isAnyMaterialUnitSet(): Boolean {
+        for(item in items) {
+            if(item.unit.value!! != "") return true
+        }
+        return false
+    }
 
     fun copyFromSerialized(m: MaterialContainerDataSerialized) {
         visibility.value = m.visibility
@@ -37,9 +47,11 @@ class MaterialContainerData(): ViewModel() {
 class MaterialData(): ViewModel() {
     var item = MutableLiveData<String>().apply { value = "" }
     var amount = MutableLiveData<Float>().apply { value = 0f }
+    var unit = MutableLiveData<String>().apply { value = "" }
 
     fun copyFromSerialized(m: MaterialDataSerialized) {
         item.value = m.item
         amount.value = m.amount
+        unit.value = m.unit
     }
 }

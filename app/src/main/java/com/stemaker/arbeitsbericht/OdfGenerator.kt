@@ -440,6 +440,7 @@ class OdfGenerator(val activity: Activity, val report: ReportData, val progressB
         parent.removeChild(node)
     }
 
+
     private fun setMaterial(contentDom: OdfContentDom) {
         val node = getParagraphOfTaggedNode(contentDom, "materialtag")
         val parent = node.parentNode as OdfElement
@@ -447,17 +448,32 @@ class OdfGenerator(val activity: Activity, val report: ReportData, val progressB
             parent.removeChild(node)
             return
         }
-        val table = OdfTable.newTable(parent, report.materialContainer.items.size, 2, 1, 0)
-        fillTableHeads(table, arrayOf("Material", "Anzahl"))
-        var idx = 1
-        for(item in report.materialContainer.items) {
-            table.getCellByPosition(0, idx).setDisplayText(item.item.value)
-            table.getCellByPosition(1, idx).setDisplayText(item.amount.value.toString())
-            idx++
+        if(report.materialContainer.isAnyMaterialUnitSet()) {
+            val table = OdfTable.newTable(parent, report.materialContainer.items.size, 3, 1, 0)
+            fillTableHeads(table, arrayOf("Material", "Anzahl", "Einheit"))
+            var idx = 1
+            for(item in report.materialContainer.items) {
+                table.getCellByPosition(0, idx).setDisplayText(item.item.value)
+                table.getCellByPosition(1, idx).setDisplayText(item.amount.value.toString())
+                table.getCellByPosition(2, idx).setDisplayText(item.unit.value.toString())
+                idx++
+            }
+            parent.insertBefore(table.odfElement.cloneNode(true), node)
+            parent.removeChild(table.odfElement)
+            parent.removeChild(node)
+        } else {
+            val table = OdfTable.newTable(parent, report.materialContainer.items.size, 2, 1, 0)
+            fillTableHeads(table, arrayOf("Material", "Anzahl"))
+            var idx = 1
+            for(item in report.materialContainer.items) {
+                table.getCellByPosition(0, idx).setDisplayText(item.item.value)
+                table.getCellByPosition(1, idx).setDisplayText(item.amount.value.toString())
+                idx++
+            }
+            parent.insertBefore(table.odfElement.cloneNode(true), node)
+            parent.removeChild(table.odfElement)
+            parent.removeChild(node)
         }
-        parent.insertBefore(table.odfElement.cloneNode(true), node)
-        parent.removeChild(table.odfElement)
-        parent.removeChild(node)
     }
 
     private fun setPhoto(contentDom: OdfContentDom) {

@@ -129,16 +129,31 @@ object HtmlReport {
 
         // Material table
         html += "<h2>Material</h2>" +
-                "<table style=\"border: 2px solid black;border-collapse: collapse;\">" +
-                    "<tr>" +
+                "<table style=\"border: 2px solid black;border-collapse: collapse;\">"
+        if(rep.materialContainer.isAnyMaterialUnitSet()) {
+            html += "<tr>" +
                         "<th style=\"padding: 15px;$fs;text-align:left;border: 2px solid black;border-collapse: collapse;\">Material</th>" +
                         "<th style=\"padding: 15px;$fs;text-align:left;border: 2px solid black;border-collapse: collapse;\">Anzahl</th>" +
+                        "<th style=\"padding: 15px;$fs;text-align:left;border: 2px solid black;border-collapse: collapse;\">Einheit</th>" +
                     "</tr>"
-        rep.materialContainer.items.forEach {
-            html += "<tr>" +
+            rep.materialContainer.items.forEach {
+                html += "<tr>" +
                         "<td style=\"padding: 10px;$fs;border: 2px solid black;border-collapse: collapse;\"> ${it.item.value}</td>" +
                         "<td style=\"padding: 10px;$fs;border: 2px solid black;border-collapse: collapse;\"> ${it.amount.value}</td>" +
+                        "<td style=\"padding: 10px;$fs;border: 2px solid black;border-collapse: collapse;\"> ${it.unit.value}</td>" +
+                        "</tr>"
+            }
+        } else {
+            html += "<tr>" +
+                    "<th style=\"padding: 15px;$fs;text-align:left;border: 2px solid black;border-collapse: collapse;\">Material</th>" +
+                    "<th style=\"padding: 15px;$fs;text-align:left;border: 2px solid black;border-collapse: collapse;\">Anzahl</th>" +
                     "</tr>"
+            rep.materialContainer.items.forEach {
+                html += "<tr>" +
+                        "<td style=\"padding: 10px;$fs;border: 2px solid black;border-collapse: collapse;\"> ${it.item.value}</td>" +
+                        "<td style=\"padding: 10px;$fs;border: 2px solid black;border-collapse: collapse;\"> ${it.amount.value}</td>" +
+                        "</tr>"
+            }
         }
         html += "</table><hr>"
         if(rep.photoContainer.items.size != 0) {

@@ -51,7 +51,7 @@
 
         <provider
                 android:name="androidx.core.content.FileProvider"
-                android:authorities="com.android.stemaker.arbeitsbericht.fileprovider"
+                android:authorities="com.stemaker.arbeitsbericht.fileprovider"
                 android:exported="false"
                 android:grantUriPermissions="true">
             <meta-data

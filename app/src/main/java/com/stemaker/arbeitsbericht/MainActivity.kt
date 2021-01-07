@@ -18,12 +18,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
-/* TODO: We should have an ability to send the configuration, report and photo files to some (e.g. cloud) share
-   TODO: In the ReportEditorActivity the toplevel containers should be CardViews to follow a more generic layout
-   TODO: Add the ability to collapse the signature pads to have the whole screen for the actual html report
-   TODO: Remove the buttons from the ReportEditorActivity and SummaryActivity and put them in the header
-*/
-
 class MainActivity : AppCompatActivity() {
     lateinit var topBinding: ActivityMainBinding
 
@@ -127,6 +121,11 @@ class MainActivity : AppCompatActivity() {
             R.id.main_menu_about -> {
                 val aboutDialog = AboutDialogFragment()
                 aboutDialog.show(supportFragmentManager, "AboutDialog")
+                true
+            }
+            R.id.main_menu_versions -> {
+                val versionDialog = VersionDialogFragment()
+                versionDialog.show(supportFragmentManager, "VersionDialog")
                 true
             }
             else -> super.onOptionsItemSelected(item)

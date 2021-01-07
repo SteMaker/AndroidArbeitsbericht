@@ -5,37 +5,29 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Paint
 import android.net.Uri
 import android.util.Log
 import android.webkit.WebView
-import com.github.gcacace.signaturepad.views.SignaturePad
 import android.print.*
 import android.view.*
-import android.view.animation.AccelerateDecelerateInterpolator
 import android.widget.*
 import androidx.annotation.NonNull
 import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
-import androidx.core.graphics.drawable.toBitmap
 import androidx.databinding.DataBindingUtil
-import com.caverock.androidsvg.SVG
 import com.stemaker.arbeitsbericht.data.ReportData
 import com.stemaker.arbeitsbericht.databinding.ActivitySummaryBinding
 import com.stemaker.arbeitsbericht.helpers.HtmlReport
 import com.stemaker.arbeitsbericht.helpers.showConfirmationDialog
 import com.stemaker.arbeitsbericht.helpers.showInfoDialog
+import kotlinx.android.synthetic.main.activity_lump_sum_definition.*
 import kotlinx.android.synthetic.main.activity_summary.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.io.File
-import java.io.FileOutputStream
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
@@ -106,6 +98,10 @@ class SummaryActivity : AppCompatActivity() {
             }
             R.id.send_report -> {
                 send()
+                true
+            }
+            R.id.share_report -> {
+                share()
                 true
             }
             else -> super.onOptionsItemSelected(item)
@@ -233,6 +229,7 @@ class SummaryActivity : AppCompatActivity() {
         storageHandler().saveActiveReportToFile(getApplicationContext())
     }
 
+    var pdfWritePermissionContinuation: Continuation<Boolean>? = null
     fun preview() {
         Log.d(TAG, "Preview")
         saveSignatures()
@@ -262,7 +259,6 @@ class SummaryActivity : AppCompatActivity() {
         }
     }
 
-    var pdfWritePermissionContinuation: Continuation<Boolean>? = null
     fun send() {
         Log.d(TAG, "Entry")
         saveSignatures()
@@ -292,6 +288,41 @@ class SummaryActivity : AppCompatActivity() {
         }
     }
 
+    private fun share() {
+        saveSignatures()
+
+        GlobalScope.launch(Dispatchers.Main) {
+            var withAttachment = true
+            val writeExternalStoragePermission = ContextCompat.checkSelfPermission(this@SummaryActivity, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+
+            // If we do not have external storage write permissions
+            if(writeExternalStoragePermission!= PackageManager.PERMISSION_GRANTED) {
+                // Request user to grant write external storage permission.
+                Log.d(TAG, "Need to query user for permissions, starting coroutine")
+                ActivityCompat.requestPermissions(
+                    this@SummaryActivity,
+                    arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
+                    REQUEST_CODE_WRITE_EXTERNAL_STORAGE_PERMISSION
+                )
+                withAttachment = suspendCoroutine<Boolean> {
+                    Log.d(TAG, "Coroutine: suspended")
+                    pdfWritePermissionContinuation = it
+                }
+            }
+            if(!withAttachment) {
+                val toast = Toast.makeText(applicationContext, R.string.send_fail, Toast.LENGTH_LONG)
+                toast.show()
+            } else {
+                val file = createReport()
+                if(file != null) {
+                    shareReport(file, storageHandler().getReport())
+                } else {
+                    val toast = Toast.makeText(applicationContext, R.string.send_fail, Toast.LENGTH_LONG)
+                    toast.show()
+                }
+            }
+        }
+    }
     suspend fun createReport(): File? {
         Log.d(TAG, "Creating report")
         var ret: File? = null
@@ -379,10 +410,10 @@ class SummaryActivity : AppCompatActivity() {
         }
     }
 
-    fun showReport(file: File) {
+    private fun showReport(file: File) {
         val intent = Intent(Intent.ACTION_VIEW)
         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        val uri = FileProvider.getUriForFile(this, "com.android.stemaker.arbeitsbericht.fileprovider", file)
+        val uri = FileProvider.getUriForFile(this, "com.stemaker.arbeitsbericht.fileprovider", file)
         val extension = file.name.substring(file.name.lastIndexOf(".")+1)
         when(extension) {
             "odt" -> intent.setDataAndType(uri, "application/vnd.oasis.opendocument.text")
@@ -398,7 +429,7 @@ class SummaryActivity : AppCompatActivity() {
         }
     }
 
-    fun sendMail(xdfFile: File?, report: ReportData) {
+    private fun sendMail(xdfFile: File?, report: ReportData) {
         val subj = "Arbeitsbericht von ${configuration().employeeName}: Kunde: ${report.project.name.value}, Berichtsnr: ${report.id}"
         val emailIntent = Intent(Intent.ACTION_SENDTO)
         emailIntent.data = Uri.parse("mailto:" + configuration().recvMail)
@@ -417,6 +448,43 @@ class SummaryActivity : AppCompatActivity() {
         } catch (ex: android.content.ActivityNotFoundException) {
             GlobalScope.launch(Dispatchers.Main) {
                 showInfoDialog(getString(R.string.no_mail_client), this@SummaryActivity)
+            }
+        }
+    }
+
+    private fun shareReport(xdfFile: File, report: ReportData) {
+        val fileUri: Uri? = try {
+            FileProvider.getUriForFile(
+                this@SummaryActivity,
+                "com.stemaker.arbeitsbericht.fileprovider",
+                xdfFile)
+        } catch (e: IllegalArgumentException) {
+            Log.e("File Selector",
+                "The selected file can't be shared: $xdfFile")
+            GlobalScope.launch(Dispatchers.Main) {
+                showInfoDialog(getString(R.string.send_fail), this@SummaryActivity)
+            }
+            return
+        }
+
+        val subj = "Arbeitsbericht von ${configuration().employeeName}: Kunde: ${report.project.name.value}, Berichtsnr: ${report.id}"
+        val shareIntent = Intent(Intent.ACTION_SEND).apply {
+            type = when(configuration().useOdfOutput) {
+                true -> "application/vnd.oasis.opendocument.text"
+                else -> "application/pdf"
+            }
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            putExtra(Intent.EXTRA_SUBJECT, subj)
+            putExtra(Intent.EXTRA_TEXT, "Bericht im Anhang")
+            putExtra(Intent.EXTRA_STREAM, fileUri)
+            putExtra(Intent.EXTRA_EMAIL, arrayOf(configuration().recvMail))
+        }
+
+        try {
+            startActivity(Intent.createChooser(shareIntent, getString(R.string.sharing)))
+        } catch (ex: android.content.ActivityNotFoundException) {
+            GlobalScope.launch(Dispatchers.Main) {
+                showInfoDialog(getString(R.string.send_fail), this@SummaryActivity)
             }
         }
     }

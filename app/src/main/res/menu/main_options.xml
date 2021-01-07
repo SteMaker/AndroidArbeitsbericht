@@ -17,8 +17,13 @@
         app:showAsAction="ifRoom">
     </item>
     <item
-        android:id="@+id/main_menu_about"
+            android:id="@+id/main_menu_about"
+            android:icon="@drawable/ic_assignment_black_24dp"
+            android:title="@string/about">
+    </item>
+    <item
+        android:id="@+id/main_menu_versions"
         android:icon="@drawable/ic_assignment_black_24dp"
-        android:title="@string/about">
+        android:title="@string/versions">
     </item>
 </menu>

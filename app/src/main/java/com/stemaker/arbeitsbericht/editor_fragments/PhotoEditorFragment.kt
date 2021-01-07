@@ -144,7 +144,7 @@ class PhotoEditorFragment : ReportEditorSectionFragment(),
                         }
                         // Continue only if the File was successfully created
                         photoFile?.also {
-                            val photoURI: Uri = FileProvider.getUriForFile(activity!!.applicationContext, "com.android.stemaker.arbeitsbericht.fileprovider", it)
+                            val photoURI: Uri = FileProvider.getUriForFile(activity!!.applicationContext, "com.stemaker.arbeitsbericht.fileprovider", it)
                             Log.d("Arbeitsbericht.PhotoEditorFragment.onClickTakePhoto", "PhotoURI: ${photoURI}")
                             takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
                             p.file.value = photoFile.absolutePath

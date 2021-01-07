@@ -39,8 +39,11 @@
     <string name="del_confirmation">Sind sie sich sicher, dass sie das Element löschen wollen?</string>
     <string name="del_signature">Sind sie sich sicher, dass sie die Unterschrift löschen wollen?</string>
     <string name="overwrite_confirmation">Der Bericht exisitiert bereits als PDF, soll er überschrieben werden?</string>
+    <string name="send_fail">Senden fehlgeschlagen!</string>
+    <string name="sharing">Bericht teilen ...</string>
     <string name="ok">OK</string>
     <string name="cancel">Abbrechen</string>
+    <string name="versions">Versionen</string>
     <string name="nouse">Nicht verwenden</string>
     <string name="work_item">Durchgeführte Arbeit</string>
     <string name="amount">Anzahl</string>

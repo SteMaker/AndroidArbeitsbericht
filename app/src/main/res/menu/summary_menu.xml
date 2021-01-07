@@ -7,6 +7,12 @@
             android:title="@string/preview">
     </item>
     <item
+            android:id="@+id/share_report"
+            android:icon="@drawable/ic_baseline_share_24"
+            app:showAsAction="ifRoom"
+            android:title="@string/send">
+    </item>
+    <item
             android:id="@+id/send_report"
             android:icon="@drawable/ic_send_black_24dp"
             app:showAsAction="ifRoom"

@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import com.stemaker.arbeitsbericht.configuration
 import kotlinx.serialization.json.Json
 import java.util.*
+import com.stemaker.arbeitsbericht.R
 
 private const val TAG="ReportData"
 
@@ -47,6 +48,23 @@ class ReportData private constructor(var cnt: Int = 0): ViewModel() {
     val create_date: LiveData<String>
         get() = _create_date
 
+    enum class ReportState(v: Int) {
+        IN_WORK(0), ON_HOLD(1), DONE(2);
+
+        companion object {
+            fun fromInt(value: Int) = values().first() { it.ordinal == value }
+            fun toInt(s: ReportState) = s.ordinal
+            fun toStringId(s: ReportState): Int {
+                return when(s) {
+                    IN_WORK -> R.string.in_work
+                    ON_HOLD -> R.string.on_hold
+                    DONE -> R.string.done
+                }
+            }
+        }
+    }
+    val state = MutableLiveData<ReportState>().apply { value = ReportState.IN_WORK }
+
     var lastStoreHash: Int = 0
 
     var project = ProjectData()
@@ -65,6 +83,7 @@ class ReportData private constructor(var cnt: Int = 0): ViewModel() {
     private fun copyFromSerialized(r: ReportDataSerialized) {
         cnt = r.id
         _create_date.value = r.create_date
+        state.value = ReportState.fromInt(r.state)
         project.copyFromSerialized(r.project)
         bill.copyFromSerialized(r.bill)
         workTimeContainer.copyFromSerialized(r.workTimeContainer)

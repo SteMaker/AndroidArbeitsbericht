@@ -7,7 +7,9 @@ import android.util.Log
 import kotlinx.android.synthetic.main.activity_main.*
 import android.content.Context
 import android.view.*
+import android.widget.AdapterView
 import android.widget.ImageButton
+import android.widget.PopupMenu
 import androidx.appcompat.app.AlertDialog
 import androidx.databinding.DataBindingUtil
 import com.stemaker.arbeitsbericht.data.ReportData
@@ -20,6 +22,9 @@ import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
     lateinit var topBinding: ActivityMainBinding
+    private val mapState2MenuItemId = mapOf(ReportData.ReportState.IN_WORK to R.id.status_in_work,
+        ReportData.ReportState.ON_HOLD to R.id.status_on_hold,
+        ReportData.ReportState.DONE to R.id.status_done)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,9 +50,9 @@ class MainActivity : AppCompatActivity() {
             reportBinding.reportData = rep
 
             // Assign the report ID as tag to the button to know which one to delete
-            val btnDel = reportBinding.root.findViewById<ImageButton>(R.id.report_card_del_button)
-            btnDel.setTag(R.id.TAG_REPORT_ID, rep.id)
-            btnDel.setTag(R.id.TAG_CARDVIEW, reportBinding.root)
+            val btnReportMenu = reportBinding.root.findViewById<ImageButton>(R.id.report_card_menu_button)
+            btnReportMenu.setTag(R.id.TAG_REPORT_ID, rep.id)
+            btnReportMenu.setTag(R.id.TAG_CARDVIEW, reportBinding.root)
             reportBinding.root.setTag(R.id.TAG_REPORT_ID, it)
 
             // Add The card to the scrollview
@@ -66,6 +71,46 @@ class MainActivity : AppCompatActivity() {
         inflater.inflate(R.menu.main_options, menu)
         return true
     }
+
+    fun onClickContext(v: View) {
+        val popup = PopupMenu(this, v).apply {
+            val reportId = v.getTag(R.id.TAG_REPORT_ID) as String
+            val cardV = v.getTag(R.id.TAG_CARDVIEW) as View
+            val report = storageHandler().getReportById(reportId, applicationContext)
+            storageHandler().selectReportById(reportId)
+            setOnMenuItemClickListener(object: PopupMenu.OnMenuItemClickListener {
+                override fun onMenuItemClick(item: MenuItem?): Boolean {
+                    return when (item?.itemId) {
+                        R.id.delete-> {
+                            deleteReport(reportId, cardV)
+                            true
+                        }
+                        R.id.status_in_work -> {
+                            storageHandler().getReport().state.value = ReportData.ReportState.IN_WORK
+                            storageHandler().saveActiveReportToFile(applicationContext)
+                            true
+                        }
+                        R.id.status_on_hold -> {
+                            storageHandler().getReport().state.value = ReportData.ReportState.ON_HOLD
+                            storageHandler().saveActiveReportToFile(applicationContext)
+                            true
+                        }
+                        R.id.status_done -> {
+                            Log.d("MainActivity", "Report ${report.id} set to done")
+                            storageHandler().getReport().state.value = ReportData.ReportState.DONE
+                            storageHandler().saveActiveReportToFile(applicationContext)
+                            true
+                        }
+                        else -> false
+                    }
+                }
+            })
+            inflate(R.menu.report_actions_menu)
+            menu.findItem(mapState2MenuItemId[report.state.value!!]!!).setVisible(false)
+            show()
+        }
+    }
+
 
     fun createNewReport() {
         storageHandler().createNewReportAndSelect()
@@ -86,15 +131,15 @@ class MainActivity : AppCompatActivity() {
         startActivity(intent)
     }
 
-    fun onClickDelete(btn: View) {
+    fun deleteReport(id: String, cardV: View) {
         // TODO: We should delete the related photo files as well
         GlobalScope.launch(Dispatchers.Main) {
             val answer = showConfirmationDialog(getString(R.string.del_confirmation), this@MainActivity)
             if(answer == AlertDialog.BUTTON_POSITIVE) {
                 Log.d("Arbeitsbericht.ReportEditorActivity.onClickDelete", "deleting a report")
-                storageHandler().deleteReport(btn.getTag(R.id.TAG_REPORT_ID) as String, applicationContext)
+                storageHandler().deleteReport(id, applicationContext)
                 val reportListScrollContainer = report_list_scroll_container
-                reportListScrollContainer.removeView(btn.getTag(R.id.TAG_CARDVIEW) as View)
+                reportListScrollContainer.removeView(cardV)
             } else {
                 Log.d("Arbeitsbericht.MainActivity.onClickDelete", "Cancelled deleting a report")
             }

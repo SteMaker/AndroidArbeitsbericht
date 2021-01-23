@@ -11,6 +11,7 @@ import androidx.databinding.InverseBindingAdapter
 import androidx.databinding.InverseBindingListener
 import com.caverock.androidsvg.SVG
 import com.google.android.material.textfield.TextInputEditText
+import com.stemaker.arbeitsbericht.data.ReportData
 import com.stemaker.arbeitsbericht.helpers.LinearLayoutVisListener
 import java.io.File
 import java.text.DecimalFormatSymbols
@@ -236,5 +237,19 @@ object BindingAdapters {
     @InverseBindingAdapter(attribute="visibility")
     fun getVisibility(view: LinearLayoutVisListener): Boolean {
         return view.visibility!=View.GONE
+    }
+
+    /**********************************************************************************/
+    /* Binding Adapters to bind a ReportState to an ImageView (done vs. in work icon) */
+    /**********************************************************************************/
+    @JvmStatic
+    @BindingAdapter("doneFlag")
+    fun setDoneFlag(imgView: ImageView, done: ReportData.ReportState) {
+        Log.d("Binding Adapter", "state is ${done}")
+        when(done) {
+            ReportData.ReportState.IN_WORK -> imgView.setImageResource(ArbeitsberichtApp.getInWorkIconDrawable())
+            ReportData.ReportState.DONE -> imgView.setImageResource(ArbeitsberichtApp.getDoneIconDrawable())
+            ReportData.ReportState.ON_HOLD -> imgView.setImageResource(ArbeitsberichtApp.getOnHoldIconDrawable())
+        }
     }
 }

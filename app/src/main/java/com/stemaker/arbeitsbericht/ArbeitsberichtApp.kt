@@ -15,5 +15,8 @@ class ArbeitsberichtApp: Application() {
         fun getVersionCode(): Int {
             return appContext.packageManager.getPackageInfo(appContext.packageName!!, 0).versionCode
         }
+        fun getInWorkIconDrawable() = R.drawable.ic_baseline_handyman_24
+        fun getOnHoldIconDrawable() = R.drawable.ic_baseline_pause_24
+        fun getDoneIconDrawable() = R.drawable.ic_baseline_done_24
     }
 }

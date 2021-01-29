@@ -42,7 +42,6 @@ object BindingAdapters {
     @JvmStatic
     @BindingAdapter("textInt")
     fun setTextFromInt(view: TextInputEditText, value: Int) {
-        Log.d("Arbeitsbericht.BindingAdapters.textInt.setTextFromInt","Value = $value")
         try {
             val old = view.text.toString().toInt()
             if (old == value) return
@@ -59,7 +58,6 @@ object BindingAdapters {
             ret = editText.text.toString().toInt()
         } catch(e: NumberFormatException) {
         }
-        Log.d("Arbeitsbericht.BindingAdapters.textInt.getTextFromInt","ret = $ret")
         return ret
     }
 
@@ -79,11 +77,9 @@ object BindingAdapters {
 
                 override fun afterTextChanged(editable: Editable) {
                     val localizedSeparator = DecimalFormatSymbols.getInstance().getDecimalSeparator()
-                    Log.d("textFloat.setListener","afterTextChanged ${editable.toString()} ${localizedSeparator} ${editText.text}")
                     editText.removeTextChangedListener(this)
                     val withDecimalComma = editable.toString().replace('.', localizedSeparator)
                     editable.replace(0, withDecimalComma.length, withDecimalComma)
-                    Log.d("textFloat.setListener","afterTextChanged ${editable.toString()} ${localizedSeparator} ${editText.text}")
                     editText.addTextChangedListener(this)
                     listener.onChange()
                 }
@@ -94,7 +90,6 @@ object BindingAdapters {
     @JvmStatic
     @BindingAdapter("textFloat")
     fun setTextFromFloat(view: TextInputEditText, value: Float) {
-        Log.d("setTextFromFloat","Value = $value ${view.text}")
         val localizedSeparator = DecimalFormatSymbols.getInstance().getDecimalSeparator()
         try {
             val old = view.text.toString().replace(localizedSeparator, '.').toFloat()
@@ -120,7 +115,6 @@ object BindingAdapters {
             ret = editText.text.toString().replace(localizedSeparator, '.').toFloat()
         } catch(e: NumberFormatException) {
         }
-        Log.d("getTextFromFloat","in: ${editText.text}, ret:$ret")
         return ret
     }
     /***************************************/
@@ -132,7 +126,6 @@ object BindingAdapters {
         if (listener != null) {
             spinner.setOnItemSelectedListener(object : AdapterView.OnItemSelectedListener {
                 override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                    Log.d("Arbeitsbericht.BindingAdapters.selectedItemAttrChanged.setListener","onItemSelected")
                     listener.onChange()
                 }
                 override fun onNothingSelected(parent: AdapterView<*>?) {
@@ -144,8 +137,6 @@ object BindingAdapters {
     @JvmStatic
     @BindingAdapter("selectedItem")
     fun setSelectedItemText(spinner: Spinner, value: String) {
-        Log.d("Arbeitsbericht.BindingAdapters.selectedItem.setSelectedItemText","Value = $value")
-
         val idx = configuration().lumpSums.indexOf(value)
         if(idx >= 0) {
             spinner.setSelection(idx)
@@ -156,14 +147,12 @@ object BindingAdapters {
     @InverseBindingAdapter(attribute="selectedItem")
     fun getSelectedItemText(spinner: Spinner): String {
         val value = configuration().lumpSums[spinner.selectedItemPosition]
-        Log.d("Arbeitsbericht.BindingAdapters.selectedItem.getSelectedItemText","Value = $value")
         return value
     }
 
     @JvmStatic
     @BindingAdapter("selectionList")
     fun setSelectionList(spinner: Spinner, value: List<String>) {
-        Log.d("Arbeitsbericht.BindingAdapters.selectionList.setSelectionList","called")
         // Create the adapter and set it to the AutoCompleteTextView
         ArrayAdapter<String>(spinner.context, android.R.layout.simple_list_item_1, value).also { adapter ->
             spinner.setAdapter(adapter)
@@ -176,7 +165,6 @@ object BindingAdapters {
     @JvmStatic
     @BindingAdapter("dictionary")
     fun setDictionary(textView: AutoCompleteTextView, value: Set<String>) {
-        Log.d("Arbeitsbericht.BindingAdapters.dictionary.setDictionary","called")
         // Create the adapter and set it to the AutoCompleteTextView
         ArrayAdapter<String>(textView.context, android.R.layout.simple_list_item_1, value.toList()).also { adapter ->
             textView.setAdapter(adapter)
@@ -189,7 +177,6 @@ object BindingAdapters {
     @JvmStatic
     @BindingAdapter("srcFile")
     fun setSrcFile(imgView: ImageView, file: String) {
-        Log.d("Arbeitsbericht.BindingAdapters.srcFile.setSrcFile","called")
         if(file != "" && File(file).length() > 0)
             GlideApp.with(imgView.context).load(file).into(imgView)
     }
@@ -200,7 +187,6 @@ object BindingAdapters {
     @JvmStatic
     @BindingAdapter("svgString")
     fun setSvgString(imgView: ImageView, svgString: String) {
-        Log.d("Arbeitsbericht.BindingAdapters.svgString.setSvgString: ",if(svgString=="") "no data" else "with SVG")
         if(svgString != "") {
             val svg = SVG.getFromString(svgString)
             val pd = PictureDrawable(svg.renderToPicture())
@@ -245,7 +231,6 @@ object BindingAdapters {
     @JvmStatic
     @BindingAdapter("doneFlag")
     fun setDoneFlag(imgView: ImageView, done: ReportData.ReportState) {
-        Log.d("Binding Adapter", "state is ${done}")
         when(done) {
             ReportData.ReportState.IN_WORK -> imgView.setImageResource(ArbeitsberichtApp.getInWorkIconDrawable())
             ReportData.ReportState.DONE -> imgView.setImageResource(ArbeitsberichtApp.getDoneIconDrawable())

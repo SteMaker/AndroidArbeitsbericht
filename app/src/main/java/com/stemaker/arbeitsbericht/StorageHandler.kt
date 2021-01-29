@@ -164,25 +164,31 @@ object StorageHandler {
         return ReportData.getReportFromJson(jsonString)
     }
 
-    fun saveActiveReportToFile(c: Context) {
-        val jsonString = ReportData.getJsonFromReport(activeReport)
-        activeReport.lastStoreHash = jsonString.hashCode()
-        val fileName = reportIdToReportFile(activeReport.id)
+    fun saveReportToFile(c: Context, report: ReportData, skipDictionaryUpdate: Boolean = false) {
+        val jsonString = ReportData.getJsonFromReport(report)
+        report.lastStoreHash = jsonString.hashCode()
+        val fileName = reportIdToReportFile(report.id)
         writeStringToFile(fileName, jsonString, c)
         Log.d("Arbeitsbericht.StorageHandler.saveReportToFile", "Saved to file $fileName")
 
-        for(wi in activeReport.workItemContainer.items) {
-            addToWorkItemDictionary(wi.item.value!!)
-        }
-        for(m in activeReport.materialContainer.items) {
-            addToMaterialDictionary(m.item.value!!)
-        }
+        if(!skipDictionaryUpdate) {
+            for (wi in report.workItemContainer.items) {
+                addToWorkItemDictionary(wi.item.value!!)
+            }
+            for (m in report.materialContainer.items) {
+                addToMaterialDictionary(m.item.value!!)
+            }
 
-        if(materialDictionaryChanged || workItemDictionaryChanged) {
-            configuration().save()
-            materialDictionaryChanged = false
-            workItemDictionaryChanged = false
+            if (materialDictionaryChanged || workItemDictionaryChanged) {
+                configuration().save()
+                materialDictionaryChanged = false
+                workItemDictionaryChanged = false
+            }
         }
+    }
+
+    fun saveActiveReportToFile(c: Context) {
+        saveReportToFile(c, activeReport)
     }
 
     fun reportIdToReportFile(id: String): String {

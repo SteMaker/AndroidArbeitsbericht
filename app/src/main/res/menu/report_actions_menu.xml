@@ -12,16 +12,21 @@
             android:title="@string/set_in_work">
     </item>
     <item
+            android:id="@+id/status_on_hold"
+            android:icon="@drawable/ic_baseline_pause_24"
+            android:visible="true"
+            android:title="@string/set_on_hold">
+    </item>
+    <item
             android:id="@+id/status_done"
             android:icon="@drawable/ic_baseline_done_24"
             android:visible="true"
             android:title="@string/set_done">
     </item>
     <item
-            android:id="@+id/status_on_hold"
+            android:id="@+id/status_archived"
             android:icon="@drawable/ic_baseline_pause_24"
             android:visible="true"
-            android:title="@string/set_on_hold">
+            android:title="@string/archive">
     </item>
-
 </menu>

@@ -10,16 +10,19 @@ import android.widget.PopupMenu
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.LifecycleOwner
 import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.SortedList
 import com.stemaker.arbeitsbericht.*
 import com.stemaker.arbeitsbericht.data.ReportData
 import com.stemaker.arbeitsbericht.databinding.ReportCardLayoutBinding
 
-class ReportListAdapter(private var reportIds: List<String>, val reportCardInterface: ReportCardInterface, val activity: AppCompatActivity) :
+class ReportListAdapter(val reportCardInterface: ReportCardInterface, val activity: AppCompatActivity) :
     RecyclerView.Adapter<ReportListAdapter.ReportViewHolder>() {
 
+    private lateinit var recyclerView: RecyclerView
     private val mapState2MenuItemId = mapOf(ReportData.ReportState.IN_WORK to R.id.status_in_work,
         ReportData.ReportState.ON_HOLD to R.id.status_on_hold,
         ReportData.ReportState.DONE to R.id.status_done)
+    private var bottomView: View? = null
 
     class ReportViewHolder(val binding: ReportCardLayoutBinding, private val lcOwner: LifecycleOwner) :
         RecyclerView.ViewHolder(binding.root) {
@@ -30,6 +33,10 @@ class ReportListAdapter(private var reportIds: List<String>, val reportCardInter
         }
     }
 
+    override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
+        super.onAttachedToRecyclerView(recyclerView)
+        this.recyclerView = recyclerView
+    }
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ReportViewHolder {
         val layoutInflater = LayoutInflater.from(parent.context);
         val itemBinding = ReportCardLayoutBinding.inflate(layoutInflater, parent, false);
@@ -39,12 +46,12 @@ class ReportListAdapter(private var reportIds: List<String>, val reportCardInter
     override fun onBindViewHolder(holder: ReportViewHolder, position: Int) {
         Log.d("ReportListAdapter", "onBindViewHolder")
         // Bind data
-        val report = storageHandler().getReportById(reportIds[position], activity.applicationContext)
+        val report = sortedList.get(position)
         holder.bind(report)
-
         // Ensure there is enough space so that Floating Action Button doesn't hide parts of the LAST report
         if(position + 1 == itemCount) {
             setBottomMargin(holder.itemView, (100 * Resources.getSystem().displayMetrics.density).toInt());
+            bottomView = holder.itemView
         } else {
             setBottomMargin(holder.itemView, 0);
         }
@@ -63,8 +70,7 @@ class ReportListAdapter(private var reportIds: List<String>, val reportCardInter
                         return when (item?.itemId) {
                             R.id.delete-> {
                                 reportCardInterface.onClickDeleteReport(report) {
-                                    reportIds = storageHandler().getListOfReports()
-                                    notifyItemRemoved(position)
+                                    sortedList.removeItemAt(position)
                                 }
                                 true
                             }
@@ -78,7 +84,7 @@ class ReportListAdapter(private var reportIds: List<String>, val reportCardInter
                                 true
                             }
                             R.id.status_done -> {
-                                reportCardInterface.onSetReportState(report, ReportData.ReportState.DONE)
+                                reportCardInterface.onSetReportState(report, ReportData.ReportState.ARCHIVED)
                                 true
                             }
                             else -> false
@@ -93,15 +99,72 @@ class ReportListAdapter(private var reportIds: List<String>, val reportCardInter
         }
     }
 
-    override fun getItemCount(): Int {
-        return reportIds.size
-    }
-
     private fun setBottomMargin(view: View, bottomMargin: Int) {
         if (view.layoutParams is ViewGroup.MarginLayoutParams) {
             val params = view.layoutParams as ViewGroup.MarginLayoutParams
             params.setMargins(params.leftMargin, params.topMargin, params.rightMargin, bottomMargin);
             view.requestLayout();
         }
+    }
+
+    private val sortedList: SortedList<ReportData> = SortedList<ReportData>(ReportData::class.java, object : SortedList.Callback<ReportData>() {
+        override fun compare(o1: ReportData?, o2: ReportData?): Int {
+            if(o1 == null || o2 == null) return 0
+            val result = (o1.id.compareTo(o2.id))*-1
+            //Log.d("ReportListAdapter", "compare ${o1} ${o2} -> $result")
+            return result
+        }
+        override fun onInserted(position: Int, count: Int) {
+            //Log.d("ReportListAdapter", "onInserted")
+            notifyItemRangeInserted(position, count)
+        }
+        override fun onRemoved(position: Int, count: Int) {
+            //Log.d("ReportListAdapter", "onRemoved")
+            notifyItemRangeRemoved(position, count)
+        }
+        override fun onMoved(fromPosition: Int, toPosition: Int) {
+            //Log.d("ReportListAdapter", "onMoved")
+            notifyItemMoved(fromPosition, toPosition)
+        }
+        override fun onChanged(position: Int, count: Int) {
+            //Log.d("ReportListAdapter", "onChanged")
+            notifyItemRangeChanged(position, count)
+        }
+        override fun areContentsTheSame(oldItem: ReportData?, newItem: ReportData?): Boolean {
+            //Log.d("ReportListAdapter", "areContentsTheSame ${oldItem} ${newItem}")
+            return oldItem.hashCode() == newItem.hashCode()
+        }
+        override fun areItemsTheSame(item1: ReportData?, item2: ReportData?): Boolean {
+            //Log.d("ReportListAdapter", "areItemsTheSame ${item1} ${item2}")
+            if(item1 == null || item2 == null) return false
+            return item1.id == item2.id
+        }
+    })
+
+    fun replaceAll(reports: List<ReportData>) {
+        sortedList.beginBatchedUpdates()
+        sortedList.clear()
+        sortedList.addAll(reports)
+        sortedList.endBatchedUpdates()
+    }
+
+    fun add(reports: List<ReportData>) {
+        sortedList.addAll(reports)
+        if(bottomView != null) {
+            setBottomMargin(bottomView!!, 0);
+            bottomView = null
+        }
+    }
+
+    fun add(report: ReportData) {
+        sortedList.add(report)
+        if(bottomView != null) {
+            setBottomMargin(bottomView!!, 0);
+            bottomView = null
+        }
+    }
+
+    override fun getItemCount(): Int {
+        return sortedList.size()
     }
 }

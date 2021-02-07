@@ -49,7 +49,7 @@ class ReportData private constructor(var cnt: Int = 0): ViewModel() {
         get() = _create_date
 
     enum class ReportState(v: Int) {
-        IN_WORK(0), ON_HOLD(1), DONE(2);
+        IN_WORK(0), ON_HOLD(1), DONE(2), ARCHIVED(3);
 
         companion object {
             fun fromInt(value: Int) = values().first() { it.ordinal == value }
@@ -59,6 +59,15 @@ class ReportData private constructor(var cnt: Int = 0): ViewModel() {
                     IN_WORK -> R.string.in_work
                     ON_HOLD -> R.string.on_hold
                     DONE -> R.string.done
+                    ARCHIVED -> R.string.archived
+                }
+            }
+            fun toDirName(s: ReportState): String {
+                return when(s) {
+                    IN_WORK -> ""
+                    ON_HOLD -> "onhold"
+                    DONE -> "done"
+                    ARCHIVED -> "archive"
                 }
             }
         }

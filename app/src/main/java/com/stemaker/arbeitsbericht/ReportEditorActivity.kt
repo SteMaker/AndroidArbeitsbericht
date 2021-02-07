@@ -72,22 +72,12 @@ class ReportEditorActivity : AppCompatActivity(),
                 startActivity(intent)
                 true
             }
+            android.R.id.home -> {
+                onBackPressed()
+                true
+            }
             else -> super.onOptionsItemSelected(item)
         }
-    }
-
-    fun saveAndBackToMain() {
-        Log.d("Arbeitsbericht", "Kundenname ist ${storageHandler().getReport().project.name.value}")
-        Log.d("Arbeitsbericht.debug","There are ${storageHandler().activeReport.photoContainer.items.size} photos, , object: ${storageHandler().activeReport.photoContainer.toString()}")
-        saveReport()
-        val intent = Intent(this, MainActivity::class.java).apply {}
-        Log.d("Arbeitsbericht", "Switching to main activity")
-        startActivity(intent)
-    }
-
-    override fun onBackPressed() {
-        Log.d("Arbeitsbericht.ReportEditorActivity.onBackPressed", "called")
-        saveAndBackToMain()
     }
 
     fun saveReport() {

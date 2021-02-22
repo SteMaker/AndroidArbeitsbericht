@@ -11,17 +11,19 @@ import androidx.databinding.DataBindingUtil
 import com.stemaker.arbeitsbericht.R
 import com.stemaker.arbeitsbericht.data.ProjectData
 import com.stemaker.arbeitsbericht.databinding.FragmentProjectEditorBinding
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 class ProjectEditorFragment : ReportEditorSectionFragment(),
     ReportEditorSectionFragment.OnExpandChange {
     private var listener: OnProjectEditorInteractionListener? = null
-    var projectData: ProjectData? = null
     lateinit var dataBinding: FragmentProjectEditorBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Log.d("Arbeitsbericht","ProjectEditorFragment.onCreate called")
-        projectData = listener!!.getProjectData()
+
     }
 
     override fun onCreateView(
@@ -37,7 +39,10 @@ class ProjectEditorFragment : ReportEditorSectionFragment(),
         setHeadline("Projekt / Kunde")
 
         dataBinding.lifecycleOwner = this
-        dataBinding.projectData = projectData!!
+
+        GlobalScope.launch(Dispatchers.Main) {
+            dataBinding.projectData = listener!!.getProjectData()
+        }
         return root
     }
 
@@ -46,7 +51,7 @@ class ProjectEditorFragment : ReportEditorSectionFragment(),
         if (context is OnProjectEditorInteractionListener) {
             listener = context
         } else {
-            throw RuntimeException(context.toString() + " must implement OnProjectEditorInteractionListener")
+            throw RuntimeException("$context must implement OnProjectEditorInteractionListener")
         }
     }
 
@@ -64,7 +69,7 @@ class ProjectEditorFragment : ReportEditorSectionFragment(),
     }
 
     interface OnProjectEditorInteractionListener {
-        fun getProjectData(): ProjectData
+        suspend fun getProjectData(): ProjectData
     }
 
 }

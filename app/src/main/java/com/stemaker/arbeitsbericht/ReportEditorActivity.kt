@@ -3,15 +3,15 @@ package com.stemaker.arbeitsbericht
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
-import android.view.View
 import android.content.Intent
-import android.view.Menu
-import android.view.MenuInflater
-import android.view.MenuItem
+import android.view.*
 import androidx.databinding.DataBindingUtil
 import com.stemaker.arbeitsbericht.data.*
 import com.stemaker.arbeitsbericht.databinding.ActivityReportEditorBinding
 import com.stemaker.arbeitsbericht.editor_fragments.*
+import kotlinx.coroutines.*
+
+private const val TAG = "ReportEditorActivity"
 
 class ReportEditorActivity : AppCompatActivity(),
     ProjectEditorFragment.OnProjectEditorInteractionListener,
@@ -23,18 +23,35 @@ class ReportEditorActivity : AppCompatActivity(),
     PhotoEditorFragment.OnPhotoEditorInteractionListener {
 
     lateinit var topBinding : ActivityReportEditorBinding
+    var storageInitJob: Job? = null
     /*****************/
     /* General stuff */
     /*****************/
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Log.d("Arbeitsbericht.ReportEditorActivity.onCreate", "start")
-
+        storageInitJob = storageHandler().initialize()
         topBinding = DataBindingUtil.setContentView(this, R.layout.activity_report_editor)
 
         setSupportActionBar(findViewById(R.id.report_editor_activity_toolbar))
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.setTitle(R.string.editor)
+
+        window.setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
+
+        GlobalScope.launch(Dispatchers.Main) {
+            delay(200)
+            storageInitJob?.let {
+                if (!it.isCompleted) {
+                    topBinding.progressBar.visibility = View.VISIBLE
+                    topBinding.loadNotify.visibility = View.VISIBLE
+                    it.join()
+                    topBinding.progressBar.visibility = View.GONE
+                    topBinding.loadNotify.visibility = View.GONE
+                }
+            } ?: run { Log.e(TAG, "storageHandler job was null :(") }
+
+            window.clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -44,32 +61,35 @@ class ReportEditorActivity : AppCompatActivity(),
     }
 
     override fun onStart() {
-        Log.d("Arbeitsbericht.ReportEditorActivity.onStart", "called")
         super.onStart()
     }
 
     override fun onPause() {
-        Log.d("Arbeitsbericht.ReportEditorActivity.onPause", "called")
+        Log.d(TAG, "onPause")
         super.onPause()
-        saveReport()
     }
 
     override fun onStop() {
-        Log.d("Arbeitsbericht.ReportEditorActivity.onStop", "called")
+        Log.d(TAG, "onStop")
         super.onStop()
+        runBlocking {
+            storageHandler().saveActiveReport()
+        }
     }
 
     override fun onDestroy() {
-        Log.d("Arbeitsbericht.ReportEditorActivity.onDestroy", "called")
+        Log.d(TAG, "onDestroy")
         super.onDestroy()
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.goto_summary -> {
-                saveReport()
                 val intent = Intent(this, SummaryActivity::class.java).apply {}
-                startActivity(intent)
+                GlobalScope.launch(Dispatchers.Main) {
+                    storageHandler().saveActiveReport()
+                    startActivity(intent)
+                }
                 true
             }
             android.R.id.home -> {
@@ -80,35 +100,44 @@ class ReportEditorActivity : AppCompatActivity(),
         }
     }
 
-    fun saveReport() {
-        storageHandler().saveActiveReportToFile(getApplicationContext())
+    private suspend fun waitForStorageHandler() {
+        storageInitJob?.let {
+            it.join()
+        }
     }
 
-    override fun getProjectData(): ProjectData {
+    override suspend fun getProjectData(): ProjectData {
+        waitForStorageHandler()
         return storageHandler().getReport().project
     }
 
-    override fun getBillData(): BillData {
+    override suspend fun getBillData(): BillData {
+        waitForStorageHandler()
         return storageHandler().getReport().bill
     }
 
-    override fun getWorkTimeContainerData(): WorkTimeContainerData {
+    override suspend fun getWorkTimeContainerData(): WorkTimeContainerData {
+        waitForStorageHandler()
         return storageHandler().getReport().workTimeContainer
     }
 
-    override fun getWorkItemContainerData(): WorkItemContainerData {
+    override suspend fun getWorkItemContainerData(): WorkItemContainerData {
+        waitForStorageHandler()
         return storageHandler().getReport().workItemContainer
     }
 
-    override fun getMaterialContainerData(): MaterialContainerData {
+    override suspend fun getMaterialContainerData(): MaterialContainerData {
+        waitForStorageHandler()
         return storageHandler().getReport().materialContainer
     }
 
-    override fun getLumpSumContainerData(): LumpSumContainerData {
+    override suspend fun getLumpSumContainerData(): LumpSumContainerData {
+        waitForStorageHandler()
         return storageHandler().getReport().lumpSumContainer
     }
 
-    override fun getPhotoContainerData(): PhotoContainerData {
+    override suspend fun getPhotoContainerData(): PhotoContainerData {
+        waitForStorageHandler()
         return storageHandler().getReport().photoContainer
     }
 }

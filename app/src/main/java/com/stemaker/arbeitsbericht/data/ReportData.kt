@@ -22,7 +22,6 @@ class ReportData private constructor(var cnt: Int = 0): ViewModel() {
             // Replace %<n>c -> running counter
             val regex = """(%c|%[0-9]c)""".toRegex()
             string = regex.replace(string) { m ->
-                Log.d(TAG, m.value)
                 when (m.value) {
                     "%c" -> cnt.toString()
                     else -> {
@@ -103,6 +102,21 @@ class ReportData private constructor(var cnt: Int = 0): ViewModel() {
         signatureData.copyFromSerialized(r.signatureData)
     }
 
+    private fun copyFromDb(r: ReportDb) {
+        cnt = r.cnt
+        _create_date.value = r.create_date
+        state.value = ReportState.fromInt(r.state)
+        project.copyFromDb(r.project)
+        bill.copyFromDb(r.bill)
+        workTimeContainer.copyFromDb(r.workTimeContainerDb)
+        //workItemContainer.copyFromDb(r.workItemContainer)
+        //materialContainer.copyFromDb(r.materialContainer)
+        //lumpSumContainer.copyFromDb(r.lumpSumContainer)
+        //photoContainer.copyFromDb(r.photoContainer)
+        //signatureData.copyFromDb(r.signatureData)
+
+    }
+
     private fun getCurrentDate(): String {
         val d = Date()
         val cal = Calendar.getInstance()
@@ -114,17 +128,21 @@ class ReportData private constructor(var cnt: Int = 0): ViewModel() {
 
     companion object {
         fun getReportFromJson(jsonData: String): ReportData {
-            val serialized = Json.parse(ReportDataSerialized.serializer(), jsonData)
+            val serialized = Json.decodeFromString(ReportDataSerialized.serializer(), jsonData)
             val report = ReportData()
             report.copyFromSerialized(serialized)
+            return report
+        }
+        fun getReportFromDb(r: ReportDb): ReportData {
+            val report = ReportData()
+            report.copyFromDb(r)
             return report
         }
 
         fun getJsonFromReport(r: ReportData): String {
             val serialized = ReportDataSerialized()
             serialized.copyFromData(r) // Copy from data object into serialized object
-            val json: String = Json.stringify(ReportDataSerialized.serializer(), serialized)
-            return json
+            return Json.encodeToString(ReportDataSerialized.serializer(), serialized)
         }
 
         fun createReport(idNr: Int): ReportData {

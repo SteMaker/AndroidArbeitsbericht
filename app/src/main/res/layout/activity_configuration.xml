@@ -103,6 +103,8 @@
                         android:id="@+id/crashlog_enable"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:layout_marginTop="20dp"
+                        android:layout_marginBottom="20dp"
                         android:text="@string/crashlog_enable"/>
             </LinearLayout>
         </androidx.cardview.widget.CardView>

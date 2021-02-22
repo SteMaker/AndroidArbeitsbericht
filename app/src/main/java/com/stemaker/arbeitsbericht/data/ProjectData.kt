@@ -13,4 +13,9 @@ class ProjectData() : ViewModel() {
         extra1.value = p.extra1
         visibility.value = p.visibility
     }
+    fun copyFromDb(p: ProjectDb) {
+        name.value = p.projectName
+        extra1.value = p.extra1
+        visibility.value = p.projectVisibility
+    }
 }

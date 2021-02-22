@@ -235,6 +235,7 @@ object BindingAdapters {
             ReportData.ReportState.IN_WORK -> imgView.setImageResource(ArbeitsberichtApp.getInWorkIconDrawable())
             ReportData.ReportState.DONE -> imgView.setImageResource(ArbeitsberichtApp.getDoneIconDrawable())
             ReportData.ReportState.ON_HOLD -> imgView.setImageResource(ArbeitsberichtApp.getOnHoldIconDrawable())
+            ReportData.ReportState.ARCHIVED -> imgView.setImageResource(ArbeitsberichtApp.getArchivedIconDrawable())
         }
     }
 }

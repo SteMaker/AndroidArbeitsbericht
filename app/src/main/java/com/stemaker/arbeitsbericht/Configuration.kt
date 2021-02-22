@@ -4,6 +4,7 @@ import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import android.util.Base64
 import android.util.Log
+import kotlinx.coroutines.sync.Mutex
 import kotlinx.serialization.*
 import java.security.KeyStore
 import java.security.UnrecoverableKeyException
@@ -66,6 +67,11 @@ object Configuration {
             }
         }
 
+    val mutex = Mutex()
+
+    suspend fun lock() = mutex.lock()
+    suspend fun unlock() = mutex.unlock()
+
     fun initialize() {
         if(!inited) {
             inited = true
@@ -80,9 +86,6 @@ object Configuration {
     }
 
     private fun updateConfiguration(oldVers: Int) {
-        if(oldVers == 0) {
-            storageHandler().renameReportsIfNeeded()
-        }
         store.vers = ArbeitsberichtApp.getVersionCode()+100
     }
 

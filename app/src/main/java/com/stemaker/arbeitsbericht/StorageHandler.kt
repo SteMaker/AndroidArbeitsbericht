@@ -1,171 +1,159 @@
-
 package com.stemaker.arbeitsbericht
-
 
 import android.content.Context
 import android.content.Context.MODE_PRIVATE
 import android.util.Log
+import androidx.room.Room
 import com.google.gson.Gson
 import com.stemaker.arbeitsbericht.data.ReportData
-import com.stemaker.arbeitsbericht.data.ReportDataSerialized
-import kotlinx.serialization.json.Json
+import com.stemaker.arbeitsbericht.data.ReportDatabase
+import com.stemaker.arbeitsbericht.data.ReportDb
+import kotlinx.coroutines.*
+import kotlinx.coroutines.sync.Mutex
 import java.io.*
+import java.util.concurrent.atomic.AtomicBoolean
 
-fun storageHandler(): StorageHandler {
-    if(!StorageHandler.inited) {
-        StorageHandler.initialize()
-    }
-    return StorageHandler
-}
+private const val TAG = "StorageHandler"
 
-data class ReportReference(val id: String, val file: String) {
-    override fun equals(other: Any?): Boolean {
-        if(other is ReportReference) {
-            if(other.id == id)
-                return true
-        }
-        return false
-    }
-
-    override fun hashCode(): Int {
-        return id.hashCode()
-    }
-}
-class ReportReferences() {
-    val reports = mutableListOf<ReportReference>()
-    fun contains(id: String): Boolean {
-        for(rep in reports) {
-            if(rep.id == id) return true
-        }
-        return false
-    }
-    fun add(rep: ReportReference) {
-        reports.add(rep)
-    }
-    fun remove(report: ReportData) {
-        for(rep in reports) {
-            if(rep.id == report.id) {
-                reports.remove(rep)
-                break
-            }
-        }
-    }
-    fun clear() {
-        reports.clear()
-    }
-    val size: Int
-        get() = reports.size
-    fun get(idx: Int): ReportReference = reports[idx]
-    fun sortByDescending() {
-        reports.sortByDescending { it.id }
-    }
-    fun findFileById(id: String): String? {
-        for(rep in reports) {
-            if(rep.id == id)
-                return rep.file
-        }
-        return null
-    }
-}
+inline fun storageHandler() = StorageHandler
 
 object StorageHandler {
-    var inited: Boolean = false
-    var gson = Gson()
-    var reports = ReportReferences()
+    private val gson: Gson = Gson()
+    private val reportIds: MutableList<String> = mutableListOf<String>()
     lateinit var activeReport: ReportData
+    private val reports: MutableMap<String, ReportData> = mutableMapOf<String, ReportData>()
 
-    private var _materialDictionary = mutableSetOf<String>()
-    val materialDictionary: Set<String>
-        get() = _materialDictionary
+    private var _materialDictionary: MutableSet<String> = mutableSetOf<String>()
     private var materialDictionaryChanged: Boolean = false
 
-    private var _workItemDictionary = mutableSetOf<String>()
-    val workItemDictionary: Set<String>
-        get() = _workItemDictionary
+    private var _workItemDictionary: MutableSet<String> = mutableSetOf<String>()
     private var workItemDictionaryChanged: Boolean = false
 
-    fun initialize() {
-        val c: Context = ArbeitsberichtApp.appContext
-        if(!inited) {
-            inited = true
-            // Read the configuration. This needs to be low level -> no configuration() invocation yet
-            Log.d("Arbeitsbericht.StorageHandler.myInit", "start")
-            loadConfigurationFromFile(c)
+    val materialDictionary: Set<String>
+        get() = _materialDictionary
+    val workItemDictionary: Set<String>
+        get() = _workItemDictionary
 
-            // Read the list of files that match report*.rpt
-            createFolders()
-            val appFiles = c.fileList()
-            Log.d("Arbeitsbericht.StorageHandler.myInit", "Found ${appFiles.size} files")
-            for (repFile in appFiles) {
-                val exp = Regex("report(.*).rpt")
-                if (exp.matches(repFile)) {
-                    val repId = repFile.substring(repFile.lastIndexOf('/')+1).substringAfter("report").substringBefore(".rpt")
-                    reports.add(ReportReference(repId, repFile))
+    private val db = Room.databaseBuilder(
+        ArbeitsberichtApp.appContext,
+        ReportDatabase::class.java, "Arbeitsbericht-Reports"
+    ).build()
+
+    private val inited = AtomicBoolean(false)
+    var initJob: Job? = null
+
+    private val accessMutex = Mutex()
+
+    fun initialize(): Job? {
+        if (inited.compareAndSet(false, true)) {
+            initJob = GlobalScope.launch(Dispatchers.Main) {
+                Log.d(TAG, "initialize start")
+                val c: Context = ArbeitsberichtApp.appContext
+                // Read the configuration. This needs to be low level -> no configuration() invocation yet
+                loadConfigurationFromFile(c)
+
+                if (Configuration.store.vers <= 118) {
+                    withContext(Dispatchers.IO) {
+                        // TODO: Temp
+                        db.reportDao().deleteTable()
+                    }
+                    migrateToDatabase()
+                    // This will update the version information and therefore there shouldn't be another migration
+                    configuration()
+                    deleteReportFilesAfterDbMigration()
                 }
-            }
-            reports.sortByDescending()
 
-            // Now we should be ready to do more
-            if(configuration().activeReportId != "") {
-                if (reports.contains(configuration().activeReportId)) {
-                    selectReportById(configuration().activeReportId)
-                } else {
-                    configuration().activeReportId = ""
+                withContext(Dispatchers.IO) {
+                    reportIds.addAll(db.reportDao().getReportIds())
                 }
-            }
 
-            Log.d("Arbeitsbericht.StorageHandler.myInit", "done")
+                // Now we should be ready to do more
+                if (configuration().activeReportId != "") {
+                    if (reportIds.contains(configuration().activeReportId)) {
+                        selectReportById(configuration().activeReportId)
+                    } else {
+                        configuration().activeReportId = ""
+                    }
+                }
+                Log.d(TAG, "initialize end")
+            }
         }
+        return initJob
     }
 
-    fun createFolders() {
-        val folders = listOf<String>("inwork", "onhold", "done")
-        for(folder in folders)
-            File("${ArbeitsberichtApp.appContext.filesDir}/$folder").mkdirs()
-    }
+    private suspend fun migrateToDatabase() {
+        val c: Context = ArbeitsberichtApp.appContext
+        val appFiles = c.fileList()
+        val reportDao = db.reportDao()
 
-    // This must only be called by the configuration activity if the ID pattern was changed
-    // Or on app start if naming scheme was changed due to an app update
-    fun renameReportsIfNeeded() {
-        val appFiles = ArbeitsberichtApp.appContext.fileList()
-        reports.clear()
         for (repFile in appFiles) {
             val exp = Regex("report(.*).rpt")
             if (exp.matches(repFile)) {
-                val rep: ReportData = readReportFromFile(repFile, ArbeitsberichtApp.appContext)
-                val fileName1 = "${ArbeitsberichtApp.appContext.filesDir}/${repFile.substring(repFile.lastIndexOf('/')+1)}"
-                val fileName2 = "${ArbeitsberichtApp.appContext.filesDir}/report${rep.id}.rpt"
-                if (fileName1 != fileName2) {
-                    val old = File(fileName1)
-                    val new = File(fileName2)
-                    val result = old.renameTo(new)
-                    reports.add(ReportReference(rep.id, fileName2))
+                val report = readReportFromFile(repFile)
+                val r = ReportDb.fromReport(report)
+                withContext(Dispatchers.IO) {
+                    Log.d(TAG, "Migrating ${report.id} to database")
+                    reportDao.insert(r)
                 }
             }
         }
-        configuration().activeReportId = ""
     }
 
-    fun getListOfReports(): ReportReferences {
-        return reports
+    private fun deleteReportFilesAfterDbMigration() {
+        val c: Context = ArbeitsberichtApp.appContext
+        val appFiles = c.fileList()
+        for (repFile in appFiles) {
+            val exp = Regex("report(.*).rpt")
+            if (exp.matches(repFile)) {
+                val filename = "${ArbeitsberichtApp.appContext.filesDir}/$repFile"
+                File(filename).delete()
+            }
+        }
     }
 
-    fun getReportByRef(report: ReportReference, c: Context): ReportData {
-        return readReportFromFile(report.file, c)
+    suspend fun getListOfReports(): List<String> {
+        accessMutex.lock()
+        val ret = reportIds.toList()
+        accessMutex.unlock()
+        return ret
+    }
+
+    suspend fun getReportById(id: String): ReportData {
+        // If we have it in the cache, take if from there, else query the database and push it in the cache
+        accessMutex.lock()
+        val ret = reports[id]?.let { it } ?: run {
+            val rDb = withContext(Dispatchers.IO) {
+                db.reportDao().getReportById(id)
+            }
+            val report = ReportData.getReportFromDb(rDb)
+            reports[report.id] = report
+            report
+        }
+        accessMutex.unlock()
+        return ret
     }
 
     fun getReport(): ReportData {
         return activeReport
     }
 
-    fun createNewReportAndSelect() {
+    suspend fun createNewReportAndSelect(): ReportData {
+        accessMutex.lock()
+        configuration().lock()
+        // TODO: make currentId atomic, use get and post inc here
         val rep = ReportData.createReport(configuration().currentId)
-        Log.d("Arbeitsbericht.StorageHandler.createNewReportAndSelect", "Created new report with ID ${rep.id}")
-        reports.add(ReportReference(rep.id, reportToReportFile(rep)))
-        activeReport = rep
         configuration().activeReportId = rep.id
         configuration().currentId += 1
         configuration().save()
+        configuration().unlock()
+        reportIds.add(0, rep.id)
+        activeReport = rep
+        reports[rep.id] = rep
+        withContext(Dispatchers.IO) {
+            saveActiveReport()
+        }
+        accessMutex.unlock()
+        return rep
     }
 
     /* This is only for test purposes to create many reports. All are marked with MANY_REPORTS */
@@ -181,11 +169,15 @@ object StorageHandler {
         saveActiveReportToFile(ArbeitsberichtApp.appContext)
     }*/
 
-    fun selectReportById(id: String, c: Context = ArbeitsberichtApp.appContext) {
-        Log.d("Arbeitsbericht.StorageHandler.selectReportById", c.toString())
+    suspend fun selectReportById(id: String) {
+        Log.d(TAG, "selectReportById start")
+        val report = getReportById(id)
+        activeReport = report
+        configuration().lock()
         configuration().activeReportId = id
-        activeReport = readReportFromFile(reports.findFileById(id)!!, c)
         configuration().save()
+        configuration().unlock()
+        Log.d(TAG, "selectReportById end")
     }
 
     private fun readStringFromFile(fileName: String, context: Context): String {
@@ -216,39 +208,26 @@ object StorageHandler {
         return ret
     }
 
-    private fun writeStringToFile(fileName: String, data: String, context: Context) {
-        try {
-            val outputStreamWriter = OutputStreamWriter(context.openFileOutput(fileName, Context.MODE_PRIVATE))
-            outputStreamWriter.write(data)
-            outputStreamWriter.close()
-        } catch (e: IOException) {
-            Log.e("Exception", "File write failed: $e")
-        }
-    }
-
-    private fun readReportFromFile(fileName: String, c: Context) : ReportData {
-        Log.d("Arbeitsbericht.StorageHandler.readReportFromFile", "Trying to read from file $fileName")
+    private fun readReportFromFile(fileName: String) : ReportData {
+        val c: Context = ArbeitsberichtApp.appContext
         val jsonString = readStringFromFile(fileName, c)
         return ReportData.getReportFromJson(jsonString)
     }
 
-    fun saveReportToFile(c: Context, report: ReportData, skipDictionaryUpdate: Boolean = false) {
-        val jsonString = ReportData.getJsonFromReport(report)
-        report.lastStoreHash = jsonString.hashCode()
-        val newFileName = reportToReportFile(report)
-        val oldFileName = reports.findFileById(report.id)
-        if(oldFileName != "" && newFileName != oldFileName) {
-            // Seems the state changed so the folder changed, move it
-            File(oldFileName).renameTo(File(newFileName))
+    suspend fun saveReport(r: ReportData, skipDictionaryUpdate: Boolean = false) {
+        val reportDb = ReportDb.fromReport(r)
+        r.lastStoreHash = reportDb.hashCode()
+        withContext(Dispatchers.IO) {
+            val rDb = ReportDb.fromReport(r)
+            val ret = db.reportDao().update(rDb)
         }
-        writeStringToFile(newFileName, jsonString, c)
-        Log.d("Arbeitsbericht.StorageHandler.saveReportToFile", "Saved to file $newFileName")
 
-        if(!skipDictionaryUpdate) {
-            for (wi in report.workItemContainer.items) {
+        configuration().lock()
+        if (!skipDictionaryUpdate) {
+            for (wi in r.workItemContainer.items) {
                 addToWorkItemDictionary(wi.item.value!!)
             }
-            for (m in report.materialContainer.items) {
+            for (m in r.materialContainer.items) {
                 addToMaterialDictionary(m.item.value!!)
             }
 
@@ -258,28 +237,52 @@ object StorageHandler {
                 workItemDictionaryChanged = false
             }
         }
+        configuration().unlock()
     }
 
-    fun saveActiveReportToFile(c: Context) {
-        saveReportToFile(c, activeReport)
+    suspend fun saveActiveReport() {
+        saveReport(activeReport)
     }
 
-    private fun reportToReportFile(report: ReportData): String {
-        val stateDir = ReportData.ReportState.toDirName(report.state.value!!)
-        if(stateDir != "")
-            return "${ArbeitsberichtApp.appContext.filesDir}/${stateDir}/report${report.id}.rpt"
-        else
-            return "${ArbeitsberichtApp.appContext.filesDir}/report${report.id}.rpt"
+    suspend fun renameReportsIfNeeded() {
+        accessMutex.lock()
+        Log.d(TAG, "renameReportsIfNeeded start")
+        val oldIds = withContext(Dispatchers.IO) {
+            db.reportDao().getReportIds()
+        }
+        for (old in oldIds) {
+            val rDb = withContext(Dispatchers.IO) {
+                db.reportDao().getReportById(old)
+            }
+            val updatedReport = ReportData.getReportFromDb(rDb)
+            val rDb2 = ReportDb.fromReport(updatedReport)
+            withContext(Dispatchers.IO) {
+                db.reportDao().deleteById(old)
+                db.reportDao().insert(rDb2)
+            }
+        }
+        reportIds.clear()
+        withContext(Dispatchers.IO) {
+            reportIds.addAll(db.reportDao().getReportIds())
+        }
+        reports.clear()
+        accessMutex.unlock()
     }
 
-    fun deleteReport(report: ReportData, c: Context) {
-        Log.d("Arbeitsbericht.StorageHandler.deleteReport", "Deleting report with ID ${report.id}")
-        c.deleteFile(reportToReportFile(report))
-        reports.remove(report)
+    suspend fun deleteReport(id: String) {
+        accessMutex.lock()
+        withContext(Dispatchers.IO) {
+            Log.d(TAG, "deleteReport start")
+            db.reportDao().deleteById(id)
+            reportIds.remove(id)
+            reports.remove(id)
+            Log.d(TAG, "deleteReport end")
+        }
+        accessMutex.unlock()
     }
 
-    fun loadConfigurationFromFile(c: Context) {
-        Log.d("Arbeitsbericht.StorageHandler.loadConfigurationFromFile", "")
+    private fun loadConfigurationFromFile(c: Context) {
+        Log.d(TAG, "")
         try {
             val fIn = c.openFileInput("configuration.json")
             val isr = InputStreamReader(fIn)
@@ -295,7 +298,7 @@ object StorageHandler {
         configuration().materialDictionary = materialDictionary
         configuration().workItemDictionary = workItemDictionary
         val fOut = c.openFileOutput("configuration.json", MODE_PRIVATE)
-        Log.d("Arbeitsbericht.StorageHandler.saveConfigurationToFile", "currentId = ${configuration().currentId}; num lump sums = ${configuration().lumpSums.size}")
+        Log.d("TAG", "currentId = ${configuration().currentId}; num lump sums = ${configuration().lumpSums.size}")
         val osw = OutputStreamWriter(fOut)
         gson.toJson(Configuration.store, osw)
         osw.close()

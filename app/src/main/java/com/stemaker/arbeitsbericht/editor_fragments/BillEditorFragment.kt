@@ -11,17 +11,18 @@ import androidx.databinding.DataBindingUtil
 import com.stemaker.arbeitsbericht.R
 import com.stemaker.arbeitsbericht.data.BillData
 import com.stemaker.arbeitsbericht.databinding.FragmentBillEditorBinding
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 class BillEditorFragment : ReportEditorSectionFragment(),
     ReportEditorSectionFragment.OnExpandChange {
     private var listener: OnBillEditorInteractionListener? = null
-    var billData: BillData? = null
     lateinit var dataBinding: FragmentBillEditorBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Log.d("Arbeitsbericht","BillEditorFragment.onCreate called")
-        billData = listener!!.getBillData()
     }
 
     override fun onCreateView(
@@ -37,7 +38,9 @@ class BillEditorFragment : ReportEditorSectionFragment(),
         setHeadline("Rechnungsadresse")
 
         dataBinding.lifecycleOwner = this
-        dataBinding.billData = billData!!
+        GlobalScope.launch(Dispatchers.Main) {
+            dataBinding.billData = listener!!.getBillData()
+        }
         return root
     }
 
@@ -64,7 +67,7 @@ class BillEditorFragment : ReportEditorSectionFragment(),
     }
 
     interface OnBillEditorInteractionListener {
-        fun getBillData(): BillData
+        suspend fun getBillData(): BillData
     }
 
 }

@@ -4,7 +4,7 @@ import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
-import kotlinx.android.synthetic.main.activity_main.*
+//import kotlinx.android.synthetic.main.activity_main.*
 import android.view.*
 import android.widget.PopupMenu
 import androidx.appcompat.app.AlertDialog
@@ -17,7 +17,11 @@ import com.stemaker.arbeitsbericht.helpers.ReportListAdapter
 import com.stemaker.arbeitsbericht.helpers.showConfirmationDialog
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+
+private const val TAG = "MainActivity"
 
 interface ReportCardInterface {
     fun onClickReport(id: String)
@@ -67,12 +71,15 @@ class MainActivity : AppCompatActivity(), ReportCardInterface {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Log.d(TAG, "starting")
 
         if (savedInstanceState != null) {
             with(savedInstanceState) {
                 reportStateVisibility.visibility = getInt(STATE_FILTER)
             }
         }
+
+        val storageInitJob = storageHandler().initialize()
 
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
         binding.lifecycleOwner = this
@@ -82,8 +89,6 @@ class MainActivity : AppCompatActivity(), ReportCardInterface {
 
         val layoutManager = LinearLayoutManager(this)
         adapter = ReportListAdapter(this, this)
-        val reports = getNextReports(30)
-        adapter.add(reports)
         val recyclerView = binding.reportListRv
         recyclerView.layoutManager = layoutManager
         recyclerView.adapter = adapter
@@ -92,42 +97,72 @@ class MainActivity : AppCompatActivity(), ReportCardInterface {
             override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
                 super.onScrollStateChanged(recyclerView, newState)
                 if (!recyclerView.canScrollVertically(1)) {
-                    val reports = getNextReports(30)
-                    adapter.add(reports)
+                    addNextReports(30, adapter)
                 }
             }
         })
+        window.setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
 
-        if(configuration().appUpdateWasDone) {
-            val versionDialog = VersionDialogFragment()
-            versionDialog.show(supportFragmentManager, "VersionDialog")
-        }
-    }
+        GlobalScope.launch(Dispatchers.Main) {
+            binding.progressBar.visibility = View.VISIBLE
+            binding.initNotify.visibility = View.VISIBLE
+            storageInitJob?.join()
+            binding.progressBar.visibility = View.GONE
+            binding.initNotify.visibility = View.GONE
+            addNextReports(30, adapter)
 
-    var deliveredReports = 0
-    private fun getNextReports(amount: Int): List<ReportData> {
-        val reportRefs = storageHandler().getListOfReports()
-        val reports = mutableListOf<ReportData>()
-        var idx = deliveredReports
-        var cnt = 0
-        while (cnt < amount && idx < reportRefs.size) {
-            val report = storageHandler().getReportByRef(reportRefs.get(idx), this@MainActivity)
-            if(reportStateVisibility.isReportVisible(report)) {
-                reports.add(report)
-                cnt++
+            window.clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
+            if (configuration().appUpdateWasDone) {
+                val versionDialog = VersionDialogFragment()
+                versionDialog.show(supportFragmentManager, "VersionDialog")
             }
-            idx++
         }
-        deliveredReports += cnt
-        return reports
     }
 
-    private fun resetDeliveredReports() {
-        deliveredReports = 0
+    private val adapterMutex = Mutex()
+    private var showIndex = 0
+    private fun addNextReports(amount: Int, adapter: ReportListAdapter, replace: Boolean = false) {
+        GlobalScope.launch(Dispatchers.Main) {
+            adapterMutex.lock()
+            val reportChannel = Channel<ReportData>()
+            if (replace)
+                showIndex = 0
+
+            GlobalScope.launch(Dispatchers.Main) {
+                val reportIds = storageHandler().getListOfReports()
+                var idx = showIndex
+                var cnt = 0
+                while (cnt < amount && idx < reportIds.size) {
+                    // TODO: Improve the db to include the state filter
+                    val report = storageHandler().getReportById(reportIds[idx])
+                    if (reportStateVisibility.isReportVisible(report)) {
+                        Log.d(TAG, "adding rep ${report.id}")
+                        reportChannel.send(report)
+                        cnt++
+                    } else {
+                        Log.d(TAG, "skipping rep ${report.id}")
+                    }
+                    idx++
+                }
+                reportChannel.close()
+                showIndex = idx
+            }
+            GlobalScope.launch(Dispatchers.Main) {
+                val reports = mutableListOf<ReportData>()
+                for (r in reportChannel) {
+                    reports.add(r)
+                }
+                if (replace)
+                    adapter.replaceAll(reports)
+                else if(reports.size > 0)
+                    adapter.add(reports)
+            }
+            adapterMutex.unlock()
+        }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
-        Log.d("MainActivity", "onSaveInstanceState")
+        Log.d(TAG, "onSaveInstanceState")
         super.onSaveInstanceState(outState)
         with(outState) {
             putInt(STATE_FILTER, reportStateVisibility.visibility)
@@ -135,7 +170,7 @@ class MainActivity : AppCompatActivity(), ReportCardInterface {
     }
 
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {
-        Log.d("MainActivity", "onRestoreInstanceState")
+        Log.d(TAG, "onRestoreInstanceState")
         super.onRestoreInstanceState(savedInstanceState)
         with(savedInstanceState) {
             reportStateVisibility.visibility = getInt(STATE_FILTER)
@@ -149,10 +184,13 @@ class MainActivity : AppCompatActivity(), ReportCardInterface {
     }
 
     private fun createNewReport() {
-        storageHandler().createNewReportAndSelect()
-        val intent = Intent(this, ReportEditorActivity::class.java).apply {}
-        startActivity(intent)
-
+        GlobalScope.launch(Dispatchers.Main) {
+            storageHandler().createNewReportAndSelect()
+            // Refresh the list of report cards in case we return without onCreate
+            addNextReports(30, adapter, true)
+            val intent = Intent(this@MainActivity, ReportEditorActivity::class.java).apply {}
+            startActivity(intent)
+        }
     }
 
     fun onClickNewReport(@Suppress("UNUSED_PARAMETER") newReportButton: View) {
@@ -160,17 +198,21 @@ class MainActivity : AppCompatActivity(), ReportCardInterface {
     }
 
     override fun onClickReport(id: String) {
-        storageHandler().selectReportById(id, applicationContext)
-        val intent = Intent(this, ReportEditorActivity::class.java).apply {}
-        startActivity(intent)
+        GlobalScope.launch(Dispatchers.Main) {
+            storageHandler().selectReportById(id)
+            val intent = Intent(this@MainActivity, ReportEditorActivity::class.java).apply {}
+            startActivity(intent)
+        }
     }
 
     override fun onClickDeleteReport(report:ReportData, onDeleted:()->Unit) {
         GlobalScope.launch(Dispatchers.Main) {
             val answer = showConfirmationDialog(getString(R.string.del_confirmation), this@MainActivity)
             if (answer == AlertDialog.BUTTON_POSITIVE) {
-                storageHandler().deleteReport(report, this@MainActivity)
+                storageHandler().deleteReport(report.id)
                 onDeleted()
+                // TODO: This is not nice. But we need to sync the deliveredReports counter
+                addNextReports(30, adapter, true)
             }
         }
     }
@@ -186,7 +228,14 @@ class MainActivity : AppCompatActivity(), ReportCardInterface {
 
     override fun onSetReportState(report: ReportData, state: ReportData.ReportState) {
         report.state.value = state
-        storageHandler().saveReportToFile(this@MainActivity, report, true)
+        GlobalScope.launch(Dispatchers.Main) {
+            if (!reportStateVisibility.isReportVisible(report)) {
+                adapterMutex.lock()
+                adapter.remove(report)
+                adapterMutex.unlock()
+            }
+            storageHandler().saveReport(report, true)
+        }
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -232,39 +281,35 @@ class MainActivity : AppCompatActivity(), ReportCardInterface {
                     R.id.in_work -> {
                         reportStateVisibility.inWork = !item.isChecked
                         item.isChecked = !item.isChecked
-                        resetDeliveredReports()
-                        adapter.replaceAll(getNextReports(30))
+                        addNextReports(30, adapter, true)
                         true
                     }
                     R.id.on_hold -> {
                         reportStateVisibility.onHold = !item.isChecked
                         item.isChecked = !item.isChecked
-                        resetDeliveredReports()
-                        adapter.replaceAll(getNextReports(30))
+                        addNextReports(30, adapter, true)
                         true
                     }
                     R.id.done -> {
                         reportStateVisibility.done = !item.isChecked
                         item.isChecked = !item.isChecked
-                        resetDeliveredReports()
-                        adapter.replaceAll(getNextReports(30))
+                        addNextReports(30, adapter, true)
                         true
                     }
                     R.id.archived -> {
                         reportStateVisibility.archived = !item.isChecked
                         item.isChecked = !item.isChecked
-                        resetDeliveredReports()
-                        adapter.replaceAll(getNextReports(30))
+                        addNextReports(30, adapter, true)
                         true
                     }
                     else -> false
                 }
             }
             inflate(R.menu.report_state_filter_menu)
-            menu.findItem(R.id.in_work).setChecked(reportStateVisibility.inWork)
-            menu.findItem(R.id.on_hold).setChecked(reportStateVisibility.onHold)
-            menu.findItem(R.id.done).setChecked(reportStateVisibility.done)
-            menu.findItem(R.id.archived).setChecked(reportStateVisibility.archived)
+            menu.findItem(R.id.in_work).isChecked = reportStateVisibility.inWork
+            menu.findItem(R.id.on_hold).isChecked = reportStateVisibility.onHold
+            menu.findItem(R.id.done).isChecked = reportStateVisibility.done
+            menu.findItem(R.id.archived).isChecked = reportStateVisibility.archived
             show()
         }
     }

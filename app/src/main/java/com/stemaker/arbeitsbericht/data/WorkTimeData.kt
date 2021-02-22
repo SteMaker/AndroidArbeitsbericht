@@ -3,9 +3,7 @@ package com.stemaker.arbeitsbericht.data
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.stemaker.arbeitsbericht.Configuration
 import com.stemaker.arbeitsbericht.configuration
-import com.stemaker.arbeitsbericht.storageHandler
 import java.lang.Exception
 import java.util.*
 
@@ -19,6 +17,16 @@ class WorkTimeContainerData(): ViewModel() {
         for(i in 0 until w.items.size) {
             val item = WorkTimeData()
             item.copyFromSerialized(w.items[i])
+            items.add(item)
+        }
+    }
+
+    fun copyFromDb(w: WorkTimeContainerDb) {
+        visibility.value = w.visibility
+        items.clear()
+        for(element in w.items) {
+            val item = WorkTimeData()
+            item.copyFromDb(element)
             items.add(item)
         }
     }
@@ -125,6 +133,19 @@ class WorkTimeData: ViewModel() {
         distance.value = w.distance
     }
 
+    fun copyFromDb(w: WorkTimeContainerDb.WorkTimeDb) {
+        date.value = w.date
+        employees.clear()
+        for(empSer in w.employees) {
+            val emp = MutableLiveData<String>().apply { value = empSer }
+            employees.add(emp)
+        }
+        startTime.value = w.startTime
+        endTime.value = w.endTime
+        pauseDuration.value = w.pauseDuration
+        driveTime.value = w.driveTime
+        distance.value = w.distance
+    }
     fun incDateByOneWeekday(dateIn: String): String {
         var isWeekDay = true
         val cal = Calendar.getInstance()

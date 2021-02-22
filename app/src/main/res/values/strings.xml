@@ -72,6 +72,7 @@
     <string name="set_done">Auf Erledigt setzen</string>
     <string name="set_on_hold">Auf Unterbrochen setzen</string>
     <string name="archive">Archivieren</string>
+    <string name="db_loading">Berichte werden geladen</string>
 
     <!-- Configuration -->
     <string name="reportid_change_conf">Die laufende Nummer wurde geändert</string>

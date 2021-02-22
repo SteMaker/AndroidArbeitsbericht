@@ -17,6 +17,28 @@
                 app:theme="@style/ThemeOverlay.AppCompat.ActionBar"
                 app:popupTheme="@style/ThemeOverlay.AppCompat.Dark"/>
 
+        <ProgressBar
+                android:id="@+id/progressBar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toLeftOf="@id/initNotify"
+                android:indeterminate="true"
+                android:visibility="gone"
+                />
+        <TextView
+                android:id="@+id/initNotify"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintLeft_toRightOf="@id/progressBar"
+                app:layout_constraintRight_toRightOf="parent"
+                android:text="@string/db_loading"
+                android:visibility="gone"
+                />
         <!-- List of projects incl. headline -->
         <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/report_list_rv"

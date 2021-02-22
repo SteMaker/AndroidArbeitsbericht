@@ -41,32 +41,40 @@ class ConfigurationActivity : AppCompatActivity() {
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.setTitle(R.string.settings)
 
-        findViewById<EditText>(R.id.config_employee_name).setText(configuration().employeeName)
-        findViewById<EditText>(R.id.config_device_name).setText(configuration().deviceName)
-        findViewById<EditText>(R.id.config_report_id_pattern).setText(configuration().reportIdPattern)
-        findViewById<EditText>(R.id.config_mail_receiver).setText(configuration().recvMail)
-        findViewById<Switch>(R.id.crashlog_enable).isChecked = configuration().crashlyticsEnabled
-        FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(configuration().crashlyticsEnabled);
-        findViewById<EditText>(R.id.sftp_host).setText(configuration().sFtpHost)
-        findViewById<EditText>(R.id.sftp_port).setText(configuration().sFtpPort.toString())
-        findViewById<EditText>(R.id.sftp_user).setText(configuration().sFtpUser)
-        if(configuration().useOdfOutput) {
-            findViewById<RadioButton>(R.id.radio_odf_output).toggle()
-            findViewById<CardView>(R.id.odf_config_container).visibility = View.VISIBLE
-            findViewById<CardView>(R.id.pdf_config_container).visibility = View.GONE
-        } else {
-            findViewById<RadioButton>(R.id.radio_pdf_output).toggle()
-            findViewById<CardView>(R.id.odf_config_container).visibility = View.GONE
-            findViewById<CardView>(R.id.pdf_config_container).visibility = View.VISIBLE
-        }
-        findViewById<EditText>(R.id.odf_template_ftp_path).setText(configuration().odfTemplateServerPath)
-        findViewById<EditText>(R.id.logo_ftp_path).setText(configuration().logoServerPath)
-        findViewById<EditText>(R.id.footer_ftp_path).setText(configuration().footerServerPath)
-        val radioGroup = findViewById<RadioGroup>(R.id.output_type_select_radiogroup)
-        radioGroup.setOnCheckedChangeListener(object: RadioGroup.OnCheckedChangeListener {
-            override fun onCheckedChanged(group: RadioGroup, checkedId: Int) {
-                Log.d(TAG, "Radio: $checkedId")
-                when(checkedId) {
+        val storageInitJob = storageHandler().initialize()
+
+        GlobalScope.launch(Dispatchers.Main) {
+            storageInitJob?.let {
+                if (!it.isCompleted) {
+                    findViewById<ProgressBar>(R.id.sftp_progress).visibility = View.VISIBLE
+                    it.join()
+                    findViewById<ProgressBar>(R.id.sftp_progress).visibility = View.GONE
+                }
+            } ?: run { Log.e(TAG, "storageHandler job was null :(") }
+            findViewById<EditText>(R.id.config_employee_name).setText(configuration().employeeName)
+            findViewById<EditText>(R.id.config_device_name).setText(configuration().deviceName)
+            findViewById<EditText>(R.id.config_report_id_pattern).setText(configuration().reportIdPattern)
+            findViewById<EditText>(R.id.config_mail_receiver).setText(configuration().recvMail)
+            findViewById<Switch>(R.id.crashlog_enable).isChecked = configuration().crashlyticsEnabled
+            FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(configuration().crashlyticsEnabled);
+            findViewById<EditText>(R.id.sftp_host).setText(configuration().sFtpHost)
+            findViewById<EditText>(R.id.sftp_port).setText(configuration().sFtpPort.toString())
+            findViewById<EditText>(R.id.sftp_user).setText(configuration().sFtpUser)
+            if (configuration().useOdfOutput) {
+                findViewById<RadioButton>(R.id.radio_odf_output).toggle()
+                findViewById<CardView>(R.id.odf_config_container).visibility = View.VISIBLE
+                findViewById<CardView>(R.id.pdf_config_container).visibility = View.GONE
+            } else {
+                findViewById<RadioButton>(R.id.radio_pdf_output).toggle()
+                findViewById<CardView>(R.id.odf_config_container).visibility = View.GONE
+                findViewById<CardView>(R.id.pdf_config_container).visibility = View.VISIBLE
+            }
+            findViewById<EditText>(R.id.odf_template_ftp_path).setText(configuration().odfTemplateServerPath)
+            findViewById<EditText>(R.id.logo_ftp_path).setText(configuration().logoServerPath)
+            findViewById<EditText>(R.id.footer_ftp_path).setText(configuration().footerServerPath)
+            val radioGroup = findViewById<RadioGroup>(R.id.output_type_select_radiogroup)
+            radioGroup.setOnCheckedChangeListener { _, checkedId ->
+                when (checkedId) {
                     R.id.radio_odf_output -> {
                         findViewById<CardView>(R.id.odf_config_container).visibility = View.VISIBLE
                         findViewById<CardView>(R.id.pdf_config_container).visibility = View.GONE
@@ -77,22 +85,24 @@ class ConfigurationActivity : AppCompatActivity() {
                     }
                 }
             }
-        })
-        showFileInImageView(configuration().footerFile, R.id.footer_image)
-        showFileInImageView(configuration().logoFile, R.id.logo_image)
-        val fontsb = findViewById<SeekBar>(R.id.fontsize_seekbar)
-        val fontst = findViewById<TextView>(R.id.fontsize_text)
-        fontsb.progress = configuration().fontSize
-        fontst.text = "${getString(R.string.fontsize)}: ${fontsb.progress}"
-        fontsb.setOnSeekBarChangeListener(object: SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                fontst.text = "${getString(R.string.fontsize)}: ${fontsb.progress}"
-            }
-            override fun onStartTrackingTouch(seekBar: SeekBar?) {
-            }
-            override fun onStopTrackingTouch(seekBar: SeekBar?) {
-            }
-        })
+            showFileInImageView(configuration().footerFile, R.id.footer_image)
+            showFileInImageView(configuration().logoFile, R.id.logo_image)
+            val fontsb = findViewById<SeekBar>(R.id.fontsize_seekbar)
+            val fontst = findViewById<TextView>(R.id.fontsize_text)
+            fontsb.progress = configuration().fontSize
+            fontst.text = "${getString(R.string.fontsize)}: ${fontsb.progress}"
+            fontsb.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+                override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                    fontst.text = "${getString(R.string.fontsize)}: ${fontsb.progress}"
+                }
+
+                override fun onStartTrackingTouch(seekBar: SeekBar?) {
+                }
+
+                override fun onStopTrackingTouch(seekBar: SeekBar?) {
+                }
+            })
+        }
     }
 
     fun showFileInImageView(fileName: String, id: Int) {
@@ -138,12 +148,13 @@ class ConfigurationActivity : AppCompatActivity() {
         return false
     }
 
-    fun save() {
+    private fun save() {
         GlobalScope.launch(Dispatchers.Main) {
-            getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
+            window.setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
             findViewById<ProgressBar>(R.id.sftp_progress).visibility = View.VISIBLE
 
             val rename = checkForIdChange()
+            configuration().lock()
             configuration().employeeName = findViewById<EditText>(R.id.config_employee_name).getText().toString()
             configuration().deviceName = findViewById<EditText>(R.id.config_device_name).getText().toString()
             configuration().reportIdPattern = findViewById<EditText>(R.id.config_report_id_pattern).getText().toString()
@@ -165,10 +176,11 @@ class ConfigurationActivity : AppCompatActivity() {
             configuration().logoServerPath = findViewById<EditText>(R.id.logo_ftp_path).text.toString()
             configuration().footerServerPath = findViewById<EditText>(R.id.footer_ftp_path).text.toString()
             configuration().fontSize = findViewById<SeekBar>(R.id.fontsize_seekbar).progress
-            storageHandler().saveConfigurationToFile(getApplicationContext())
+            configuration().save()
+            configuration().unlock()
 
             findViewById<ProgressBar>(R.id.sftp_progress).visibility = View.GONE
-            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
+            window.clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
             val intent = Intent(this@ConfigurationActivity, MainActivity::class.java).apply {}
             startActivity(intent)
         }

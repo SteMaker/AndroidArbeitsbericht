@@ -18,4 +18,11 @@ class BillData() : ViewModel() {
         visibility.value = b.visibility
     }
 
+    fun copyFromDb(b: BillDb) {
+        name.value = b.billName
+        street.value = b.street
+        zip.value = b.zip
+        city.value = b.city
+        visibility.value = b.billVisibility
+    }
 }

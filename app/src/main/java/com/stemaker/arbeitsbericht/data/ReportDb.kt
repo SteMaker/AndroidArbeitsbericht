@@ -30,14 +30,46 @@ interface ReportDao {
 }
 
 class Converters {
+    // TODO: Use a template
     @TypeConverter
     fun workTimeContainerSerializer(wtc: WorkTimeContainerDb): ByteArray {
         return Cbor.encodeToByteArray(wtc)
     }
-
     @TypeConverter
     fun workTimeContainerDeserializer(s: ByteArray): WorkTimeContainerDb {
         return Cbor.decodeFromByteArray<WorkTimeContainerDb>(s)
+    }
+    @TypeConverter
+    fun workItemContainerSerializer(wic: WorkItemContainerDb): ByteArray {
+        return Cbor.encodeToByteArray(wic)
+    }
+    @TypeConverter
+    fun workItemContainerDeserializer(s: ByteArray): WorkItemContainerDb {
+        return Cbor.decodeFromByteArray<WorkItemContainerDb>(s)
+    }
+    @TypeConverter
+    fun materialContainerSerializer(m: MaterialContainerDb): ByteArray {
+        return Cbor.encodeToByteArray(m)
+    }
+    @TypeConverter
+    fun materialContainerDeserializer(s: ByteArray): MaterialContainerDb {
+        return Cbor.decodeFromByteArray<MaterialContainerDb>(s)
+    }
+    @TypeConverter
+    fun lumpSumContainerSerializer(l: LumpSumContainerDb): ByteArray {
+        return Cbor.encodeToByteArray(l)
+    }
+    @TypeConverter
+    fun lumpSumContainerDeserializer(s: ByteArray): LumpSumContainerDb {
+        return Cbor.decodeFromByteArray<LumpSumContainerDb>(s)
+    }
+    @TypeConverter
+    fun photoContainerSerializer(p: PhotoContainerDb): ByteArray {
+        return Cbor.encodeToByteArray(p)
+    }
+    @TypeConverter
+    fun photoContainerDeserializer(s: ByteArray): PhotoContainerDb {
+        return Cbor.decodeFromByteArray<PhotoContainerDb>(s)
     }
 }
 @Entity
@@ -50,13 +82,19 @@ data class ReportDb(
     @Embedded val project: ProjectDb,
     @Embedded val bill: BillDb,
     @Embedded val signatures: SignatureDb,
-    val workTimeContainerDb: WorkTimeContainerDb
+    val workTimeContainer: WorkTimeContainerDb,
+    val workItemContainer: WorkItemContainerDb,
+    val materialContainer: MaterialContainerDb,
+    val lumpSumContainer: LumpSumContainerDb,
+    val photoContainer: PhotoContainerDb,
 ) {
 
     companion object {
         fun fromReport(r: ReportData): ReportDb = ReportDb(r.id, r.cnt, r.create_date.value!!, ReportData.ReportState.toInt(r.state.value!!),
             "", ProjectDb.fromReport(r.project), BillDb.fromReport(r.bill), SignatureDb.fromReport(r.signatureData),
-            WorkTimeContainerDb.fromReport(r.workTimeContainer) )
+            WorkTimeContainerDb.fromReport(r.workTimeContainer), WorkItemContainerDb.fromReport(r.workItemContainer),
+            MaterialContainerDb.fromReport(r.materialContainer), LumpSumContainerDb.fromReport(r.lumpSumContainer),
+            PhotoContainerDb.fromReport(r.photoContainer) )
     }
 }
 
@@ -97,18 +135,18 @@ data class SignatureDb(
 
 @Serializable
 data class WorkTimeContainerDb (
-    val items: List<WorkTimeDb>,
-    var visibility: Boolean = true
+    val wtItems: List<WorkTimeDb>,
+    val wtVisibility: Boolean = true
 ) {
     @Serializable
     data class WorkTimeDb (
-        val date: String,
-        val employees: List<String>,
-        val startTime: String,
-        val endTime: String,
-        val pauseDuration: String,
-        val driveTime: String,
-        val distance: Int
+        val wtDate: String,
+        val wtEmployees: List<String>,
+        val wtStartTime: String,
+        val wtEndTime: String,
+        val wtPauseDuration: String,
+        val wtDriveTime: String,
+        val wtDistance: Int
     ) {
         companion object {
             fun fromReport(w: WorkTimeData): WorkTimeDb = WorkTimeDb(w.date.value!!, extractEmployees(w.employees), w.startTime.value!!, w.endTime.value!!, w.pauseDuration.value!!, w.driveTime.value!!, w.distance.value!!)
@@ -129,6 +167,112 @@ data class WorkTimeContainerDb (
                 l.add(WorkTimeDb.fromReport(wt))
             }
             return WorkTimeContainerDb(l, wc.visibility.value!!)
+        }
+    }
+}
+
+@Serializable
+data class WorkItemContainerDb(
+    val wiItems: List<WorkItemDb>,
+    val wiVisibility: Boolean = true
+) {
+    @Serializable
+    data class WorkItemDb(
+    val wiItem: String
+    ) {
+        companion object {
+            fun fromReport(w: WorkItemData): WorkItemDb = WorkItemDb(w.item.value!!)
+        }
+    }
+    companion object {
+        fun fromReport(wc: WorkItemContainerData): WorkItemContainerDb {
+            val l = mutableListOf<WorkItemDb>()
+            for(wi in wc.items) {
+                l.add(WorkItemDb.fromReport(wi))
+            }
+            return WorkItemContainerDb(l, wc.visibility.value!!)
+        }
+    }
+}
+
+@Serializable
+data class MaterialContainerDb(
+    val mItems: List<MaterialDb>,
+    val mVisibility: Boolean = true
+) {
+    @Serializable
+    data class MaterialDb(
+        val mItem: String,
+        var mAmount: Float,
+        var mUnit: String
+    ) {
+        companion object {
+            fun fromReport(m: MaterialData): MaterialDb = MaterialDb(m.item.value!!, m.amount.value!!, m.unit.value!!)
+        }
+    }
+
+    companion object {
+        fun fromReport(mc: MaterialContainerData): MaterialContainerDb {
+            val l = mutableListOf<MaterialDb>()
+            for(m in mc.items) {
+                l.add(MaterialDb.fromReport(m))
+            }
+            return MaterialContainerDb(l, mc.visibility.value!!)
+        }
+    }
+}
+
+@Serializable
+data class LumpSumContainerDb(
+    val lItems: List<LumpSumDb>,
+    val lVisibility: Boolean = true
+) {
+    @Serializable
+    data class LumpSumDb(
+        val lItem: String,
+        var lAmount: Int,
+        var lComment: String
+    ) {
+        companion object {
+            fun fromReport(l: LumpSumData): LumpSumDb = LumpSumDb(l.item.value!!, l.amount.value!!, l.comment.value!!)
+        }
+    }
+
+    companion object {
+        fun fromReport(lc: LumpSumContainerData): LumpSumContainerDb {
+            val l = mutableListOf<LumpSumDb>()
+            for(i in lc.items) {
+                l.add(LumpSumDb.fromReport(i))
+            }
+            return LumpSumContainerDb(l, lc.visibility.value!!)
+        }
+    }
+}
+
+@Serializable
+data class PhotoContainerDb(
+    val pItems: List<PhotoDb>,
+    val pVisibility: Boolean = true
+) {
+    @Serializable
+    data class PhotoDb(
+        val pFile: String,
+        val pDescription: String,
+        val pImageWidth: Int,
+        val pImageHeight: Int
+    ) {
+        companion object {
+            fun fromReport(p: PhotoData): PhotoDb = PhotoDb(p.file.value!!, p.description.value!!, p.imageWidth, p.imageHeight)
+        }
+    }
+
+    companion object {
+        fun fromReport(pc: PhotoContainerData): PhotoContainerDb {
+            val l = mutableListOf<PhotoDb>()
+            for(p in pc.items) {
+                l.add(PhotoDb.fromReport(p))
+            }
+            return PhotoContainerDb(l, pc.visibility.value!!)
         }
     }
 }

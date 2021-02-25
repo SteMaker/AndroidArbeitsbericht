@@ -15,4 +15,9 @@ class SignatureData: ViewModel() {
         employeeSignatureSvg.value = s.employeeSignatureSvg
         clientSignatureSvg.value = s.clientSignatureSvg
     }
+
+    fun copyFromDb(s: SignatureDb) {
+        employeeSignatureSvg.value = s.employeeSignatureSvg
+        clientSignatureSvg.value = s.clientSignatureSvg
+    }
 }

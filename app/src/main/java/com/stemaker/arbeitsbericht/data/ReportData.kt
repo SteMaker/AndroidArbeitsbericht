@@ -108,12 +108,12 @@ class ReportData private constructor(var cnt: Int = 0): ViewModel() {
         state.value = ReportState.fromInt(r.state)
         project.copyFromDb(r.project)
         bill.copyFromDb(r.bill)
-        workTimeContainer.copyFromDb(r.workTimeContainerDb)
-        //workItemContainer.copyFromDb(r.workItemContainer)
-        //materialContainer.copyFromDb(r.materialContainer)
-        //lumpSumContainer.copyFromDb(r.lumpSumContainer)
-        //photoContainer.copyFromDb(r.photoContainer)
-        //signatureData.copyFromDb(r.signatureData)
+        workTimeContainer.copyFromDb(r.workTimeContainer)
+        workItemContainer.copyFromDb(r.workItemContainer)
+        materialContainer.copyFromDb(r.materialContainer)
+        lumpSumContainer.copyFromDb(r.lumpSumContainer)
+        photoContainer.copyFromDb(r.photoContainer)
+        signatureData.copyFromDb(r.signatures)
 
     }
 

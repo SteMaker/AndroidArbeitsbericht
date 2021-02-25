@@ -33,6 +33,16 @@ class MaterialContainerData(): ViewModel() {
         }
     }
 
+    fun copyFromDb(w: MaterialContainerDb) {
+        visibility.value = w.mVisibility
+        items.clear()
+        for(element in w.mItems) {
+            val item = MaterialData()
+            item.copyFromDb(element)
+            items.add(item)
+        }
+    }
+
     fun addMaterial(): MaterialData {
         val m = MaterialData()
         items.add(m)
@@ -53,5 +63,10 @@ class MaterialData(): ViewModel() {
         item.value = m.item
         amount.value = m.amount
         unit.value = m.unit
+    }
+    fun copyFromDb(m: MaterialContainerDb.MaterialDb) {
+        item.value = m.mItem
+        amount.value = m.mAmount
+        unit.value = m.mUnit
     }
 }

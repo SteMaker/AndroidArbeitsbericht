@@ -22,9 +22,9 @@ class WorkTimeContainerData(): ViewModel() {
     }
 
     fun copyFromDb(w: WorkTimeContainerDb) {
-        visibility.value = w.visibility
+        visibility.value = w.wtVisibility
         items.clear()
-        for(element in w.items) {
+        for(element in w.wtItems) {
             val item = WorkTimeData()
             item.copyFromDb(element)
             items.add(item)
@@ -134,18 +134,19 @@ class WorkTimeData: ViewModel() {
     }
 
     fun copyFromDb(w: WorkTimeContainerDb.WorkTimeDb) {
-        date.value = w.date
+        date.value = w.wtDate
         employees.clear()
-        for(empSer in w.employees) {
+        for(empSer in w.wtEmployees) {
             val emp = MutableLiveData<String>().apply { value = empSer }
             employees.add(emp)
         }
-        startTime.value = w.startTime
-        endTime.value = w.endTime
-        pauseDuration.value = w.pauseDuration
-        driveTime.value = w.driveTime
-        distance.value = w.distance
+        startTime.value = w.wtStartTime
+        endTime.value = w.wtEndTime
+        pauseDuration.value = w.wtPauseDuration
+        driveTime.value = w.wtDriveTime
+        distance.value = w.wtDistance
     }
+
     fun incDateByOneWeekday(dateIn: String): String {
         var isWeekDay = true
         val cal = Calendar.getInstance()

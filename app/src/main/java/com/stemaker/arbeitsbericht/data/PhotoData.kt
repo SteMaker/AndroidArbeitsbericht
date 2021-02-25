@@ -20,6 +20,16 @@ class PhotoContainerData(): ViewModel() {
         }
     }
 
+    fun copyFromDb(w: PhotoContainerDb) {
+        visibility.value = w.pVisibility
+        items.clear()
+        for(element in w.pItems) {
+            val item = PhotoData()
+            item.copyFromDb(element)
+            items.add(item)
+        }
+    }
+
     fun addPhoto(): PhotoData {
         Log.d("Arbeitsbericht.debug", "Adding photo, before: ${items.size}, object: ${this.toString()}")
         val p = PhotoData()
@@ -60,5 +70,11 @@ class PhotoData: ViewModel() {
                 imageHeight = 1
             }
         }
+    }
+    fun copyFromDb(p: PhotoContainerDb.PhotoDb) {
+        file.value = p.pFile
+        description.value = p.pDescription
+        imageHeight = p.pImageHeight
+        imageWidth = p.pImageWidth
     }
 }

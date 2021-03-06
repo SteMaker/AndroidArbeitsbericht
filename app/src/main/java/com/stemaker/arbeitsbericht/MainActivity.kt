@@ -125,6 +125,10 @@ class MainActivity : AppCompatActivity(), ReportCardInterface {
         createNewReport()
     }
 
+    fun onClickJumpTop(v_: View) {
+        adapter.jumpTop()
+    }
+
     override fun onClickReport(cnt: Int) {
         GlobalScope.launch(Dispatchers.Main) {
             storageHandler().selectReportByCnt(cnt)

@@ -64,7 +64,6 @@ object StorageHandler {
     fun initialize(): Job? {
         if (inited.compareAndSet(false, true)) {
             initJob = GlobalScope.launch(Dispatchers.Main) {
-                Log.d(TAG, "initialize start")
                 val c: Context = ArbeitsberichtApp.appContext
                 // Read the configuration. This needs to be low level -> no configuration() invocation yet
                 loadConfigurationFromFile(c)
@@ -94,7 +93,6 @@ object StorageHandler {
                         configuration().activeReportId = -1
                     }
                 }
-                Log.d(TAG, "initialize end")
             }
         }
         // Activities need to wait for this initJob before they are allowed to access the storageHandler()
@@ -177,9 +175,9 @@ object StorageHandler {
 
     private fun reportStateChanged(r: ReportData) {
         // If the new state is set to invisible and it is currently visible
-        if (!stateFilter.contains(ReportData.ReportState.toInt(r.state.value!!)) && visReportCnts.contains(r.id)) {
+        if (!stateFilter.contains(ReportData.ReportState.toInt(r.state.value!!)) && visReportCnts.contains(r.cnt)) {
             synchronized(visReportCnts) {
-                visReportCnts.remove(r.id)
+                visReportCnts.remove(r.cnt)
             }
             for (o in reportListObservers)
                 o.notifyReportRemoved(r.cnt)
@@ -321,7 +319,6 @@ object StorageHandler {
     }
 
     private fun loadConfigurationFromFile(c: Context) {
-        Log.d(TAG, "")
         try {
             val fIn = c.openFileInput("configuration.json")
             val isr = InputStreamReader(fIn)
@@ -337,7 +334,6 @@ object StorageHandler {
         configuration().materialDictionary = materialDictionary
         configuration().workItemDictionary = workItemDictionary
         val fOut = c.openFileOutput("configuration.json", MODE_PRIVATE)
-        Log.d("TAG", "currentId = ${configuration().currentId}; num lump sums = ${configuration().lumpSums.size}")
         val osw = OutputStreamWriter(fOut)
         gson.toJson(Configuration.store, osw)
         osw.close()

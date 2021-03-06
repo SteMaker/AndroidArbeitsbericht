@@ -48,8 +48,6 @@ class ReportListAdapter(val reportCardInterface: ReportCardInterface, val activi
     }
 
     override fun onBindViewHolder(holder: ReportViewHolder, position: Int) {
-        Log.d("ReportListAdapter", "onBindViewHolder")
-
         // Bind data
         val reportCnt = reportCnts[position]
 
@@ -63,7 +61,6 @@ class ReportListAdapter(val reportCardInterface: ReportCardInterface, val activi
             // Bind to the event of clicking the context menu
             holder.binding.reportCardMenuButton.setOnClickListener {
                 PopupMenu(activity.applicationContext, it).apply {
-                    Log.d("MainActivity", "onClickContext, ${report.id})")
                     setOnMenuItemClickListener { item ->
                         when (item?.itemId) {
                             R.id.delete -> {
@@ -101,11 +98,9 @@ class ReportListAdapter(val reportCardInterface: ReportCardInterface, val activi
         holder.bind(report)
         // Ensure there is enough space so that Floating Action Button doesn't hide parts of the LAST report
         if (position + 1 == itemCount) {
-            Log.d(TAG, "adding margin to position $position, item = ${holder.itemView}")
             setBottomMargin(holder.itemView, (100 * Resources.getSystem().displayMetrics.density).toInt());
             bottomView = holder.itemView
         } else {
-            Log.d(TAG, "removing margin at position $position")
             setBottomMargin(holder.itemView, 0);
         }
 
@@ -115,6 +110,7 @@ class ReportListAdapter(val reportCardInterface: ReportCardInterface, val activi
     override fun notifyReportAdded(cnt: Int) {
         reportCnts.add(0, cnt)
         notifyItemInserted(0)
+        recyclerView.scrollToPosition(0)
     }
 
     override fun notifyReportListChanged(cnts: List<Int>) {
@@ -139,6 +135,10 @@ class ReportListAdapter(val reportCardInterface: ReportCardInterface, val activi
 
     fun registerReportListObserver() {
         storageHandler().addReportListObserver(this)
+    }
+
+    fun jumpTop() {
+        recyclerView.scrollToPosition(0)
     }
 
     override fun getItemCount(): Int {

@@ -68,5 +68,19 @@
                 app:elevation="10dp"
                 android:onClick="onClickNewReport"
                 />
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/jump_to_top_button"
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintRight_toLeftOf="@id/new_report_button"
+                android:layout_margin="16dp"
+                android:text="@string/create_new_report"
+                android:src="@drawable/ic_baseline_jump_top_24"
+                app:maxImageSize="40dp"
+                app:backgroundTint="#0000ff"
+                app:elevation="10dp"
+                android:onClick="onClickJumpTop"
+                />
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

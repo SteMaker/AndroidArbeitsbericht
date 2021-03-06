@@ -65,7 +65,7 @@
     <string name="crashlog_enable">Im Falle eines Absturzes Bericht an Autor senden</string>
     <string name="in_work">In Arbeit</string>
     <string name="on_hold">Unterbrochen</string>
-    <string name="done">Abgeschlossen</string>
+    <string name="done">Erledigt</string>
     <string name="archived">Archiviert</string>
     <string name="delete">Löschen</string>
     <string name="set_in_work">Auf In Arbeit setzen</string>

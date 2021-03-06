@@ -194,13 +194,13 @@ object StorageHandler {
             it
         } ?: run {
             val report = ReportData.createReport(cnt)
-            GlobalScope.launch(Dispatchers.IO) {
-                mutex.withLock {
-                    addReportToCache(report)
-                    val rDb = db.reportDao().getReportByCnt(cnt)
-                    ReportData.getReportFromDb(rDb, report)
-                    onLoaded(report)
+            addReportToCache(report)
+            GlobalScope.launch(Dispatchers.Main) {
+                val rDb = withContext(Dispatchers.IO) {
+                    db.reportDao().getReportByCnt(cnt)
                 }
+                ReportData.getReportFromDb(rDb, report)
+                onLoaded(report)
             }
             return report
         }

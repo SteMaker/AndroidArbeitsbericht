@@ -108,36 +108,36 @@ class ReportEditorActivity : AppCompatActivity(),
 
     override suspend fun getProjectData(): ProjectData {
         waitForStorageHandler()
-        return storageHandler().getReport().project
+        return storageHandler().getReport()!!.project
     }
 
     override suspend fun getBillData(): BillData {
         waitForStorageHandler()
-        return storageHandler().getReport().bill
+        return storageHandler().getReport()!!.bill
     }
 
     override suspend fun getWorkTimeContainerData(): WorkTimeContainerData {
         waitForStorageHandler()
-        return storageHandler().getReport().workTimeContainer
+        return storageHandler().getReport()!!.workTimeContainer
     }
 
     override suspend fun getWorkItemContainerData(): WorkItemContainerData {
         waitForStorageHandler()
-        return storageHandler().getReport().workItemContainer
+        return storageHandler().getReport()!!.workItemContainer
     }
 
     override suspend fun getMaterialContainerData(): MaterialContainerData {
         waitForStorageHandler()
-        return storageHandler().getReport().materialContainer
+        return storageHandler().getReport()!!.materialContainer
     }
 
     override suspend fun getLumpSumContainerData(): LumpSumContainerData {
         waitForStorageHandler()
-        return storageHandler().getReport().lumpSumContainer
+        return storageHandler().getReport()!!.lumpSumContainer
     }
 
     override suspend fun getPhotoContainerData(): PhotoContainerData {
         waitForStorageHandler()
-        return storageHandler().getReport().photoContainer
+        return storageHandler().getReport()!!.photoContainer
     }
 }

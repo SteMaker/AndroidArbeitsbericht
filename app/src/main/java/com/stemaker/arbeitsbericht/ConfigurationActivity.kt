@@ -149,41 +149,34 @@ class ConfigurationActivity : AppCompatActivity() {
     }
 
     private fun save() {
-        GlobalScope.launch(Dispatchers.Main) {
-            window.setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
-            findViewById<ProgressBar>(R.id.sftp_progress).visibility = View.VISIBLE
+        window.setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
+        findViewById<ProgressBar>(R.id.sftp_progress).visibility = View.VISIBLE
 
-            val rename = checkForIdChange()
-            configuration().lock()
-            configuration().employeeName = findViewById<EditText>(R.id.config_employee_name).getText().toString()
-            configuration().deviceName = findViewById<EditText>(R.id.config_device_name).getText().toString()
-            configuration().reportIdPattern = findViewById<EditText>(R.id.config_report_id_pattern).getText().toString()
+        //val rename = checkForIdChange()
+        configuration().employeeName = findViewById<EditText>(R.id.config_employee_name).getText().toString()
+        configuration().deviceName = findViewById<EditText>(R.id.config_device_name).getText().toString()
+        configuration().reportIdPattern = findViewById<EditText>(R.id.config_report_id_pattern).getText().toString()
 
-            if(rename)
-                storageHandler().renameReportsIfNeeded()
+        configuration().recvMail = findViewById<EditText>(R.id.config_mail_receiver).getText().toString()
+        configuration().crashlyticsEnabled = findViewById<Switch>(R.id.crashlog_enable).isChecked
+        FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(configuration().crashlyticsEnabled);
+        configuration().useOdfOutput = findViewById<RadioButton>(R.id.radio_odf_output).isChecked
+        configuration().sFtpHost = findViewById<EditText>(R.id.sftp_host).text.toString()
+        configuration().sFtpPort = findViewById<EditText>(R.id.sftp_port).text.toString().toInt()
+        configuration().sFtpUser = findViewById<EditText>(R.id.sftp_user).text.toString()
+        val pwd = findViewById<EditText>(R.id.sftp_pwd).text.toString()
+        if (pwd != "") // only overwrite if a new one has been set
+            configuration().sFtpEncryptedPassword = pwd
+        configuration().odfTemplateServerPath = findViewById<EditText>(R.id.odf_template_ftp_path).text.toString()
+        configuration().logoServerPath = findViewById<EditText>(R.id.logo_ftp_path).text.toString()
+        configuration().footerServerPath = findViewById<EditText>(R.id.footer_ftp_path).text.toString()
+        configuration().fontSize = findViewById<SeekBar>(R.id.fontsize_seekbar).progress
+        configuration().save()
 
-            configuration().recvMail = findViewById<EditText>(R.id.config_mail_receiver).getText().toString()
-            configuration().crashlyticsEnabled = findViewById<Switch>(R.id.crashlog_enable).isChecked
-            FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(configuration().crashlyticsEnabled);
-            configuration().useOdfOutput = findViewById<RadioButton>(R.id.radio_odf_output).isChecked
-            configuration().sFtpHost = findViewById<EditText>(R.id.sftp_host).text.toString()
-            configuration().sFtpPort = findViewById<EditText>(R.id.sftp_port).text.toString().toInt()
-            configuration().sFtpUser = findViewById<EditText>(R.id.sftp_user).text.toString()
-            val pwd = findViewById<EditText>(R.id.sftp_pwd).text.toString()
-            if (pwd != "") // only overwrite if a new one has been set
-                configuration().sFtpEncryptedPassword = pwd
-            configuration().odfTemplateServerPath = findViewById<EditText>(R.id.odf_template_ftp_path).text.toString()
-            configuration().logoServerPath = findViewById<EditText>(R.id.logo_ftp_path).text.toString()
-            configuration().footerServerPath = findViewById<EditText>(R.id.footer_ftp_path).text.toString()
-            configuration().fontSize = findViewById<SeekBar>(R.id.fontsize_seekbar).progress
-            configuration().save()
-            configuration().unlock()
-
-            findViewById<ProgressBar>(R.id.sftp_progress).visibility = View.GONE
-            window.clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
-            val intent = Intent(this@ConfigurationActivity, MainActivity::class.java).apply {}
-            startActivity(intent)
-        }
+        findViewById<ProgressBar>(R.id.sftp_progress).visibility = View.GONE
+        window.clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
+        val intent = Intent(this@ConfigurationActivity, MainActivity::class.java).apply {}
+        startActivity(intent)
     }
 
     fun onClickConnect(@Suppress("UNUSED_PARAMETER") btn: View) {

@@ -55,7 +55,7 @@ class SummaryActivity : AppCompatActivity() {
                 }
             } ?: run { Log.e(TAG, "storageHandler job was null :(") }
 
-            signatureData = storageHandler().getReport().signatureData
+            signatureData = storageHandler().getReport()!!.signatureData
             binding.signature = signatureData
 
             val eSigPad = findViewById<LockableSignaturePad>(R.id.employee_signature)
@@ -81,7 +81,7 @@ class SummaryActivity : AppCompatActivity() {
             val clientSigText = findViewById<TextView>(R.id.client_signature_text)
             clientSigText!!.setOnClickListener { onClickHideShowClientSignature(findViewById<ImageButton>(R.id.hide_client_signature_btn)) }
 
-            val html = HtmlReport.encodeReport(storageHandler().getReport(), false)
+            val html = HtmlReport.encodeReport(storageHandler().getReport()!!, false)
             val wv = findViewById<WebView>(R.id.webview)
             wv.loadDataWithBaseURL("", html, "text/html", "UTF-8", "")
         }
@@ -262,11 +262,11 @@ class SummaryActivity : AppCompatActivity() {
         }
     }
     private suspend fun askAndSetDone() {
-        if(storageHandler().getReport().state.value == ReportData.ReportState.DONE) return
+        if(storageHandler().getReport()!!.state.value == ReportData.ReportState.DONE) return
         val answer =
             showConfirmationDialog("Soll der Bericht auf Erledigt gesetzt werden?", this@SummaryActivity)
         if(answer == AlertDialog.BUTTON_POSITIVE) {
-            storageHandler().getReport().state.value = ReportData.ReportState.DONE
+            storageHandler().getReport()!!.state.value = ReportData.ReportState.DONE
             storageHandler().saveActiveReport()
         }
     }
@@ -298,7 +298,7 @@ class SummaryActivity : AppCompatActivity() {
             var file: File? = null
             if(withAttachment)
                 file = createReport()
-            sendMail(file, storageHandler().getReport())
+            sendMail(file, storageHandler().getReport()!!)
         }
     }
 
@@ -331,7 +331,7 @@ class SummaryActivity : AppCompatActivity() {
             } else {
                 val file = createReport()
                 if(file != null) {
-                    shareReport(file, storageHandler().getReport())
+                    shareReport(file, storageHandler().getReport()!!)
                 } else {
                     val toast = Toast.makeText(applicationContext, R.string.send_fail, Toast.LENGTH_LONG)
                     toast.show()
@@ -358,7 +358,7 @@ class SummaryActivity : AppCompatActivity() {
     }
 
     suspend fun createOdfReport(): File? {
-        val report = storageHandler().getReport()
+        val report = storageHandler().getReport()!!
         val odfGenerator = OdfGenerator(this@SummaryActivity, report, binding.createReportProgressbar, binding.createReportProgressText)
         val files = odfGenerator.getFilesForOdfGeneration()
         if(files != null) {
@@ -380,7 +380,7 @@ class SummaryActivity : AppCompatActivity() {
     }
 
     suspend fun createPdfReport(): File? {
-        val report = storageHandler().getReport()
+        val report = storageHandler().getReport()!!
         val pdfPrint = PdfPrint(this, report)
         val files = pdfPrint.getFilesForPdfGeneration(this@SummaryActivity)
         if(files != null) {

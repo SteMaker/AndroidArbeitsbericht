@@ -34,8 +34,8 @@ class ConfigurationStore {
     var logoServerPath: String = ""
     var footerServerPath: String = ""
     var lumpSums = listOf<String>()
-    var activeReportId: Int = -1 // deprecated but needs to stay for json read
-    var activeReportId2: String = ""
+    var activeReportId: Int = -1 // Now used again, was deprecated
+    var activeReportId2: String = "" // Deprecated
     var workItemDictionary = setOf<String>()
     var materialDictionary = setOf<String>()
     var odfTemplateFile: String = ""
@@ -145,9 +145,9 @@ object Configuration {
         get(): List<String> = store.lumpSums
         set(value) {store.lumpSums = value}
 
-    var activeReportId: String
-        get(): String = store.activeReportId2
-            set(value) {store.activeReportId2 = value}
+    var activeReportId: Int
+        get(): Int = store.activeReportId
+            set(value) {store.activeReportId = value}
 
     var workItemDictionary: Set<String>
         get(): Set<String> = store.workItemDictionary

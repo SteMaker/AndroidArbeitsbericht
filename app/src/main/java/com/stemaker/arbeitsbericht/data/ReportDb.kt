@@ -10,11 +10,14 @@ interface ReportDao {
     @Query("SELECT * FROM ReportDb")
     suspend fun getReports(): List<ReportDb>
 
-    @Query("SELECT * FROM ReportDb WHERE id = :id")
-    suspend fun getReportById(id: String): ReportDb
+    @Query("SELECT * FROM ReportDb WHERE cnt = :cnt")
+    suspend fun getReportByCnt(cnt: Int): ReportDb
 
-    @Query("SELECT id FROM ReportDb ORDER BY id DESC")
-    suspend fun getReportIds(): List<String>
+    @Query("SELECT cnt FROM ReportDb ORDER BY cnt DESC")
+    suspend fun getReportCnts(): List<Int>
+
+    @Query("SELECT cnt FROM ReportDb WHERE state IN (:stateFilter) ORDER BY cnt DESC")
+    suspend fun getStateFilteredReportIds(stateFilter: Set<Int>): List<Int>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(reportDb: ReportDb)
@@ -22,15 +25,14 @@ interface ReportDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun update(reportDb: ReportDb)
 
-    @Query("DELETE FROM ReportDb WHERE id = :id")
-    suspend fun deleteById(id: String)
+    @Query("DELETE FROM ReportDb WHERE cnt = :cnt")
+    suspend fun deleteByCnt(cnt: Int)
 
     @Query("DELETE FROM ReportDb")
     fun deleteTable()
 }
 
 class Converters {
-    // TODO: Use a template
     @TypeConverter
     fun workTimeContainerSerializer(wtc: WorkTimeContainerDb): ByteArray {
         return Cbor.encodeToByteArray(wtc)
@@ -74,8 +76,8 @@ class Converters {
 }
 @Entity
 data class ReportDb(
-    @PrimaryKey val id: String,
-    val cnt: Int,
+    //@PrimaryKey val id: String,
+    @PrimaryKey val cnt: Int,
     val create_date: String,
     val state: Int,
     val change_date: String,
@@ -90,7 +92,7 @@ data class ReportDb(
 ) {
 
     companion object {
-        fun fromReport(r: ReportData): ReportDb = ReportDb(r.id, r.cnt, r.create_date.value!!, ReportData.ReportState.toInt(r.state.value!!),
+        fun fromReport(r: ReportData): ReportDb = ReportDb(r.cnt, r.create_date.value!!, ReportData.ReportState.toInt(r.state.value!!),
             "", ProjectDb.fromReport(r.project), BillDb.fromReport(r.bill), SignatureDb.fromReport(r.signatureData),
             WorkTimeContainerDb.fromReport(r.workTimeContainer), WorkItemContainerDb.fromReport(r.workItemContainer),
             MaterialContainerDb.fromReport(r.materialContainer), LumpSumContainerDb.fromReport(r.lumpSumContainer),
@@ -277,7 +279,7 @@ data class PhotoContainerDb(
     }
 }
 
-@Database(entities = [ReportDb::class], version = 1)
+@Database(entities = [ReportDb::class], version = 2)
 @TypeConverters(Converters::class)
 abstract class ReportDatabase : RoomDatabase() {
     abstract fun reportDao(): ReportDao

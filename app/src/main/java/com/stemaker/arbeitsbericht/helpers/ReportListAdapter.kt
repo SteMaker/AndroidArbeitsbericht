@@ -3,14 +3,12 @@ package com.stemaker.arbeitsbericht.helpers
 import android.content.res.Resources
 import android.util.Log
 import android.view.LayoutInflater
-import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.PopupMenu
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.LifecycleOwner
 import androidx.recyclerview.widget.RecyclerView
-import androidx.recyclerview.widget.SortedList
 import com.stemaker.arbeitsbericht.*
 import com.stemaker.arbeitsbericht.data.ReportData
 import com.stemaker.arbeitsbericht.databinding.ReportCardLayoutBinding
@@ -18,9 +16,11 @@ import com.stemaker.arbeitsbericht.databinding.ReportCardLayoutBinding
 private const val TAG = "ReportListAdapter"
 
 class ReportListAdapter(val reportCardInterface: ReportCardInterface, val activity: AppCompatActivity) :
-    RecyclerView.Adapter<ReportListAdapter.ReportViewHolder>() {
+    RecyclerView.Adapter<ReportListAdapter.ReportViewHolder>(),
+    ReportListObserver {
 
     private lateinit var recyclerView: RecyclerView
+    var reportCnts = mutableListOf<Int>()
 
     private val mapState2MenuItemId = mapOf(ReportData.ReportState.IN_WORK to R.id.status_in_work,
         ReportData.ReportState.ON_HOLD to R.id.status_on_hold,
@@ -49,11 +49,58 @@ class ReportListAdapter(val reportCardInterface: ReportCardInterface, val activi
 
     override fun onBindViewHolder(holder: ReportViewHolder, position: Int) {
         Log.d("ReportListAdapter", "onBindViewHolder")
+
         // Bind data
-        val report = sortedList.get(position)
+        val reportCnt = reportCnts[position]
+
+        // We only register the on click listeners once the report was loaded from the database to make sure nothing can be done with it before we are ready
+        val actionsOnReportLoaded = { report: ReportData ->
+            // Bind to the event of clicking the report
+            holder.binding.reportCardTop.setOnClickListener {
+                reportCardInterface.onClickReport(report.cnt)
+            }
+
+            // Bind to the event of clicking the context menu
+            holder.binding.reportCardMenuButton.setOnClickListener {
+                PopupMenu(activity.applicationContext, it).apply {
+                    Log.d("MainActivity", "onClickContext, ${report.id})")
+                    setOnMenuItemClickListener { item ->
+                        when (item?.itemId) {
+                            R.id.delete -> {
+                                reportCardInterface.onClickDeleteReport(report)
+                                true
+                            }
+                            R.id.status_in_work -> {
+                                reportCardInterface.onSetReportState(report, position, ReportData.ReportState.IN_WORK)
+                                true
+                            }
+                            R.id.status_on_hold -> {
+                                reportCardInterface.onSetReportState(report, position, ReportData.ReportState.ON_HOLD)
+                                true
+                            }
+                            R.id.status_done -> {
+                                reportCardInterface.onSetReportState(report, position, ReportData.ReportState.DONE)
+                                true
+                            }
+                            R.id.status_archived -> {
+                                reportCardInterface.onSetReportState(report, position, ReportData.ReportState.ARCHIVED)
+                                true
+                            }
+                            else -> false
+                        }
+                    }
+                    inflate(R.menu.report_actions_menu)
+                    menu.findItem(mapState2MenuItemId[report.state.value!!]!!).isVisible = false
+                    show()
+                }
+            }
+        }
+
+        val report = storageHandler().getReportByCnt(reportCnt, actionsOnReportLoaded)
+
         holder.bind(report)
         // Ensure there is enough space so that Floating Action Button doesn't hide parts of the LAST report
-        if(position + 1 == itemCount) {
+        if (position + 1 == itemCount) {
             Log.d(TAG, "adding margin to position $position, item = ${holder.itemView}")
             setBottomMargin(holder.itemView, (100 * Resources.getSystem().displayMetrics.density).toInt());
             bottomView = holder.itemView
@@ -62,48 +109,24 @@ class ReportListAdapter(val reportCardInterface: ReportCardInterface, val activi
             setBottomMargin(holder.itemView, 0);
         }
 
-        // Bind to the event of clicking the report
-        holder.binding.reportCardTop.setOnClickListener {
-            reportCardInterface.onClickReport(report.id)
-        }
+    }
 
-        // Bind to the event of clicking the context menu
-        holder.binding.reportCardMenuButton.setOnClickListener {
-            PopupMenu(activity.applicationContext, it).apply {
-                Log.d("MainActivity", "onClickContext, ${report.id})")
-                setOnMenuItemClickListener { item ->
-                    when (item?.itemId) {
-                        R.id.delete -> {
-                            reportCardInterface.onClickDeleteReport(report) {
-                                sortedList.removeItemAt(position)
-                            }
-                            true
-                        }
-                        R.id.status_in_work -> {
-                            reportCardInterface.onSetReportState(report, ReportData.ReportState.IN_WORK)
-                            true
-                        }
-                        R.id.status_on_hold -> {
-                            reportCardInterface.onSetReportState(report, ReportData.ReportState.ON_HOLD)
-                            true
-                        }
-                        R.id.status_done -> {
-                            reportCardInterface.onSetReportState(report, ReportData.ReportState.DONE)
-                            true
-                        }
-                        R.id.status_archived -> {
-                            reportCardInterface.onSetReportState(report, ReportData.ReportState.ARCHIVED)
-                            true
-                        }
-                        else -> false
-                    }
-                }
-                inflate(R.menu.report_actions_menu)
-                menu.findItem(mapState2MenuItemId[report.state.value!!]!!).isVisible = false
-                show()
-            }
+    // TODO: Reuse the object from storageHandler instead of establishing another one
+    override fun notifyReportAdded(cnt: Int) {
+        reportCnts.add(0, cnt)
+        notifyItemInserted(0)
+    }
 
-        }
+    override fun notifyReportListChanged(cnts: List<Int>) {
+        reportCnts.clear()
+        reportCnts.addAll(cnts)
+        notifyDataSetChanged()
+    }
+
+    override fun notifyReportRemoved(cnt: Int) {
+        val pos = reportCnts.indexOfFirst { it == cnt }
+        reportCnts.removeAt(pos)
+        notifyItemRemoved(pos)
     }
 
     private fun setBottomMargin(view: View, bottomMargin: Int) {
@@ -114,70 +137,11 @@ class ReportListAdapter(val reportCardInterface: ReportCardInterface, val activi
         }
     }
 
-    private val sortedList: SortedList<ReportData> = SortedList<ReportData>(ReportData::class.java, object : SortedList.Callback<ReportData>() {
-        override fun compare(o1: ReportData?, o2: ReportData?): Int {
-            if(o1 == null || o2 == null) return 0
-            val result = (o1.id.compareTo(o2.id))*-1
-            //Log.d("ReportListAdapter", "compare ${o1} ${o2} -> $result")
-            return result
-        }
-        override fun onInserted(position: Int, count: Int) {
-            //Log.d("ReportListAdapter", "onInserted")
-            notifyItemRangeInserted(position, count)
-        }
-        override fun onRemoved(position: Int, count: Int) {
-            //Log.d("ReportListAdapter", "onRemoved")
-            notifyItemRangeRemoved(position, count)
-        }
-        override fun onMoved(fromPosition: Int, toPosition: Int) {
-            //Log.d("ReportListAdapter", "onMoved")
-            notifyItemMoved(fromPosition, toPosition)
-        }
-        override fun onChanged(position: Int, count: Int) {
-            //Log.d("ReportListAdapter", "onChanged")
-            notifyItemRangeChanged(position, count)
-        }
-        override fun areContentsTheSame(oldItem: ReportData?, newItem: ReportData?): Boolean {
-            //Log.d("ReportListAdapter", "areContentsTheSame ${oldItem} ${newItem}")
-            return oldItem.hashCode() == newItem.hashCode()
-        }
-        override fun areItemsTheSame(item1: ReportData?, item2: ReportData?): Boolean {
-            //Log.d("ReportListAdapter", "areItemsTheSame ${item1} ${item2}")
-            if(item1 == null || item2 == null) return false
-            return item1.id == item2.id
-        }
-    })
-
-    fun replaceAll(reports: List<ReportData>) {
-        sortedList.beginBatchedUpdates()
-        sortedList.clear()
-        sortedList.addAll(reports)
-        sortedList.endBatchedUpdates()
-    }
-
-    fun add(reports: List<ReportData>) {
-        if(bottomView != null) {
-            Log.d(TAG, "clearing margin of item = ${bottomView}")
-            setBottomMargin(bottomView!!, 0);
-            bottomView = null
-        }
-        sortedList.addAll(reports)
-    }
-
-    fun add(report: ReportData) {
-        if(bottomView != null) {
-            Log.d(TAG, "clearing margin of item = ${bottomView}, when adding report with id ${report.id}")
-            setBottomMargin(bottomView!!, 0);
-            bottomView = null
-        }
-        sortedList.add(report)
-    }
-
-    fun remove(report: ReportData) {
-        sortedList.remove(report)
+    fun registerReportListObserver() {
+        storageHandler().addReportListObserver(this)
     }
 
     override fun getItemCount(): Int {
-        return sortedList.size()
+        return reportCnts.size
     }
 }

@@ -18,6 +18,7 @@ class ReportData private constructor(var cnt: Int = 0): ViewModel() {
 
     val id: String
         get() {
+            // TODO: Check how often this is executed, performance impact?
             var string = configuration().reportIdPattern
             // Replace %<n>c -> running counter
             val regex = """(%c|%[0-9]c)""".toRegex()
@@ -59,14 +60,6 @@ class ReportData private constructor(var cnt: Int = 0): ViewModel() {
                     ON_HOLD -> R.string.on_hold
                     DONE -> R.string.done
                     ARCHIVED -> R.string.archived
-                }
-            }
-            fun toDirName(s: ReportState): String {
-                return when(s) {
-                    IN_WORK -> ""
-                    ON_HOLD -> "onhold"
-                    DONE -> "done"
-                    ARCHIVED -> "archive"
                 }
             }
         }
@@ -133,10 +126,9 @@ class ReportData private constructor(var cnt: Int = 0): ViewModel() {
             report.copyFromSerialized(serialized)
             return report
         }
-        fun getReportFromDb(r: ReportDb): ReportData {
-            val report = ReportData()
-            report.copyFromDb(r)
-            return report
+
+        fun getReportFromDb(rDb: ReportDb, r: ReportData) {
+            r.copyFromDb(rDb)
         }
 
         fun getJsonFromReport(r: ReportData): String {
@@ -145,12 +137,8 @@ class ReportData private constructor(var cnt: Int = 0): ViewModel() {
             return Json.encodeToString(ReportDataSerialized.serializer(), serialized)
         }
 
-        fun createReport(idNr: Int): ReportData {
-            val d = Date()
-            val cal = Calendar.getInstance()
-            cal.time = d
-
-            return ReportData(idNr)
+        fun createReport(cnt: Int): ReportData {
+            return ReportData(cnt)
         }
     }
 }

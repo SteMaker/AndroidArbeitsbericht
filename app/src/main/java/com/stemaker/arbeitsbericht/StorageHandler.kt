@@ -3,6 +3,7 @@ package com.stemaker.arbeitsbericht
 import android.content.Context
 import android.content.Context.MODE_PRIVATE
 import android.util.Log
+import androidx.lifecycle.Observer
 import androidx.room.Room
 import com.google.gson.Gson
 import com.stemaker.arbeitsbericht.data.ReportData
@@ -10,6 +11,7 @@ import com.stemaker.arbeitsbericht.data.ReportDatabase
 import com.stemaker.arbeitsbericht.data.ReportDb
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.io.*
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -17,11 +19,20 @@ private const val TAG = "StorageHandler"
 
 inline fun storageHandler() = StorageHandler
 
+// This only reflects reports which are visible due to active filters
+// visReportIds only reflects those
+// reports is a general cache that at the moment simply remembers everything that was ever read, except reports that have been deleted
+interface ReportListObserver {
+    fun notifyReportAdded(cnt: Int)
+    fun notifyReportRemoved(cnt: Int)
+    fun notifyReportListChanged(cnts: List<Int>)
+}
+
 object StorageHandler {
     private val gson: Gson = Gson()
-    private val reportIds: MutableList<String> = mutableListOf<String>()
-    lateinit var activeReport: ReportData
-    private val reports: MutableMap<String, ReportData> = mutableMapOf<String, ReportData>()
+    private val visReportCnts: MutableList<Int> = mutableListOf()
+    private var activeReport: ReportData? = null
+    private val reports: MutableMap<Int, ReportData> = mutableMapOf()
 
     private var _materialDictionary: MutableSet<String> = mutableSetOf<String>()
     private var materialDictionaryChanged: Boolean = false
@@ -37,12 +48,18 @@ object StorageHandler {
     private val db = Room.databaseBuilder(
         ArbeitsberichtApp.appContext,
         ReportDatabase::class.java, "Arbeitsbericht-Reports"
-    ).build()
+    ).fallbackToDestructiveMigration().build()
 
     private val inited = AtomicBoolean(false)
     var initJob: Job? = null
+    val mutex = Mutex()
 
-    private val accessMutex = Mutex()
+    var reportListObservers = mutableListOf<ReportListObserver>()
+
+    // TODO: Store the filter in the configuration
+    private val stateFilter = mutableSetOf<Int>(ReportData.ReportState.toInt(ReportData.ReportState.IN_WORK),
+        ReportData.ReportState.toInt(ReportData.ReportState.ON_HOLD),
+        ReportData.ReportState.toInt(ReportData.ReportState.DONE))
 
     fun initialize(): Job? {
         if (inited.compareAndSet(false, true)) {
@@ -54,31 +71,50 @@ object StorageHandler {
 
                 if (Configuration.store.vers <= 118) {
                     withContext(Dispatchers.IO) {
-                        // TODO: Temp
+                        // TODO: Temp, add check and stop with notification that data might get lost
                         db.reportDao().deleteTable()
                     }
                     migrateToDatabase()
                     // This will update the version information and therefore there shouldn't be another migration
                     configuration()
+                    configuration().activeReportId = -1
                     deleteReportFilesAfterDbMigration()
                 }
 
-                withContext(Dispatchers.IO) {
-                    reportIds.addAll(db.reportDao().getReportIds())
+                val cnts = withContext(Dispatchers.IO) {
+                    db.reportDao().getStateFilteredReportIds(stateFilter)
                 }
+                visReportCnts.addAll(cnts)
 
                 // Now we should be ready to do more
-                if (configuration().activeReportId != "") {
-                    if (reportIds.contains(configuration().activeReportId)) {
-                        selectReportById(configuration().activeReportId)
+                if (configuration().activeReportId != -1) {
+                    if (visReportCnts.contains(configuration().activeReportId)) {
+                        selectReportByCnt(configuration().activeReportId)
                     } else {
-                        configuration().activeReportId = ""
+                        configuration().activeReportId = -1
                     }
                 }
                 Log.d(TAG, "initialize end")
             }
         }
+        // Activities need to wait for this initJob before they are allowed to access the storageHandler()
         return initJob
+    }
+
+    private fun fetchAllCntsFromDb() {
+        val localStateFilter = mutableSetOf<Int>()
+        localStateFilter.addAll(stateFilter)
+        GlobalScope.launch(Dispatchers.Main) {
+            val cnts = withContext(Dispatchers.IO) {
+                db.reportDao().getStateFilteredReportIds(localStateFilter)
+            }
+            synchronized(visReportCnts) {
+                visReportCnts.clear()
+                visReportCnts.addAll(cnts)
+            }
+            for (o in reportListObservers)
+                o.notifyReportListChanged(visReportCnts)
+        }
     }
 
     private suspend fun migrateToDatabase() {
@@ -92,7 +128,6 @@ object StorageHandler {
                 val report = readReportFromFile(repFile)
                 val r = ReportDb.fromReport(report)
                 withContext(Dispatchers.IO) {
-                    Log.d(TAG, "Migrating ${report.id} to database")
                     reportDao.insert(r)
                 }
             }
@@ -111,49 +146,84 @@ object StorageHandler {
         }
     }
 
-    suspend fun getListOfReports(): List<String> {
-        accessMutex.lock()
-        val ret = reportIds.toList()
-        accessMutex.unlock()
-        return ret
+    fun addReportListObserver(obs: ReportListObserver) {
+        reportListObservers.add(obs)
+        obs.notifyReportListChanged(visReportCnts)
     }
 
-    suspend fun getReportById(id: String): ReportData {
-        // If we have it in the cache, take if from there, else query the database and push it in the cache
-        accessMutex.lock()
-        val ret = reports[id]?.let { it } ?: run {
-            val rDb = withContext(Dispatchers.IO) {
-                db.reportDao().getReportById(id)
-            }
-            val report = ReportData.getReportFromDb(rDb)
-            reports[report.id] = report
-            report
+    private fun addReportToCache(r: ReportData) {
+        reports[r.cnt] = r
+        val observer = Observer<ReportData.ReportState> { _ -> reportStateChanged(r)}
+        r.state.observeForever(observer)
+    }
+
+    private fun removeReportFromCache(cnt: Int) {
+        // TODO: Don't know how remove the observer again
+        //reports[id].state.removeObserver(observer)
+        //reports.remove(id)
+    }
+
+    private fun clearReportCache() {
+        reports.clear()
+    }
+
+    fun setStateFilter(f: Set<Int>) {
+        if(f != stateFilter) {
+            stateFilter.clear()
+            stateFilter.addAll(f)
+            fetchAllCntsFromDb()
         }
-        accessMutex.unlock()
-        return ret
     }
 
-    fun getReport(): ReportData {
+    private fun reportStateChanged(r: ReportData) {
+        // If the new state is set to invisible and it is currently visible
+        if (!stateFilter.contains(ReportData.ReportState.toInt(r.state.value!!)) && visReportCnts.contains(r.id)) {
+            synchronized(visReportCnts) {
+                visReportCnts.remove(r.id)
+            }
+            for (o in reportListObservers)
+                o.notifyReportRemoved(r.cnt)
+        }
+//TODO: We do not support changing visible from false to true, not a use case right now
+    }
+
+    fun getReportByCnt(cnt: Int, onLoaded:(r: ReportData)->Unit): ReportData {
+        // If we have it in the cache, take if from there, else query the database and push it in the cache
+        return reports[cnt]?.let {
+            onLoaded(it)
+            it
+        } ?: run {
+            val report = ReportData.createReport(cnt)
+            GlobalScope.launch(Dispatchers.IO) {
+                mutex.withLock {
+                    addReportToCache(report)
+                    val rDb = db.reportDao().getReportByCnt(cnt)
+                    ReportData.getReportFromDb(rDb, report)
+                    onLoaded(report)
+                }
+            }
+            return report
+        }
+    }
+
+    fun getReport(): ReportData? {
         return activeReport
     }
 
-    suspend fun createNewReportAndSelect(): ReportData {
-        accessMutex.lock()
-        configuration().lock()
-        // TODO: make currentId atomic, use get and post inc here
-        val rep = ReportData.createReport(configuration().currentId)
-        configuration().activeReportId = rep.id
+    fun createNewReportAndSelect(): ReportData {
+        val r = ReportData.createReport(configuration().currentId)
+        configuration().activeReportId = r.cnt
         configuration().currentId += 1
         configuration().save()
-        configuration().unlock()
-        reportIds.add(0, rep.id)
-        activeReport = rep
-        reports[rep.id] = rep
-        withContext(Dispatchers.IO) {
-            saveActiveReport()
+        synchronized(visReportCnts) {
+            visReportCnts.add(0, r.cnt)
         }
-        accessMutex.unlock()
-        return rep
+        activeReport = r
+        addReportToCache(r)
+        saveActiveReport()
+        for (o in reportListObservers)
+            o.notifyReportAdded(r.cnt)
+        return r
     }
 
     /* This is only for test purposes to create many reports. All are marked with MANY_REPORTS */
@@ -169,15 +239,23 @@ object StorageHandler {
         saveActiveReportToFile(ArbeitsberichtApp.appContext)
     }*/
 
-    suspend fun selectReportById(id: String) {
-        Log.d(TAG, "selectReportById start")
-        val report = getReportById(id)
+    fun deleteReport(cnt: Int) {
+        GlobalScope.launch(Dispatchers.IO) {
+            db.reportDao().deleteByCnt(cnt)
+        }
+        synchronized(visReportCnts) {
+            visReportCnts.remove(cnt)
+        }
+        //removeReportFromCache(cnt)
+        for(o in reportListObservers)
+            o.notifyReportRemoved(cnt)
+    }
+
+    fun selectReportByCnt(cnt: Int) {
+        val report = getReportByCnt(cnt) {}
         activeReport = report
-        configuration().lock()
-        configuration().activeReportId = id
+        configuration().activeReportId = cnt
         configuration().save()
-        configuration().unlock()
-        Log.d(TAG, "selectReportById end")
     }
 
     private fun readStringFromFile(fileName: String, context: Context): String {
@@ -214,15 +292,14 @@ object StorageHandler {
         return ReportData.getReportFromJson(jsonString)
     }
 
-    suspend fun saveReport(r: ReportData, skipDictionaryUpdate: Boolean = false) {
+    fun saveReport(r: ReportData, skipDictionaryUpdate: Boolean = false) {
         val reportDb = ReportDb.fromReport(r)
         r.lastStoreHash = reportDb.hashCode()
-        withContext(Dispatchers.IO) {
-            val rDb = ReportDb.fromReport(r)
-            val ret = db.reportDao().update(rDb)
+        val rDb = ReportDb.fromReport(r)
+        GlobalScope.launch(Dispatchers.IO) {
+            db.reportDao().update(rDb)
         }
 
-        configuration().lock()
         if (!skipDictionaryUpdate) {
             for (wi in r.workItemContainer.items) {
                 addToWorkItemDictionary(wi.item.value!!)
@@ -237,48 +314,10 @@ object StorageHandler {
                 workItemDictionaryChanged = false
             }
         }
-        configuration().unlock()
     }
 
-    suspend fun saveActiveReport() {
-        saveReport(activeReport)
-    }
-
-    suspend fun renameReportsIfNeeded() {
-        accessMutex.lock()
-        Log.d(TAG, "renameReportsIfNeeded start")
-        val oldIds = withContext(Dispatchers.IO) {
-            db.reportDao().getReportIds()
-        }
-        for (old in oldIds) {
-            val rDb = withContext(Dispatchers.IO) {
-                db.reportDao().getReportById(old)
-            }
-            val updatedReport = ReportData.getReportFromDb(rDb)
-            val rDb2 = ReportDb.fromReport(updatedReport)
-            withContext(Dispatchers.IO) {
-                db.reportDao().deleteById(old)
-                db.reportDao().insert(rDb2)
-            }
-        }
-        reportIds.clear()
-        withContext(Dispatchers.IO) {
-            reportIds.addAll(db.reportDao().getReportIds())
-        }
-        reports.clear()
-        accessMutex.unlock()
-    }
-
-    suspend fun deleteReport(id: String) {
-        accessMutex.lock()
-        withContext(Dispatchers.IO) {
-            Log.d(TAG, "deleteReport start")
-            db.reportDao().deleteById(id)
-            reportIds.remove(id)
-            reports.remove(id)
-            Log.d(TAG, "deleteReport end")
-        }
-        accessMutex.unlock()
+    fun saveActiveReport() {
+        activeReport?.let { saveReport(it) }
     }
 
     private fun loadConfigurationFromFile(c: Context) {

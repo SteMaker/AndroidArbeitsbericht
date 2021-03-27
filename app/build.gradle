@@ -77,8 +77,7 @@ dependencies {
     // JSCH library for SFTP support
     implementation 'com.jcraft:jsch:0.1.55'
     // ODF Toolkit
-    implementation 'org.apache.odftoolkit:odfdom-java:0.8.11-incubating'
-    implementation 'com.fasterxml.woodstox:woodstox-core:6.0.3'
+    implementation files('../odftoolkit-fat/build/libs/odftoolkit-fat-all.jar')
     // Google Analytics, crashlytics
     implementation 'com.google.firebase:firebase-analytics-ktx:18.0.2'
     implementation 'com.google.firebase:firebase-crashlytics-ktx:17.3.1'

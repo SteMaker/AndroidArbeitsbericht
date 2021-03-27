@@ -13,3 +13,4 @@
 .externalNativeBuild
 app/release/*
 *.~lock*
+odftoolkit-fat/build/*

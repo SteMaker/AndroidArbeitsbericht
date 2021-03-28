@@ -13,8 +13,8 @@ import androidx.appcompat.app.AlertDialog
 import androidx.cardview.widget.CardView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.stemaker.arbeitsbericht.data.configuration
 import com.stemaker.arbeitsbericht.databinding.ActivityLumpSumDefinitionBinding
-import com.stemaker.arbeitsbericht.databinding.LumpSumEditLayoutBinding
 import com.stemaker.arbeitsbericht.helpers.SftpProvider
 import com.stemaker.arbeitsbericht.helpers.showConfirmationDialog
 //import kotlinx.android.synthetic.main.activity_lump_sum_definition.*

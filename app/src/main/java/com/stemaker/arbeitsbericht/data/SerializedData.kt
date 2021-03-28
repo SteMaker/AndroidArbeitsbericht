@@ -1,6 +1,5 @@
 package com.stemaker.arbeitsbericht.data
 
-import com.stemaker.arbeitsbericht.*
 import kotlinx.serialization.Serializable
 
 @Serializable

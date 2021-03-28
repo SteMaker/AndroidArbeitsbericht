@@ -1,10 +1,8 @@
 package com.stemaker.arbeitsbericht.data
 
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.stemaker.arbeitsbericht.configuration
 import kotlinx.serialization.json.Json
 import java.util.*
 import com.stemaker.arbeitsbericht.R

@@ -3,9 +3,6 @@ package com.stemaker.arbeitsbericht.data
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.stemaker.arbeitsbericht.Configuration
-import com.stemaker.arbeitsbericht.configuration
-import com.stemaker.arbeitsbericht.storageHandler
 
 class LumpSumContainerData(): ViewModel() {
     val items = mutableListOf<LumpSumData>()

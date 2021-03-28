@@ -12,6 +12,7 @@ import androidx.databinding.InverseBindingListener
 import com.caverock.androidsvg.SVG
 import com.google.android.material.textfield.TextInputEditText
 import com.stemaker.arbeitsbericht.data.ReportData
+import com.stemaker.arbeitsbericht.data.configuration
 import com.stemaker.arbeitsbericht.helpers.LinearLayoutVisListener
 import java.io.File
 import java.text.DecimalFormatSymbols

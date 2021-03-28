@@ -7,8 +7,8 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import com.stemaker.arbeitsbericht.data.ReportData
+import com.stemaker.arbeitsbericht.data.configuration
 import com.stemaker.arbeitsbericht.helpers.*
-import kotlinx.coroutines.selects.whileSelect
 import org.odftoolkit.odfdom.doc.OdfTextDocument
 import org.odftoolkit.odfdom.doc.table.OdfTable
 import org.odftoolkit.odfdom.dom.OdfContentDom
@@ -17,7 +17,6 @@ import org.odftoolkit.odfdom.dom.element.meta.MetaUserDefinedElement
 import org.odftoolkit.odfdom.dom.element.office.OfficeMetaElement
 import org.odftoolkit.odfdom.dom.element.text.TextSoftPageBreakElement
 import org.odftoolkit.odfdom.dom.style.OdfStyleFamily
-import org.odftoolkit.odfdom.dom.style.props.OdfDrawingPageProperties
 import org.odftoolkit.odfdom.dom.style.props.OdfGraphicProperties
 import org.odftoolkit.odfdom.incubator.doc.draw.OdfDrawFrame
 import org.odftoolkit.odfdom.incubator.doc.draw.OdfDrawImage

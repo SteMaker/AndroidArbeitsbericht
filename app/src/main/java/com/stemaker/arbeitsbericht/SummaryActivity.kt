@@ -19,6 +19,7 @@ import androidx.core.content.FileProvider
 import androidx.databinding.DataBindingUtil
 import com.stemaker.arbeitsbericht.data.ReportData
 import com.stemaker.arbeitsbericht.data.SignatureData
+import com.stemaker.arbeitsbericht.data.configuration
 import com.stemaker.arbeitsbericht.databinding.ActivitySummaryBinding
 import com.stemaker.arbeitsbericht.helpers.HtmlReport
 import com.stemaker.arbeitsbericht.helpers.showConfirmationDialog
@@ -149,7 +150,7 @@ class SummaryActivity : AppCompatActivity() {
         }
     }
 
-    fun lockEmployeeSignature() {
+    private fun lockEmployeeSignature() {
         val pad = findViewById<LockableSignaturePad>(R.id.employee_signature)
         if(!pad.isEmpty && !pad.locked) {
             signatureData.employeeSignatureSvg.value = pad.signatureSvg
@@ -198,7 +199,7 @@ class SummaryActivity : AppCompatActivity() {
         }
     }
 
-    fun lockClientSignature() {
+    private fun lockClientSignature() {
         val pad = findViewById<LockableSignaturePad>(R.id.client_signature)
         if(!pad.isEmpty && !pad.locked) {
             signatureData.clientSignatureSvg.value = pad.signatureSvg
@@ -226,7 +227,7 @@ class SummaryActivity : AppCompatActivity() {
         }
     }
 
-    private suspend fun saveSignatures() {
+    private fun saveSignatures() {
         lockEmployeeSignature()
         lockClientSignature()
         storageHandler().saveActiveReport()
@@ -339,15 +340,18 @@ class SummaryActivity : AppCompatActivity() {
             }
         }
     }
-    suspend fun createReport(): File? {
+
+    // TODO: Needs rework to have a generic ReportGenerator class
+    private suspend fun createReport(): File? {
         Log.d(TAG, "Creating report")
         var ret: File? = null
         window.setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
         findViewById<LinearLayout>(R.id.create_report_progress_container).visibility = View.VISIBLE
         try {
-            when {
-                configuration().useOdfOutput -> ret = createOdfReport()
-                else -> ret = createPdfReport()
+            ret = when {
+                configuration().useXlsxOutput -> createXlsxReport()
+                configuration().useOdfOutput -> createOdfReport()
+                else -> createPdfReport()
             }
         } catch (e:Exception) {
             showInfoDialog(getString(R.string.report_create_fail), this@SummaryActivity, e.message?:getString(R.string.unknown))
@@ -357,7 +361,7 @@ class SummaryActivity : AppCompatActivity() {
         return ret
     }
 
-    suspend fun createOdfReport(): File? {
+    private suspend fun createOdfReport(): File? {
         val report = storageHandler().getReport()!!
         val odfGenerator = OdfGenerator(this@SummaryActivity, report, binding.createReportProgressbar, binding.createReportProgressText)
         val files = odfGenerator.getFilesForOdfGeneration()
@@ -379,7 +383,28 @@ class SummaryActivity : AppCompatActivity() {
         }
     }
 
-    suspend fun createPdfReport(): File? {
+    private suspend fun createXlsxReport(): File? {
+        val report = storageHandler().getReport()!!
+        val xlsxGenerator = XlsxGenerator(this@SummaryActivity, report, binding.createReportProgressbar, binding.createReportProgressText)
+        val files = xlsxGenerator.getFilesForXlsxGeneration()
+        if(files != null) {
+            if(xlsxGenerator.isXlsxUpToDate(files[0], report)) {
+                return files[0]
+            } else {
+                Log.d(TAG, "creating xlsx")
+                report.signatureData.clientSignaturePngFile = files[1]
+                report.signatureData.employeeSignaturePngFile = files[2]
+                createSigPngs(files[1], files[2])
+                xlsxGenerator.create(files[0], files[1], files[2])
+                return files[0]
+            }
+        } else {
+            Log.d(TAG, "dropping xlsx generation")
+            return null
+        }
+    }
+
+    private suspend fun createPdfReport(): File? {
         val report = storageHandler().getReport()!!
         val pdfPrint = PdfPrint(this, report)
         val files = pdfPrint.getFilesForPdfGeneration(this@SummaryActivity)

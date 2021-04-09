@@ -10,6 +10,7 @@ import android.util.Log
 import android.webkit.WebView
 import android.print.*
 import android.view.*
+import android.webkit.MimeTypeMap
 import android.widget.*
 import androidx.annotation.NonNull
 import androidx.appcompat.app.AlertDialog
@@ -21,9 +22,8 @@ import com.stemaker.arbeitsbericht.data.ReportData
 import com.stemaker.arbeitsbericht.data.SignatureData
 import com.stemaker.arbeitsbericht.data.configuration
 import com.stemaker.arbeitsbericht.databinding.ActivitySummaryBinding
-import com.stemaker.arbeitsbericht.helpers.HtmlReport
-import com.stemaker.arbeitsbericht.helpers.showConfirmationDialog
-import com.stemaker.arbeitsbericht.helpers.showInfoDialog
+import com.stemaker.arbeitsbericht.helpers.*
+import com.stemaker.arbeitsbericht.output.OdfGenerator
 import kotlinx.coroutines.*
 import java.io.File
 import kotlin.coroutines.Continuation
@@ -97,15 +97,26 @@ class SummaryActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.show_preview-> {
-                preview()
+                prepareAndShare(false) {
+                    it?.also { showReport(it) }
+                }
                 true
             }
             R.id.send_report -> {
-                send()
+                prepareAndShare(true) {
+                    sendMail(it, storageHandler().getReport()!!)
+                }
                 true
             }
             R.id.share_report -> {
-                share()
+                prepareAndShare(true) {
+                    if (it != null) {
+                        shareReport(it, storageHandler().getReport()!!)
+                    } else {
+                        val toast = Toast.makeText(applicationContext, R.string.send_fail, Toast.LENGTH_LONG)
+                        toast.show()
+                    }
+                }
                 true
             }
             else -> super.onOptionsItemSelected(item)
@@ -233,13 +244,14 @@ class SummaryActivity : AppCompatActivity() {
         storageHandler().saveActiveReport()
     }
 
-    var pdfWritePermissionContinuation: Continuation<Boolean>? = null
-    private fun preview() {
+    var writePermissionContinuation: Continuation<Boolean>? = null
+    private fun prepareAndShare(ask: Boolean, distribute: (file: File?)->Unit) {
         GlobalScope.launch(Dispatchers.Main) {
-            Log.d(TAG, "Preview")
             saveSignatures()
+            if(ask)
+                askAndSetDone()
 
-            var withAttachment = true
+            var permissionGranted = true
             val writeExternalStoragePermission = ContextCompat.checkSelfPermission(this@SummaryActivity, Manifest.permission.WRITE_EXTERNAL_STORAGE)
 
             // If we do not have external storage write permissions
@@ -251,17 +263,19 @@ class SummaryActivity : AppCompatActivity() {
                     arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
                     REQUEST_CODE_WRITE_EXTERNAL_STORAGE_PERMISSION
                 )
-                withAttachment = suspendCoroutine<Boolean> {
+                permissionGranted = suspendCoroutine<Boolean> {
                     Log.d(TAG, "Coroutine: suspended")
-                    pdfWritePermissionContinuation = it
+                    writePermissionContinuation = it
                 }
             }
-            if(withAttachment) {
+            if(permissionGranted) {
                 val file = createReport()
-                file?.also { showReport(it) }
+                distribute(file)
             }
         }
+
     }
+
     private suspend fun askAndSetDone() {
         if(storageHandler().getReport()!!.state.value == ReportData.ReportState.DONE) return
         val answer =
@@ -272,157 +286,50 @@ class SummaryActivity : AppCompatActivity() {
         }
     }
 
-    private fun send() {
-        GlobalScope.launch(Dispatchers.Main) {
-            Log.d(TAG, "Entry")
-            saveSignatures()
-
-            askAndSetDone()
-
-            var withAttachment = true
-            val writeExternalStoragePermission = ContextCompat.checkSelfPermission(this@SummaryActivity, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-
-            // If we do not have external storage write permissions
-            if(writeExternalStoragePermission!= PackageManager.PERMISSION_GRANTED) {
-                // Request user to grant write external storage permission.
-                Log.d(TAG, "Need to query user for permissions, starting coroutine")
-                ActivityCompat.requestPermissions(
-                    this@SummaryActivity,
-                    arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
-                    REQUEST_CODE_WRITE_EXTERNAL_STORAGE_PERMISSION
-                )
-                withAttachment = suspendCoroutine<Boolean> {
-                    Log.d(TAG, "Coroutine: suspended")
-                    pdfWritePermissionContinuation = it
-                }
-            }
-            var file: File? = null
-            if(withAttachment)
-                file = createReport()
-            sendMail(file, storageHandler().getReport()!!)
-        }
-    }
-
-    private fun share() {
-        GlobalScope.launch(Dispatchers.Main) {
-            saveSignatures()
-
-            askAndSetDone()
-            
-            var withAttachment = true
-            val writeExternalStoragePermission = ContextCompat.checkSelfPermission(this@SummaryActivity, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-
-            // If we do not have external storage write permissions
-            if(writeExternalStoragePermission!= PackageManager.PERMISSION_GRANTED) {
-                // Request user to grant write external storage permission.
-                Log.d(TAG, "Need to query user for permissions, starting coroutine")
-                ActivityCompat.requestPermissions(
-                    this@SummaryActivity,
-                    arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
-                    REQUEST_CODE_WRITE_EXTERNAL_STORAGE_PERMISSION
-                )
-                withAttachment = suspendCoroutine<Boolean> {
-                    Log.d(TAG, "Coroutine: suspended")
-                    pdfWritePermissionContinuation = it
-                }
-            }
-            if(!withAttachment) {
-                val toast = Toast.makeText(applicationContext, R.string.send_fail, Toast.LENGTH_LONG)
-                toast.show()
-            } else {
-                val file = createReport()
-                if(file != null) {
-                    shareReport(file, storageHandler().getReport()!!)
-                } else {
-                    val toast = Toast.makeText(applicationContext, R.string.send_fail, Toast.LENGTH_LONG)
-                    toast.show()
-                }
-            }
-        }
-    }
-
-    // TODO: Needs rework to have a generic ReportGenerator class
+    // TODO: Currently only supporting a single output file, currently no other use case
     private suspend fun createReport(): File? {
-        Log.d(TAG, "Creating report")
-        var ret: File? = null
-        window.setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
-        findViewById<LinearLayout>(R.id.create_report_progress_container).visibility = View.VISIBLE
-        try {
-            ret = when {
-                configuration().useXlsxOutput -> createXlsxReport()
-                configuration().useOdfOutput -> createOdfReport()
-                else -> createPdfReport()
-            }
-        } catch (e:Exception) {
-            showInfoDialog(getString(R.string.report_create_fail), this@SummaryActivity, e.message?:getString(R.string.unknown))
+        val type = when {
+            configuration().useXlsxOutput -> OutputType.XLSX
+            configuration().useOdfOutput -> OutputType.ODT
+            configuration().selectOutput -> showOutputSelectDialog(this@SummaryActivity)
+            else -> OutputType.PDF
         }
-        findViewById<LinearLayout>(R.id.create_report_progress_container).visibility = View.GONE
-        window.clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
-        return ret
-    }
+        if(type == OutputType.UNKNOWN)
+            return null
 
-    private suspend fun createOdfReport(): File? {
-        val report = storageHandler().getReport()!!
-        val odfGenerator = OdfGenerator(this@SummaryActivity, report, binding.createReportProgressbar, binding.createReportProgressText)
-        val files = odfGenerator.getFilesForOdfGeneration()
-        if(files != null) {
-            if(odfGenerator.isOdfUpToDate(files[0], report)) {
-                return files[0]
+        val report = storageHandler().getReport() ?: return null
+        val generator = when(type) {
+            // FIXME: Add support for select !!!!
+            OutputType.XLSX -> XlsxGenerator(this@SummaryActivity, report, binding.createReportProgressbar,
+                binding.createReportProgressText)
+            OutputType.ODT -> OdfGenerator(this@SummaryActivity, report, binding.createReportProgressbar,
+                binding.createReportProgressText)
+            else -> PdfGenerator(this@SummaryActivity, report, binding.createReportProgressbar,
+                binding.createReportProgressText)
+        }
+        val files = generator.getFilesForGeneration()
+        return if(files != null) {
+            if(generator.isDocUpToDate(files)) {
+                files[0]
             } else {
-                // We need to create the ODF then send
-                Log.d(TAG, "creating odf")
+                // We need to create the doc then send
                 report.signatureData.clientSignaturePngFile = files[1]
                 report.signatureData.employeeSignaturePngFile = files[2]
                 createSigPngs(files[1], files[2])
-                odfGenerator.create(files[0], files[1], files[2])
-                return files[0]
+                window.setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
+                findViewById<LinearLayout>(R.id.create_report_progress_container).visibility = View.VISIBLE
+                generator.create(files)
+                findViewById<LinearLayout>(R.id.create_report_progress_container).visibility = View.GONE
+                window.clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
+                files[0]
             }
         } else {
             Log.d(TAG, "dropping odf generation")
-            return null
+            null
         }
     }
 
-    private suspend fun createXlsxReport(): File? {
-        val report = storageHandler().getReport()!!
-        val xlsxGenerator = XlsxGenerator(this@SummaryActivity, report, binding.createReportProgressbar, binding.createReportProgressText)
-        val files = xlsxGenerator.getFilesForXlsxGeneration()
-        if(files != null) {
-            if(xlsxGenerator.isXlsxUpToDate(files[0], report)) {
-                return files[0]
-            } else {
-                Log.d(TAG, "creating xlsx")
-                report.signatureData.clientSignaturePngFile = files[1]
-                report.signatureData.employeeSignaturePngFile = files[2]
-                createSigPngs(files[1], files[2])
-                xlsxGenerator.create(files[0], files[1], files[2])
-                return files[0]
-            }
-        } else {
-            Log.d(TAG, "dropping xlsx generation")
-            return null
-        }
-    }
-
-    private suspend fun createPdfReport(): File? {
-        val report = storageHandler().getReport()!!
-        val pdfPrint = PdfPrint(this, report)
-        val files = pdfPrint.getFilesForPdfGeneration(this@SummaryActivity)
-        if(files != null) {
-            val pdfFile = files[0]
-            Log.d(TAG, "creating pdf")
-            report.signatureData.clientSignaturePngFile = files[1]
-            report.signatureData.employeeSignaturePngFile = files[2]
-            createSigPngs(files[1], files[2])
-            pdfPrint.print(pdfFile)
-            return files[0]
-        } else {
-            Log.d(TAG, "dropping pdf generation")
-            return null
-        }
-    }
-
-    fun createSigPngs(cSigFile: File, eSigFile: File) {
+    private fun createSigPngs(cSigFile: File, eSigFile: File) {
         val sigPadC = findViewById<LockableSignaturePad>(R.id.client_signature)
         val sigPadCV = sigPadC!!.visibility
         sigPadC.visibility = View.VISIBLE
@@ -439,14 +346,14 @@ class SummaryActivity : AppCompatActivity() {
     override fun onRequestPermissionsResult(requestCode: Int, @NonNull permissions: Array<String>, @NonNull grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if(requestCode == REQUEST_CODE_WRITE_EXTERNAL_STORAGE_PERMISSION) {
-            if(grantResults.size > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            if(grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 Log.d(TAG, "Access to external storage granted")
-                pdfWritePermissionContinuation!!.resume(true)
+                writePermissionContinuation!!.resume(true)
             } else {
                 Log.d(TAG, "Access to external storage denied")
                 val toast = Toast.makeText(this, "Berechtigungen abgelehnt, PDF Bericht kann nicht erstellt werden", Toast.LENGTH_LONG)
                 toast.show()
-                pdfWritePermissionContinuation!!.resume(false)
+                writePermissionContinuation!!.resume(false)
             }
         }
     }
@@ -455,12 +362,9 @@ class SummaryActivity : AppCompatActivity() {
         val intent = Intent(Intent.ACTION_VIEW)
         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         val uri = FileProvider.getUriForFile(this, "com.stemaker.arbeitsbericht.fileprovider", file)
-        val extension = file.name.substring(file.name.lastIndexOf(".")+1)
-        when(extension) {
-            "odt" -> intent.setDataAndType(uri, "application/vnd.oasis.opendocument.text")
-            "pdf" -> intent.setDataAndType(uri, "application/pdf")
-            else -> return
-        }
+        val extension = MimeTypeMap.getFileExtensionFromUrl(file.toString())
+        val mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension)
+        intent.setDataAndType(uri, mimeType)
         if (intent.resolveActivity(packageManager) != null) {
             startActivity(intent)
         } else {

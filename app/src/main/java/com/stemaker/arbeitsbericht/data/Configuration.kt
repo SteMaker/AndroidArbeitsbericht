@@ -1,5 +1,6 @@
 package com.stemaker.arbeitsbericht.data
 
+import android.graphics.BitmapFactory
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import android.util.Base64
@@ -26,8 +27,8 @@ class ConfigurationStore {
     var currentId: Int = 1
     var recvMail: String = ""
     var useOdfOutput: Boolean = true
-    // TODO: Fix this to set by default to false for xlsx
-    var useXlsxOutput: Boolean = true
+    var useXlsxOutput: Boolean = false
+    var selectOutput: Boolean = false
     var sFtpHost: String = ""
     var sFtpPort: Int = 22
     var sFtpUser: String = ""
@@ -45,9 +46,15 @@ class ConfigurationStore {
     var materialDictionary = setOf<String>()
     var odfTemplateFile: String = ""
     var logoFile: String = ""
+    var logoRatio: Double = 1.0
     var footerFile: String = ""
+    var footerRatio: Double = 1.0
     var fontSize: Int = 12
     var crashlyticsEnabled: Boolean = false
+    var pdfUseLogo: Boolean = false
+    var pdfUseFooter: Boolean = false
+    var xlsxUseLogo: Boolean = false
+    var xlsxUseFooter: Boolean = false
 }
 
 fun configuration(): Configuration {
@@ -92,6 +99,23 @@ object Configuration {
 
     private fun updateConfiguration(oldVers: Int) {
         store.vers = ArbeitsberichtApp.getVersionCode() +100
+        if(oldVers < 119) {
+            try {
+                if(store.logoFile != "") {
+                    store.pdfUseLogo = true
+                    store.xlsxUseLogo = true
+                    val bitmap = BitmapFactory.decodeFile(store.logoFile)
+                    configuration().logoRatio = bitmap.width.toDouble() / bitmap.height.toDouble()
+                }
+                if(store.footerFile != "") {
+                    store.pdfUseFooter = true
+                    store.xlsxUseFooter = true
+                    val bitmap = BitmapFactory.decodeFile(store.footerFile)
+                    configuration().footerRatio = bitmap.width.toDouble() / bitmap.height.toDouble()
+                }
+                save()
+            } catch(e: Exception) {}
+        }
     }
 
     var employeeName: String
@@ -128,6 +152,11 @@ object Configuration {
         get(): Boolean = store.useXlsxOutput
         set(value) {
             store.useXlsxOutput = value}
+
+    var selectOutput: Boolean
+        get(): Boolean = store.selectOutput
+        set(value) {
+            store.selectOutput = value}
 
     var sFtpHost: String
         get(): String = store.sFtpHost
@@ -208,10 +237,20 @@ object Configuration {
         set(value) {
             store.logoFile = value}
 
+    var logoRatio: Double
+        get(): Double= store.logoRatio
+        set(value) {
+            store.logoRatio = value}
+
     var footerFile: String
         get(): String = store.footerFile
         set(value) {
             store.footerFile = value}
+
+    var footerRatio: Double
+        get(): Double= store.footerRatio
+        set(value) {
+            store.footerRatio = value}
 
     var fontSize: Int
         get(): Int = store.fontSize
@@ -222,6 +261,26 @@ object Configuration {
         get(): Boolean = store.crashlyticsEnabled
         set(value) {
             store.crashlyticsEnabled = value}
+
+    var pdfUseLogo: Boolean
+        get(): Boolean = store.pdfUseLogo
+        set(value) {
+            store.pdfUseLogo = value }
+
+    var pdfUseFooter: Boolean
+        get(): Boolean = Configuration.store.pdfUseFooter
+        set(value) {
+            Configuration.store.pdfUseFooter = value }
+
+    var xlsxUseLogo: Boolean
+        get(): Boolean = store.xlsxUseLogo
+        set(value) {
+            store.xlsxUseLogo = value }
+
+    var xlsxUseFooter: Boolean
+        get(): Boolean = Configuration.store.xlsxUseFooter
+        set(value) {
+            Configuration.store.xlsxUseFooter = value }
 
     private fun encryptPassword(pwd: String): String {
         /* Now we try to store the password in an encrypted way. First we retrieve a key

@@ -61,28 +61,61 @@ class ConfigurationActivity : AppCompatActivity() {
             findViewById<EditText>(R.id.sftp_host).setText(configuration().sFtpHost)
             findViewById<EditText>(R.id.sftp_port).setText(configuration().sFtpPort.toString())
             findViewById<EditText>(R.id.sftp_user).setText(configuration().sFtpUser)
-            if (configuration().useOdfOutput) {
-                findViewById<RadioButton>(R.id.radio_odf_output).toggle()
-                findViewById<CardView>(R.id.odf_config_container).visibility = View.VISIBLE
-                findViewById<CardView>(R.id.pdf_config_container).visibility = View.GONE
-            } else {
-                findViewById<RadioButton>(R.id.radio_pdf_output).toggle()
-                findViewById<CardView>(R.id.odf_config_container).visibility = View.GONE
-                findViewById<CardView>(R.id.pdf_config_container).visibility = View.VISIBLE
+            when {
+                configuration().useOdfOutput -> {
+                    findViewById<RadioButton>(R.id.radio_odf_output).toggle()
+                    findViewById<CardView>(R.id.odf_config_container).visibility = View.VISIBLE
+                    findViewById<CardView>(R.id.pdf_config_container).visibility = View.GONE
+                    findViewById<CardView>(R.id.xlsx_config_container).visibility = View.GONE
+                }
+                configuration().useXlsxOutput -> {
+                    findViewById<RadioButton>(R.id.radio_xlsx_output).toggle()
+                    findViewById<CardView>(R.id.odf_config_container).visibility = View.GONE
+                    findViewById<CardView>(R.id.pdf_config_container).visibility = View.GONE
+                    findViewById<CardView>(R.id.xlsx_config_container).visibility = View.VISIBLE
+                }
+                configuration().selectOutput -> {
+                    findViewById<RadioButton>(R.id.radio_select_output).toggle()
+                    findViewById<CardView>(R.id.odf_config_container).visibility = View.VISIBLE
+                    findViewById<CardView>(R.id.pdf_config_container).visibility = View.VISIBLE
+                    findViewById<CardView>(R.id.xlsx_config_container).visibility = View.VISIBLE
+                }
+                else -> {
+                    findViewById<RadioButton>(R.id.radio_pdf_output).toggle()
+                    findViewById<CardView>(R.id.odf_config_container).visibility = View.GONE
+                    findViewById<CardView>(R.id.pdf_config_container).visibility = View.VISIBLE
+                    findViewById<CardView>(R.id.xlsx_config_container).visibility = View.GONE
+                }
             }
             findViewById<EditText>(R.id.odf_template_ftp_path).setText(configuration().odfTemplateServerPath)
             findViewById<EditText>(R.id.logo_ftp_path).setText(configuration().logoServerPath)
             findViewById<EditText>(R.id.footer_ftp_path).setText(configuration().footerServerPath)
+            findViewById<CheckBox>(R.id.pdf_use_logo).isChecked = configuration().pdfUseLogo
+            findViewById<CheckBox>(R.id.pdf_use_footer).isChecked = configuration().pdfUseFooter
+            findViewById<CheckBox>(R.id.xlsx_use_logo).isChecked = configuration().xlsxUseLogo
+            findViewById<CheckBox>(R.id.xlsx_use_footer).isChecked = configuration().xlsxUseFooter
             val radioGroup = findViewById<RadioGroup>(R.id.output_type_select_radiogroup)
             radioGroup.setOnCheckedChangeListener { _, checkedId ->
                 when (checkedId) {
                     R.id.radio_odf_output -> {
                         findViewById<CardView>(R.id.odf_config_container).visibility = View.VISIBLE
                         findViewById<CardView>(R.id.pdf_config_container).visibility = View.GONE
+                        findViewById<CardView>(R.id.xlsx_config_container).visibility = View.GONE
                     }
                     R.id.radio_pdf_output -> {
                         findViewById<CardView>(R.id.odf_config_container).visibility = View.GONE
                         findViewById<CardView>(R.id.pdf_config_container).visibility = View.VISIBLE
+                        findViewById<CardView>(R.id.xlsx_config_container).visibility = View.GONE
+                    }
+                    R.id.radio_xlsx_output -> {
+                        findViewById<CardView>(R.id.odf_config_container).visibility = View.GONE
+                        findViewById<CardView>(R.id.pdf_config_container).visibility = View.GONE
+                        findViewById<CardView>(R.id.xlsx_config_container).visibility = View.VISIBLE
+                    }
+                    R.id.radio_select_output -> {
+                        findViewById<CardView>(R.id.odf_config_container).visibility = View.VISIBLE
+                        findViewById<CardView>(R.id.pdf_config_container).visibility = View.VISIBLE
+                        findViewById<CardView>(R.id.xlsx_config_container).visibility = View.VISIBLE
                     }
                 }
             }
@@ -114,6 +147,7 @@ class ConfigurationActivity : AppCompatActivity() {
             val file = File(fileName)
             if (file.exists()) {
                 val bitmap = BitmapFactory.decodeFile(file.absolutePath)
+                configuration().logoRatio = bitmap.width.toDouble() / bitmap.height.toDouble()
                 imgV.setImageBitmap(bitmap)
             } else {
                 imgV.setImageResource(R.drawable.ic_clear_black_24dp)
@@ -162,6 +196,8 @@ class ConfigurationActivity : AppCompatActivity() {
         configuration().crashlyticsEnabled = findViewById<Switch>(R.id.crashlog_enable).isChecked
         FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(configuration().crashlyticsEnabled);
         configuration().useOdfOutput = findViewById<RadioButton>(R.id.radio_odf_output).isChecked
+        configuration().useXlsxOutput = findViewById<RadioButton>(R.id.radio_xlsx_output).isChecked
+        configuration().selectOutput = findViewById<RadioButton>(R.id.radio_select_output).isChecked
         configuration().sFtpHost = findViewById<EditText>(R.id.sftp_host).text.toString()
         configuration().sFtpPort = findViewById<EditText>(R.id.sftp_port).text.toString().toInt()
         configuration().sFtpUser = findViewById<EditText>(R.id.sftp_user).text.toString()
@@ -172,6 +208,10 @@ class ConfigurationActivity : AppCompatActivity() {
         configuration().logoServerPath = findViewById<EditText>(R.id.logo_ftp_path).text.toString()
         configuration().footerServerPath = findViewById<EditText>(R.id.footer_ftp_path).text.toString()
         configuration().fontSize = findViewById<SeekBar>(R.id.fontsize_seekbar).progress
+        configuration().pdfUseLogo = findViewById<CheckBox>(R.id.pdf_use_logo).isChecked
+        configuration().pdfUseFooter = findViewById<CheckBox>(R.id.pdf_use_footer).isChecked
+        configuration().xlsxUseLogo = findViewById<CheckBox>(R.id.xlsx_use_logo).isChecked
+        configuration().xlsxUseFooter = findViewById<CheckBox>(R.id.xlsx_use_footer).isChecked
         configuration().save()
 
         findViewById<ProgressBar>(R.id.sftp_progress).visibility = View.GONE
@@ -342,11 +382,6 @@ class ConfigurationActivity : AppCompatActivity() {
         }
     }
 
-    fun onClickDelLogo(@Suppress("UNUSED_PARAMETER") btn: View) {
-        configuration().logoFile = ""
-        showFileInImageView("", R.id.logo_image)
-    }
-
     fun onClickLoadFooter(@Suppress("UNUSED_PARAMETER") btn: View) {
         GlobalScope.launch(Dispatchers.Main) {
             val mimetypes = arrayOf("image/jpeg", "image/png")
@@ -406,11 +441,6 @@ class ConfigurationActivity : AppCompatActivity() {
                 window.clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
             }
         }
-    }
-
-    fun onClickDelFooter(@Suppress("UNUSED_PARAMETER") btn: View) {
-        configuration().footerFile = ""
-        showFileInImageView("", R.id.footer_image)
     }
 
     private suspend fun checkAndObtainInternetPermission(): Boolean {

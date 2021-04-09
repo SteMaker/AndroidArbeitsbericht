@@ -41,7 +41,7 @@ object HtmlReport {
                     "<html lang=\"de\">" +
                     "<head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"/></head>" +
                     "<body>"
-        if(configuration().logoFile != "") {
+        if(configuration().logoFile != "" && configuration().pdfUseLogo) {
             val logoFileContent = readFileToBytes(File(configuration().logoFile))
             val logo = Base64.encodeToString(logoFileContent, Base64.DEFAULT)
             html += "<img src=\"data:image/jpg;base64,${logo}\" style=\"height: 100%; width: 100%; object-fit: contain\"/>"
@@ -188,7 +188,7 @@ object HtmlReport {
                         "</table><hr>"
             }
         }
-        if(configuration().footerFile != "") {
+        if(configuration().footerFile != "" && configuration().pdfUseFooter) {
             val footerFileContent = readFileToBytes(File(configuration().footerFile))
             val footer = Base64.encodeToString(footerFileContent, Base64.DEFAULT)
             html += "<img src=\"data:image/jpg;base64,${footer}\" style=\"height: 100%; width: 100%; object-fit: contain\"/>"

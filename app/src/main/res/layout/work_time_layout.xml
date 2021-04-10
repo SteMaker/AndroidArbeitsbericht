@@ -84,6 +84,7 @@
                <androidx.constraintlayout.widget.ConstraintLayout
                        android:layout_width="0dp"
                        android:layout_height="wrap_content"
+                       app:layout_constraintTop_toTopOf="parent"
                        app:layout_constraintLeft_toLeftOf="@id/vert_guide"
                        app:layout_constraintRight_toRightOf="parent">
                    <ImageButton

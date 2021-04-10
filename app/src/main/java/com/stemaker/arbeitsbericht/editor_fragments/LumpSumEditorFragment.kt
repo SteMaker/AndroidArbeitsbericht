@@ -22,13 +22,11 @@ import kotlinx.coroutines.launch
 class LumpSumEditorFragment : ReportEditorSectionFragment(),
     ReportEditorSectionFragment.OnExpandChange {
     private var listener: OnLumpSumEditorInteractionListener? = null
-    var lumpSumContainerData: LumpSumContainerData? = null
     lateinit var dataBinding: FragmentLumpSumEditorBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Log.d("Arbeitsbericht","LumpSumEditorFragment.onCreate called")
-        lumpSumContainerData = listener!!.getLumpSumContainerData()
     }
 
     /* TODO: In case a lump sum has been deleted that is still used here we should
@@ -48,18 +46,21 @@ class LumpSumEditorFragment : ReportEditorSectionFragment(),
         setHeadline(getString(R.string.lump_sum))
 
         dataBinding.lifecycleOwner = this
-        dataBinding.lumpSumContainerData = lumpSumContainerData!!
+        GlobalScope.launch(Dispatchers.Main) {
+            val lumpSumContainerData = listener!!.getLumpSumContainerData()
+            dataBinding.lumpSumContainerData = lumpSumContainerData
 
-        for(ls in lumpSumContainerData!!.items) {
-            addLumpSumView(ls)
-        }
-
-        dataBinding.root.findViewById<ImageButton>(R.id.lump_sum_add_button).setOnClickListener(object: View.OnClickListener {
-            override fun onClick(btn: View) {
-                val ls = lumpSumContainerData!!.addLumpSum()
-                addLumpSumView(ls)
+            for (ls in lumpSumContainerData.items) {
+                addLumpSumView(ls, lumpSumContainerData)
             }
-        })
+
+            dataBinding.root.findViewById<ImageButton>(R.id.lump_sum_add_button).setOnClickListener(object : View.OnClickListener {
+                override fun onClick(btn: View) {
+                    val ls = lumpSumContainerData.addLumpSum()
+                    addLumpSumView(ls, lumpSumContainerData)
+                }
+            })
+        }
 
         return root
     }
@@ -87,10 +88,10 @@ class LumpSumEditorFragment : ReportEditorSectionFragment(),
     }
 
     interface OnLumpSumEditorInteractionListener {
-        fun getLumpSumContainerData(): LumpSumContainerData
+        suspend fun getLumpSumContainerData(): LumpSumContainerData
     }
 
-    fun addLumpSumView(ls: LumpSumData) {
+    fun addLumpSumView(ls: LumpSumData, lumpSumContainerData: LumpSumContainerData) {
         val inflater = layoutInflater
         val container = dataBinding.root.findViewById<LinearLayout>(R.id.lump_sum_content_container)
         val lumpSumDataBinding: LumpSumEditLayoutBinding = LumpSumEditLayoutBinding.inflate(inflater, null, false)

@@ -39,23 +39,33 @@ class LockableSignaturePad(context: Context, attrs: AttributeSet): SignaturePad(
 
     fun saveBitmapToFile(file: File) {
         val fos = FileOutputStream(file)
-        if(isEmpty) {
+        if(!isEmpty) {
+            signatureBitmap.compress(Bitmap.CompressFormat.PNG, 85, fos)
+        } else if (sigSvg != "") {
+            val cSvg = SVG.getFromString(sigSvg)
+            val width = cSvg.documentWidth
+            val height = cSvg.documentHeight
+            val bitmap = Bitmap.createBitmap(width.toInt(), height.toInt(), Bitmap.Config.ARGB_8888)
+            bitmap.eraseColor(Color.WHITE)
+            val cCanvas = Canvas(bitmap)
+            cSvg.renderToCanvas(cCanvas)
+            bitmap.compress(Bitmap.CompressFormat.PNG, 85, fos)
+        } else {
+            // Write an empty image
             val w2 = when {
-                w > 0-> w
+                w > 0 -> w
                 else -> 100
             }
             val h2 = when {
-                h > 0-> h
-                else -> w2/3
+                h > 0 -> h
+                else -> w2 / 3
             }
             val bitmap = Bitmap.createBitmap(w2, h2, Bitmap.Config.RGB_565)
             bitmap.eraseColor(Color.WHITE)
             bitmap.compress(Bitmap.CompressFormat.PNG, 85, fos)
-        } else {
-            signatureBitmap.compress(Bitmap.CompressFormat.PNG, 85, fos)
         }
-        fos.flush()
-        fos.close()
+         fos.flush()
+         fos.close()
     }
 
     private fun drawSvg(svg: String, w: Int, h: Int) {

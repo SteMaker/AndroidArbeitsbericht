@@ -18,15 +18,12 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.databinding.DataBindingUtil
 import com.stemaker.arbeitsbericht.data.ReportData
+import com.stemaker.arbeitsbericht.data.SignatureData
 import com.stemaker.arbeitsbericht.databinding.ActivitySummaryBinding
 import com.stemaker.arbeitsbericht.helpers.HtmlReport
 import com.stemaker.arbeitsbericht.helpers.showConfirmationDialog
 import com.stemaker.arbeitsbericht.helpers.showInfoDialog
-import kotlinx.android.synthetic.main.activity_lump_sum_definition.*
-import kotlinx.android.synthetic.main.activity_summary.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import java.io.File
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
@@ -36,52 +33,58 @@ private const val TAG = "SummaryActivity"
 
 class SummaryActivity : AppCompatActivity() {
     lateinit var binding: ActivitySummaryBinding
-    val signatureData = storageHandler().getReport().signatureData
+    lateinit var signatureData: SignatureData
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = DataBindingUtil.setContentView(this, R.layout.activity_summary)
         binding.lifecycleOwner = this
-        binding.signature = signatureData
 
         setSupportActionBar(findViewById(R.id.summary_activity_toolbar))
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.setTitle(R.string.summary)
 
-        val eSigPad = findViewById<LockableSignaturePad>(R.id.employee_signature)
-        if(signatureData.employeeSignatureSvg.value!! != "") {
-            Log.d(TAG, "create eSig svg ${signatureData.employeeSignatureSvg.value!!.length}")
-            eSigPad.setSvg(signatureData.employeeSignatureSvg.value!!)
-            eSigPad.locked = true
-            val lockBtn = findViewById<ImageButton>(R.id.lock_employee_signature_btn)
-            lockBtn!!.setEnabled(false)
-            lockBtn.setImageResource(R.drawable.ic_lock_grey_24)
-        }
-        val cSigPad = findViewById<LockableSignaturePad>(R.id.client_signature)
-        if(signatureData.clientSignatureSvg.value!! != "") {
-            cSigPad.setSvg(signatureData.clientSignatureSvg.value!!)
-            cSigPad.locked = true
-            val lockBtn = findViewById<ImageButton>(R.id.lock_client_signature_btn)
-            lockBtn!!.setEnabled(false)
-            lockBtn.setImageResource(R.drawable.ic_lock_grey_24)
-        }
-        /* Make headline text area of signature also clickable */
-        val employeeSigText = findViewById<TextView>(R.id.employee_signature_text)
-        employeeSigText!!.setOnClickListener(object: View.OnClickListener {
-            override fun onClick(cV: View) {
-                onClickHideShowEmployeeSignature(findViewById<ImageButton>(R.id.hide_employee_signature_btn))
-            }
-        })
-        val clientSigText = findViewById<TextView>(R.id.client_signature_text)
-        clientSigText!!.setOnClickListener(object: View.OnClickListener {
-            override fun onClick(cV: View) {
-                onClickHideShowClientSignature(findViewById<ImageButton>(R.id.hide_client_signature_btn))
-            }
-        })
+        val storageInitJob = storageHandler().initialize()
 
-        val html = HtmlReport.encodeReport(storageHandler().getReport(), false)
-        val wv = findViewById<WebView>(R.id.webview)
-        wv.loadDataWithBaseURL("", html, "text/html", "UTF-8", "")
+        GlobalScope.launch(Dispatchers.Main) {
+            storageInitJob?.let {
+                if (!it.isCompleted) {
+                    binding.createReportProgressContainer.visibility = View.VISIBLE
+                    it.join()
+                    binding.createReportProgressContainer.visibility = View.GONE
+                }
+            } ?: run { Log.e(TAG, "storageHandler job was null :(") }
+
+            signatureData = storageHandler().getReport()!!.signatureData
+            binding.signature = signatureData
+
+            val eSigPad = findViewById<LockableSignaturePad>(R.id.employee_signature)
+            if (signatureData.employeeSignatureSvg.value!! != "") {
+                Log.d(TAG, "create eSig svg ${signatureData.employeeSignatureSvg.value!!.length}")
+                eSigPad.setSvg(signatureData.employeeSignatureSvg.value!!)
+                eSigPad.locked = true
+                val lockBtn = findViewById<ImageButton>(R.id.lock_employee_signature_btn)
+                lockBtn!!.isEnabled = false
+                lockBtn.setImageResource(R.drawable.ic_lock_grey_24)
+            }
+            val cSigPad = findViewById<LockableSignaturePad>(R.id.client_signature)
+            if (signatureData.clientSignatureSvg.value!! != "") {
+                cSigPad.setSvg(signatureData.clientSignatureSvg.value!!)
+                cSigPad.locked = true
+                val lockBtn = findViewById<ImageButton>(R.id.lock_client_signature_btn)
+                lockBtn!!.isEnabled = false
+                lockBtn.setImageResource(R.drawable.ic_lock_grey_24)
+            }
+            /* Make headline text area of signature also clickable */
+            val employeeSigText = findViewById<TextView>(R.id.employee_signature_text)
+            employeeSigText!!.setOnClickListener { onClickHideShowEmployeeSignature(findViewById<ImageButton>(R.id.hide_employee_signature_btn)) }
+            val clientSigText = findViewById<TextView>(R.id.client_signature_text)
+            clientSigText!!.setOnClickListener { onClickHideShowClientSignature(findViewById<ImageButton>(R.id.hide_client_signature_btn)) }
+
+            val html = HtmlReport.encodeReport(storageHandler().getReport()!!, false)
+            val wv = findViewById<WebView>(R.id.webview)
+            wv.loadDataWithBaseURL("", html, "text/html", "UTF-8", "")
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -108,25 +111,25 @@ class SummaryActivity : AppCompatActivity() {
         }
     }
 
-    fun saveAndBackToMain() {
-        saveSignatures()
-        val intent = Intent(this, ReportEditorActivity::class.java).apply {}
-        Log.d("Arbeitsbericht", "Switching to report editor activity")
-        startActivity(intent)
-    }
-
     override fun onBackPressed() {
-        Log.d("Arbeitsbericht.SummaryActivity.onBackPressed", "called")
-        saveAndBackToMain()
+        Log.d(TAG, "called")
+        val intent = Intent(this, ReportEditorActivity::class.java).apply {}
+        GlobalScope.launch(Dispatchers.Main) {
+            saveSignatures()
+            Log.d(TAG, "Switching to report editor activity")
+            startActivity(intent)
+        }
     }
 
     override fun onPause() {
         super.onPause()
-        saveSignatures()
+        runBlocking {
+            saveSignatures()
+        }
     }
 
     fun onClickClearEmployeeSignature(@Suppress("UNUSED_PARAMETER") btn: View) {
-        Log.d("Arbeitsbericht.SummaryActivity.onClickClearEmployeeSignature", "called")
+        Log.d(TAG, "called")
         val pad = findViewById<LockableSignaturePad>(R.id.employee_signature)
         if(pad.isEmpty())
             return
@@ -141,7 +144,7 @@ class SummaryActivity : AppCompatActivity() {
                 lockBtn.setImageResource(R.drawable.ic_lock_black_24)
                 signatureData.employeeSignatureSvg.value = ""
             } else {
-                Log.d("Arbeitsbericht.SummaryActivity.onClickClearEmployeeSignature", "cancelled deleting")
+                Log.d(TAG, "cancelled deleting")
             }
         }
     }
@@ -175,7 +178,7 @@ class SummaryActivity : AppCompatActivity() {
     }
 
     fun onClickClearClientSignature(@Suppress("UNUSED_PARAMETER") btn: View) {
-        Log.d("Arbeitsbericht.SummaryActivity.onClickClearClientSignature", "called")
+        Log.d(TAG, "called")
         val pad = findViewById<LockableSignaturePad>(R.id.client_signature)
         if(pad.isEmpty())
             return
@@ -190,7 +193,7 @@ class SummaryActivity : AppCompatActivity() {
                 lockBtn!!.setImageResource(R.drawable.ic_lock_black_24)
                 signatureData.clientSignatureSvg.value = ""
             } else {
-                Log.d("Arbeitsbericht.SummaryActivity.onClickClearClientSignature", "cancelled deleting")
+                Log.d(TAG, "cancelled deleting")
             }
         }
     }
@@ -223,18 +226,18 @@ class SummaryActivity : AppCompatActivity() {
         }
     }
 
-    fun saveSignatures() {
+    private suspend fun saveSignatures() {
         lockEmployeeSignature()
         lockClientSignature()
-        storageHandler().saveActiveReportToFile(getApplicationContext())
+        storageHandler().saveActiveReport()
     }
 
     var pdfWritePermissionContinuation: Continuation<Boolean>? = null
-    fun preview() {
-        Log.d(TAG, "Preview")
-        saveSignatures()
-
+    private fun preview() {
         GlobalScope.launch(Dispatchers.Main) {
+            Log.d(TAG, "Preview")
+            saveSignatures()
+
             var withAttachment = true
             val writeExternalStoragePermission = ContextCompat.checkSelfPermission(this@SummaryActivity, Manifest.permission.WRITE_EXTERNAL_STORAGE)
 
@@ -258,12 +261,23 @@ class SummaryActivity : AppCompatActivity() {
             }
         }
     }
+    private suspend fun askAndSetDone() {
+        if(storageHandler().getReport()!!.state.value == ReportData.ReportState.DONE) return
+        val answer =
+            showConfirmationDialog("Soll der Bericht auf Erledigt gesetzt werden?", this@SummaryActivity)
+        if(answer == AlertDialog.BUTTON_POSITIVE) {
+            storageHandler().getReport()!!.state.value = ReportData.ReportState.DONE
+            storageHandler().saveActiveReport()
+        }
+    }
 
-    fun send() {
-        Log.d(TAG, "Entry")
-        saveSignatures()
-
+    private fun send() {
         GlobalScope.launch(Dispatchers.Main) {
+            Log.d(TAG, "Entry")
+            saveSignatures()
+
+            askAndSetDone()
+
             var withAttachment = true
             val writeExternalStoragePermission = ContextCompat.checkSelfPermission(this@SummaryActivity, Manifest.permission.WRITE_EXTERNAL_STORAGE)
 
@@ -284,14 +298,16 @@ class SummaryActivity : AppCompatActivity() {
             var file: File? = null
             if(withAttachment)
                 file = createReport()
-            sendMail(file, storageHandler().getReport())
+            sendMail(file, storageHandler().getReport()!!)
         }
     }
 
     private fun share() {
-        saveSignatures()
-
         GlobalScope.launch(Dispatchers.Main) {
+            saveSignatures()
+
+            askAndSetDone()
+            
             var withAttachment = true
             val writeExternalStoragePermission = ContextCompat.checkSelfPermission(this@SummaryActivity, Manifest.permission.WRITE_EXTERNAL_STORAGE)
 
@@ -315,7 +331,7 @@ class SummaryActivity : AppCompatActivity() {
             } else {
                 val file = createReport()
                 if(file != null) {
-                    shareReport(file, storageHandler().getReport())
+                    shareReport(file, storageHandler().getReport()!!)
                 } else {
                     val toast = Toast.makeText(applicationContext, R.string.send_fail, Toast.LENGTH_LONG)
                     toast.show()
@@ -326,7 +342,7 @@ class SummaryActivity : AppCompatActivity() {
     suspend fun createReport(): File? {
         Log.d(TAG, "Creating report")
         var ret: File? = null
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
+        window.setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
         findViewById<LinearLayout>(R.id.create_report_progress_container).visibility = View.VISIBLE
         try {
             when {
@@ -337,13 +353,13 @@ class SummaryActivity : AppCompatActivity() {
             showInfoDialog(getString(R.string.report_create_fail), this@SummaryActivity, e.message?:getString(R.string.unknown))
         }
         findViewById<LinearLayout>(R.id.create_report_progress_container).visibility = View.GONE
-        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
+        window.clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
         return ret
     }
 
     suspend fun createOdfReport(): File? {
-        val report = storageHandler().getReport()
-        val odfGenerator = OdfGenerator(this@SummaryActivity, report, create_report_progressbar, create_report_progress_text)
+        val report = storageHandler().getReport()!!
+        val odfGenerator = OdfGenerator(this@SummaryActivity, report, binding.createReportProgressbar, binding.createReportProgressText)
         val files = odfGenerator.getFilesForOdfGeneration()
         if(files != null) {
             if(odfGenerator.isOdfUpToDate(files[0], report)) {
@@ -364,7 +380,7 @@ class SummaryActivity : AppCompatActivity() {
     }
 
     suspend fun createPdfReport(): File? {
-        val report = storageHandler().getReport()
+        val report = storageHandler().getReport()!!
         val pdfPrint = PdfPrint(this, report)
         val files = pdfPrint.getFilesForPdfGeneration(this@SummaryActivity)
         if(files != null) {
@@ -385,13 +401,13 @@ class SummaryActivity : AppCompatActivity() {
         val sigPadC = findViewById<LockableSignaturePad>(R.id.client_signature)
         val sigPadCV = sigPadC!!.visibility
         sigPadC.visibility = View.VISIBLE
-        client_signature.saveBitmapToFile(cSigFile)
+        binding.clientSignature.saveBitmapToFile(cSigFile)
         sigPadC.visibility = sigPadCV
 
         val sigPadE = findViewById<LockableSignaturePad>(R.id.employee_signature)
         val sigPadEV = sigPadE!!.visibility
         sigPadE.visibility = View.VISIBLE
-        employee_signature.saveBitmapToFile(eSigFile)
+        binding.employeeSignature.saveBitmapToFile(eSigFile)
         sigPadE.visibility = sigPadEV
     }
 
@@ -399,10 +415,10 @@ class SummaryActivity : AppCompatActivity() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if(requestCode == REQUEST_CODE_WRITE_EXTERNAL_STORAGE_PERMISSION) {
             if(grantResults.size > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Log.d("Arbeitsbericht", "Access to external storage granted")
+                Log.d(TAG, "Access to external storage granted")
                 pdfWritePermissionContinuation!!.resume(true)
             } else {
-                Log.d("Arbeitsbericht", "Access to external storage denied")
+                Log.d(TAG, "Access to external storage denied")
                 val toast = Toast.makeText(this, "Berechtigungen abgelehnt, PDF Bericht kann nicht erstellt werden", Toast.LENGTH_LONG)
                 toast.show()
                 pdfWritePermissionContinuation!!.resume(false)
@@ -437,10 +453,10 @@ class SummaryActivity : AppCompatActivity() {
         if(xdfFile != null) {
             emailIntent.putExtra(Intent.EXTRA_TEXT, "Bericht im Anhang")
             emailIntent .putExtra(Intent.EXTRA_STREAM, Uri.parse("file://"+xdfFile.path))
-            Log.d("Arbeitsbericht", "Added attachement file://${xdfFile.path}")
+            Log.d(TAG, "Added attachement file://${xdfFile.path}")
         } else {
             emailIntent.putExtra(Intent.EXTRA_TEXT, HtmlReport.encodeReport(report, true))
-            Log.d("Arbeitsbericht", "No attachement")
+            Log.d(TAG, "No attachement")
         }
 
         try {
@@ -459,8 +475,7 @@ class SummaryActivity : AppCompatActivity() {
                 "com.stemaker.arbeitsbericht.fileprovider",
                 xdfFile)
         } catch (e: IllegalArgumentException) {
-            Log.e("File Selector",
-                "The selected file can't be shared: $xdfFile")
+            Log.e(TAG, "The selected file can't be shared: $xdfFile")
             GlobalScope.launch(Dispatchers.Main) {
                 showInfoDialog(getString(R.string.send_fail), this@SummaryActivity)
             }

@@ -2,48 +2,85 @@
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
         xmlns:app="http://schemas.android.com/apk/res-auto">
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical"
-            tools:context=".MainActivity">
-
+            android:layout_height="match_parent">
         <androidx.appcompat.widget.Toolbar
                 android:id="@+id/main_activity_toolbar"
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
                 android:background="?attr/colorPrimary"
                 android:elevation="4dp"
                 app:theme="@style/ThemeOverlay.AppCompat.ActionBar"
                 app:popupTheme="@style/ThemeOverlay.AppCompat.Dark"/>
 
+        <ProgressBar
+                android:id="@+id/progressBar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toLeftOf="@id/initNotify"
+                android:indeterminate="true"
+                android:visibility="gone"
+                />
+        <TextView
+                android:id="@+id/initNotify"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintLeft_toRightOf="@id/progressBar"
+                app:layout_constraintRight_toRightOf="parent"
+                android:text="@string/db_loading"
+                android:visibility="gone"
+                />
         <!-- List of projects incl. headline -->
-        <ScrollView
+        <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/report_list_rv"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
-                android:layout_weight="1"
-                android:paddingLeft="16dp"
-                android:paddingRight="16dp">
-            <LinearLayout
-                    android:orientation="vertical"
-                    android:id="@+id/report_list_scroll_container"
-                    android:layout_width="match_parent"
-                    android:layout_height="0dp">
-            </LinearLayout>
-        </ScrollView>
+                app:layout_constraintTop_toBottomOf="@id/main_activity_toolbar"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                android:paddingLeft="5dp"
+                android:paddingRight="5dp"
+                tools:listitem="@layout/report_card_layout">
+        </androidx.recyclerview.widget.RecyclerView>
 
         <!-- New report button -->
-        <ImageButton
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
                 android:id="@+id/new_report_button"
                 android:layout_width="100dp"
                 android:layout_height="wrap_content"
-                android:layout_gravity="right"
-                android:paddingRight="16dp"
-                android:paddingBottom="16dp"
-                android:background="#00000000"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                android:layout_margin="16dp"
                 android:text="@string/create_new_report"
-                android:src="@drawable/ic_add_circle_black_100dp"
+                android:src="@drawable/ic_baseline_add_100"
+                app:maxImageSize="40dp"
+                app:backgroundTint="#0000ff"
+                app:elevation="10dp"
                 android:onClick="onClickNewReport"
                 />
-    </LinearLayout>
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/jump_to_top_button"
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintRight_toLeftOf="@id/new_report_button"
+                android:layout_margin="16dp"
+                android:text="@string/create_new_report"
+                android:src="@drawable/ic_baseline_jump_top_24"
+                app:maxImageSize="40dp"
+                app:backgroundTint="#0000ff"
+                app:elevation="10dp"
+                android:onClick="onClickJumpTop"
+                />
+    </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

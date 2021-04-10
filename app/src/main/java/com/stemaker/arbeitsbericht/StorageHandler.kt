@@ -1,122 +1,258 @@
-
 package com.stemaker.arbeitsbericht
-
 
 import android.content.Context
 import android.content.Context.MODE_PRIVATE
 import android.util.Log
+import androidx.lifecycle.Observer
+import androidx.room.Room
 import com.google.gson.Gson
 import com.stemaker.arbeitsbericht.data.ReportData
-import com.stemaker.arbeitsbericht.data.ReportDataSerialized
-import kotlinx.serialization.json.Json
+import com.stemaker.arbeitsbericht.data.ReportDatabase
+import com.stemaker.arbeitsbericht.data.ReportDb
+import kotlinx.coroutines.*
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.io.*
+import java.util.concurrent.atomic.AtomicBoolean
 
-fun storageHandler(): StorageHandler {
-    if(!StorageHandler.inited) {
-        StorageHandler.initialize()
-    }
-    return StorageHandler
+private const val TAG = "StorageHandler"
+
+inline fun storageHandler() = StorageHandler
+
+// This only reflects reports which are visible due to active filters
+// visReportIds only reflects those
+// reports is a general cache that at the moment simply remembers everything that was ever read, except reports that have been deleted
+interface ReportListObserver {
+    fun notifyReportAdded(cnt: Int)
+    fun notifyReportRemoved(cnt: Int)
+    fun notifyReportListChanged(cnts: List<Int>)
 }
 
 object StorageHandler {
-    var inited: Boolean = false
-    var gson = Gson()
-    var reports = mutableListOf<String>()
-    lateinit var activeReport: ReportData
+    private val gson: Gson = Gson()
+    private val visReportCnts: MutableList<Int> = mutableListOf()
+    private var activeReport: ReportData? = null
+    private val reports: MutableMap<Int, ReportData> = mutableMapOf()
 
-    private var _materialDictionary = mutableSetOf<String>()
-    val materialDictionary: Set<String>
-        get() = _materialDictionary
+    private var _materialDictionary: MutableSet<String> = mutableSetOf<String>()
     private var materialDictionaryChanged: Boolean = false
 
-    private var _workItemDictionary = mutableSetOf<String>()
-    val workItemDictionary: Set<String>
-        get() = _workItemDictionary
+    private var _workItemDictionary: MutableSet<String> = mutableSetOf<String>()
     private var workItemDictionaryChanged: Boolean = false
 
-    fun initialize() {
-        val c: Context = ArbeitsberichtApp.appContext
-        if(!inited) {
-            inited = true
-            // Read the configuration. This needs to be low level -> no configuration() invocation yet
-            Log.d("Arbeitsbericht.StorageHandler.myInit", "start")
-            loadConfigurationFromFile(c)
+    val materialDictionary: Set<String>
+        get() = _materialDictionary
+    val workItemDictionary: Set<String>
+        get() = _workItemDictionary
 
-            // Read the list of files that match report*.rpt
-            val appFiles = c.fileList()
-            Log.d("Arbeitsbericht.StorageHandler.myInit", "Found ${appFiles.size} files")
-            for (repFile in appFiles) {
-                val exp = Regex("report(.*).rpt")
-                if (exp.matches(repFile)) {
-                    Log.d("Arbeitsbericht.StorageHandler.myInit", "Found file $repFile matching the expected pattern")
-                    val repId = repFile.substring(repFile.lastIndexOf('/')+1).substringAfter("report").substringBefore(".rpt")
-                    reports.add(repId)
-                } else {
-                    Log.d("Arbeitsbericht.StorageHandler.myInit", "Found file $repFile not matching the expected pattern")
+    private val db = Room.databaseBuilder(
+        ArbeitsberichtApp.appContext,
+        ReportDatabase::class.java, "Arbeitsbericht-Reports"
+    ).fallbackToDestructiveMigration().build()
+
+    private val inited = AtomicBoolean(false)
+    var initJob: Job? = null
+    val mutex = Mutex()
+
+    var reportListObservers = mutableListOf<ReportListObserver>()
+
+    // TODO: Store the filter in the configuration
+    private val stateFilter = mutableSetOf<Int>(ReportData.ReportState.toInt(ReportData.ReportState.IN_WORK),
+        ReportData.ReportState.toInt(ReportData.ReportState.ON_HOLD),
+        ReportData.ReportState.toInt(ReportData.ReportState.DONE))
+
+    fun initialize(): Job? {
+        if (inited.compareAndSet(false, true)) {
+            initJob = GlobalScope.launch(Dispatchers.Main) {
+                val c: Context = ArbeitsberichtApp.appContext
+                // Read the configuration. This needs to be low level -> no configuration() invocation yet
+                loadConfigurationFromFile(c)
+
+                if (Configuration.store.vers <= 118) {
+                    withContext(Dispatchers.IO) {
+                        // TODO: Temp, add check and stop with notification that data might get lost
+                        db.reportDao().deleteTable()
+                    }
+                    migrateToDatabase()
+                    // This will update the version information and therefore there shouldn't be another migration
+                    configuration()
+                    configuration().activeReportId = -1
+                    deleteReportFilesAfterDbMigration()
+                }
+
+                val cnts = withContext(Dispatchers.IO) {
+                    db.reportDao().getStateFilteredReportIds(stateFilter)
+                }
+                visReportCnts.addAll(cnts)
+
+                // Now we should be ready to do more
+                if (configuration().activeReportId != -1) {
+                    if (visReportCnts.contains(configuration().activeReportId)) {
+                        selectReportByCnt(configuration().activeReportId)
+                    } else {
+                        configuration().activeReportId = -1
+                    }
                 }
             }
+        }
+        // Activities need to wait for this initJob before they are allowed to access the storageHandler()
+        return initJob
+    }
 
-            // Now we should be ready to do more
-            if(configuration().activeReportId != "") {
-                if (reports.contains(configuration().activeReportId)) {
-                    selectReportById(configuration().activeReportId)
-                } else {
-                    configuration().activeReportId = ""
-                }
+    private fun fetchAllCntsFromDb() {
+        val localStateFilter = mutableSetOf<Int>()
+        localStateFilter.addAll(stateFilter)
+        GlobalScope.launch(Dispatchers.Main) {
+            val cnts = withContext(Dispatchers.IO) {
+                db.reportDao().getStateFilteredReportIds(localStateFilter)
             }
-
-            Log.d("Arbeitsbericht.StorageHandler.myInit", "done")
+            synchronized(visReportCnts) {
+                visReportCnts.clear()
+                visReportCnts.addAll(cnts)
+            }
+            for (o in reportListObservers)
+                o.notifyReportListChanged(visReportCnts)
         }
     }
 
-    // This must only be called by the configuration activity if the ID pattern was changed
-    // Or on app start if naming scheme was changed due to an app update
-    fun renameReportsIfNeeded() {
-        val appFiles = ArbeitsberichtApp.appContext.fileList()
-        reports.clear()
+    private suspend fun migrateToDatabase() {
+        val c: Context = ArbeitsberichtApp.appContext
+        val appFiles = c.fileList()
+        val reportDao = db.reportDao()
+
         for (repFile in appFiles) {
             val exp = Regex("report(.*).rpt")
             if (exp.matches(repFile)) {
-                val rep: ReportData = readReportFromFile(repFile, ArbeitsberichtApp.appContext)
-                val fileName1 = "${ArbeitsberichtApp.appContext.filesDir}/${repFile.substring(repFile.lastIndexOf('/')+1)}"
-                val fileName2 = "${ArbeitsberichtApp.appContext.filesDir}/report${rep.id}.rpt"
-                if (fileName1 != fileName2) {
-                    val old = File(fileName1)
-                    val new = File(fileName2)
-                    val result = old.renameTo(new)
-                    reports.add(rep.id)
+                val report = readReportFromFile(repFile)
+                val r = ReportDb.fromReport(report)
+                withContext(Dispatchers.IO) {
+                    reportDao.insert(r)
                 }
             }
         }
-        configuration().activeReportId = ""
     }
 
-    fun getListOfReports(): MutableList<String> {
-        return reports
+    private fun deleteReportFilesAfterDbMigration() {
+        val c: Context = ArbeitsberichtApp.appContext
+        val appFiles = c.fileList()
+        for (repFile in appFiles) {
+            val exp = Regex("report(.*).rpt")
+            if (exp.matches(repFile)) {
+                val filename = "${ArbeitsberichtApp.appContext.filesDir}/$repFile"
+                File(filename).delete()
+            }
+        }
     }
 
-    fun getReportById(reportId: String, c: Context): ReportData {
-        return readReportFromFile(reportIdToReportFile(reportId), c)
+    fun addReportListObserver(obs: ReportListObserver) {
+        reportListObservers.add(obs)
+        obs.notifyReportListChanged(visReportCnts)
     }
 
-    fun getReport(): ReportData {
+    private fun addReportToCache(r: ReportData) {
+        reports[r.cnt] = r
+        val observer = Observer<ReportData.ReportState> { _ -> reportStateChanged(r)}
+        r.state.observeForever(observer)
+    }
+
+    private fun removeReportFromCache(cnt: Int) {
+        // TODO: Don't know how remove the observer again
+        //reports[id].state.removeObserver(observer)
+        //reports.remove(id)
+    }
+
+    private fun clearReportCache() {
+        reports.clear()
+    }
+
+    fun setStateFilter(f: Set<Int>) {
+        if(f != stateFilter) {
+            stateFilter.clear()
+            stateFilter.addAll(f)
+            fetchAllCntsFromDb()
+        }
+    }
+
+    private fun reportStateChanged(r: ReportData) {
+        // If the new state is set to invisible and it is currently visible
+        if (!stateFilter.contains(ReportData.ReportState.toInt(r.state.value!!)) && visReportCnts.contains(r.cnt)) {
+            synchronized(visReportCnts) {
+                visReportCnts.remove(r.cnt)
+            }
+            for (o in reportListObservers)
+                o.notifyReportRemoved(r.cnt)
+        }
+//TODO: We do not support changing visible from false to true, not a use case right now
+    }
+
+    fun getReportByCnt(cnt: Int, onLoaded:(r: ReportData)->Unit): ReportData {
+        // If we have it in the cache, take if from there, else query the database and push it in the cache
+        return reports[cnt]?.let {
+            onLoaded(it)
+            it
+        } ?: run {
+            val report = ReportData.createReport(cnt)
+            addReportToCache(report)
+            GlobalScope.launch(Dispatchers.Main) {
+                val rDb = withContext(Dispatchers.IO) {
+                    db.reportDao().getReportByCnt(cnt)
+                }
+                ReportData.getReportFromDb(rDb, report)
+                onLoaded(report)
+            }
+            return report
+        }
+    }
+
+    fun getReport(): ReportData? {
         return activeReport
     }
 
-    fun createNewReportAndSelect() {
-        val rep = ReportData.createReport(configuration().currentId)
-        Log.d("Arbeitsbericht.StorageHandler.createNewReportAndSelect", "Created new report with ID ${rep.id}")
-        reports.add(rep.id)
-        activeReport = rep
-        configuration().activeReportId = rep.id
+    fun createNewReportAndSelect(): ReportData {
+        val r = ReportData.createReport(configuration().currentId)
+        configuration().activeReportId = r.cnt
         configuration().currentId += 1
         configuration().save()
+        synchronized(visReportCnts) {
+            visReportCnts.add(0, r.cnt)
+        }
+        activeReport = r
+        addReportToCache(r)
+        saveActiveReport()
+        for (o in reportListObservers)
+            o.notifyReportAdded(r.cnt)
+        return r
     }
 
-    fun selectReportById(id: String, c: Context = ArbeitsberichtApp.appContext) {
-        Log.d("Arbeitsbericht.StorageHandler.selectReportById", c.toString())
-        configuration().activeReportId = id
-        activeReport = readReportFromFile(reportIdToReportFile(id), c)
+    /* This is only for test purposes to create many reports. All are marked with MANY_REPORTS */
+    /*
+    fun duplicateReport(report: ReportData) {
+        val jsonString = ReportData.getJsonFromReport(report)
+        activeReport = ReportData.getReportFromJson(jsonString)
+        activeReport.cnt = configuration().currentId
+        reports.add(activeReport.id)
+        configuration().activeReportId = activeReport.id
+        configuration().currentId += 1
+        configuration().save()
+        saveActiveReportToFile(ArbeitsberichtApp.appContext)
+    }*/
+
+    fun deleteReport(cnt: Int) {
+        GlobalScope.launch(Dispatchers.IO) {
+            db.reportDao().deleteByCnt(cnt)
+        }
+        synchronized(visReportCnts) {
+            visReportCnts.remove(cnt)
+        }
+        //removeReportFromCache(cnt)
+        for(o in reportListObservers)
+            o.notifyReportRemoved(cnt)
+    }
+
+    fun selectReportByCnt(cnt: Int) {
+        val report = getReportByCnt(cnt) {}
+        activeReport = report
+        configuration().activeReportId = cnt
         configuration().save()
     }
 
@@ -148,55 +284,41 @@ object StorageHandler {
         return ret
     }
 
-    private fun writeStringToFile(fileName: String, data: String, context: Context) {
-        try {
-            val outputStreamWriter = OutputStreamWriter(context.openFileOutput(fileName, Context.MODE_PRIVATE))
-            outputStreamWriter.write(data)
-            outputStreamWriter.close()
-        } catch (e: IOException) {
-            Log.e("Exception", "File write failed: $e")
-        }
-    }
-
-    private fun readReportFromFile(fileName: String, c: Context) : ReportData {
-        Log.d("Arbeitsbericht.StorageHandler.readReportFromFile", "Trying to read from file $fileName")
+    private fun readReportFromFile(fileName: String) : ReportData {
+        val c: Context = ArbeitsberichtApp.appContext
         val jsonString = readStringFromFile(fileName, c)
         return ReportData.getReportFromJson(jsonString)
     }
 
-    fun saveActiveReportToFile(c: Context) {
-        val jsonString = ReportData.getJsonFromReport(activeReport)
-        activeReport.lastStoreHash = jsonString.hashCode()
-        val fileName = reportIdToReportFile(activeReport.id)
-        writeStringToFile(fileName, jsonString, c)
-        Log.d("Arbeitsbericht.StorageHandler.saveReportToFile", "Saved to file $fileName")
-
-        for(wi in activeReport.workItemContainer.items) {
-            addToWorkItemDictionary(wi.item.value!!)
-        }
-        for(m in activeReport.materialContainer.items) {
-            addToMaterialDictionary(m.item.value!!)
+    fun saveReport(r: ReportData, skipDictionaryUpdate: Boolean = false) {
+        val reportDb = ReportDb.fromReport(r)
+        r.lastStoreHash = reportDb.hashCode()
+        val rDb = ReportDb.fromReport(r)
+        GlobalScope.launch(Dispatchers.IO) {
+            db.reportDao().update(rDb)
         }
 
-        if(materialDictionaryChanged || workItemDictionaryChanged) {
-            configuration().save()
-            materialDictionaryChanged = false
-            workItemDictionaryChanged = false
+        if (!skipDictionaryUpdate) {
+            for (wi in r.workItemContainer.items) {
+                addToWorkItemDictionary(wi.item.value!!)
+            }
+            for (m in r.materialContainer.items) {
+                addToMaterialDictionary(m.item.value!!)
+            }
+
+            if (materialDictionaryChanged || workItemDictionaryChanged) {
+                configuration().save()
+                materialDictionaryChanged = false
+                workItemDictionaryChanged = false
+            }
         }
     }
 
-    fun reportIdToReportFile(id: String): String {
-        return "report${id}.rpt"
+    fun saveActiveReport() {
+        activeReport?.let { saveReport(it) }
     }
 
-    fun deleteReport(id: String, c: Context) {
-        Log.d("Arbeitsbericht.StorageHandler.deleteReport", "Deleting report with ID $id")
-        c.deleteFile(reportIdToReportFile(id))
-        reports.remove(id)
-    }
-
-    fun loadConfigurationFromFile(c: Context) {
-        Log.d("Arbeitsbericht.StorageHandler.loadConfigurationFromFile", "")
+    private fun loadConfigurationFromFile(c: Context) {
         try {
             val fIn = c.openFileInput("configuration.json")
             val isr = InputStreamReader(fIn)
@@ -212,7 +334,6 @@ object StorageHandler {
         configuration().materialDictionary = materialDictionary
         configuration().workItemDictionary = workItemDictionary
         val fOut = c.openFileOutput("configuration.json", MODE_PRIVATE)
-        Log.d("Arbeitsbericht.StorageHandler.saveConfigurationToFile", "currentId = ${configuration().currentId}; num lump sums = ${configuration().lumpSums.size}")
         val osw = OutputStreamWriter(fOut)
         gson.toJson(Configuration.store, osw)
         osw.close()

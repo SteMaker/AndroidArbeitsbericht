@@ -11,10 +11,16 @@
         android:title="@string/lump_sum_define">
     </item>
     <item xmlns:app="http://schemas.android.com/apk/res-auto"
-        android:id="@+id/main_menu_new_report"
-        android:icon="@drawable/ic_add_circle_black_24dp"
-        android:title="@string/_new"
-        app:showAsAction="ifRoom">
+            android:id="@+id/main_menu_filter"
+            android:icon="@drawable/ic_baseline_filter_alt_24"
+            android:title="@string/filter"
+            app:showAsAction="always">
+    </item>
+    <item xmlns:app="http://schemas.android.com/apk/res-auto"
+            android:id="@+id/main_menu_new_report"
+            android:icon="@drawable/ic_add_circle_black_24dp"
+            android:title="@string/_new"
+            app:showAsAction="ifRoom">
     </item>
     <item
             android:id="@+id/main_menu_about"

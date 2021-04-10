@@ -23,6 +23,16 @@ class WorkItemContainerData(): ViewModel() {
         }
     }
 
+    fun copyFromDb(w: WorkItemContainerDb) {
+        visibility.value = w.wiVisibility
+        items.clear()
+        for(element in w.wiItems) {
+            val item = WorkItemData()
+            item.copyFromDb(element)
+            items.add(item)
+        }
+    }
+
     fun addWorkItem(): WorkItemData {
         val wi = WorkItemData()
         items.add(wi)
@@ -39,5 +49,8 @@ class WorkItemData: ViewModel() {
 
     fun copyFromSerialized(w: WorkItemDataSerialized) {
         item.value = w.item
+    }
+    fun copyFromDb(w: WorkItemContainerDb.WorkItemDb) {
+        item.value = w.wiItem
     }
 }

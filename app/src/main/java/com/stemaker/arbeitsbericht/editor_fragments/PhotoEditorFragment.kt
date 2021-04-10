@@ -28,8 +28,8 @@ import com.stemaker.arbeitsbericht.helpers.showConfirmationDialog
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import kotlinx.io.IOException
 import java.io.File
+import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.coroutines.Continuation
@@ -39,14 +39,12 @@ import kotlin.coroutines.suspendCoroutine
 class PhotoEditorFragment : ReportEditorSectionFragment(),
     ReportEditorSectionFragment.OnExpandChange {
     private var listener: OnPhotoEditorInteractionListener? = null
-    var photoContainerData: PhotoContainerData? = null
     lateinit var dataBinding: FragmentPhotoEditorBinding
     var activePhoto: PhotoData? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Log.d("Arbeitsbericht","PhotoEditorFragment.onCreate called")
-        photoContainerData = listener!!.getPhotoContainerData()
     }
 
     override fun onCreateView(
@@ -63,18 +61,21 @@ class PhotoEditorFragment : ReportEditorSectionFragment(),
         setHeadline(getString(R.string.photo))
 
         dataBinding.lifecycleOwner = this
-        dataBinding.photoContainerData = photoContainerData!!
+        GlobalScope.launch(Dispatchers.Main) {
+            val photoContainerData = listener!!.getPhotoContainerData()
+            dataBinding.photoContainerData = photoContainerData
 
-        for(p in photoContainerData!!.items) {
-            addPhotoView(p)
-        }
-
-        dataBinding.root.findViewById<ImageButton>(R.id.photo_add_button).setOnClickListener(object: View.OnClickListener {
-            override fun onClick(btn: View) {
-                val p = photoContainerData!!.addPhoto()
-                addPhotoView(p)
+            for (p in photoContainerData.items) {
+                addPhotoView(p, photoContainerData)
             }
-        })
+
+            dataBinding.root.findViewById<ImageButton>(R.id.photo_add_button).setOnClickListener(object : View.OnClickListener {
+                override fun onClick(btn: View) {
+                    val p = photoContainerData.addPhoto()
+                    addPhotoView(p, photoContainerData)
+                }
+            })
+        }
 
         return root
     }
@@ -102,12 +103,12 @@ class PhotoEditorFragment : ReportEditorSectionFragment(),
     }
 
     interface OnPhotoEditorInteractionListener {
-        fun getPhotoContainerData(): PhotoContainerData
+        suspend fun getPhotoContainerData(): PhotoContainerData
     }
 
     val REQUEST_TAKE_PHOTO = 1
 
-    fun addPhotoView(p: PhotoData) {
+    fun addPhotoView(p: PhotoData, photoContainerData: PhotoContainerData) {
         val inflater = layoutInflater
         val container = dataBinding.root.findViewById<LinearLayout>(R.id.photo_content_container)
         val photoDataBinding: PhotoLayoutBinding = PhotoLayoutBinding.inflate(inflater, null, false)

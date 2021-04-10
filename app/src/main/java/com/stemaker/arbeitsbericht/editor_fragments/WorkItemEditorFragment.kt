@@ -22,13 +22,11 @@ import kotlinx.coroutines.launch
 class WorkItemEditorFragment : ReportEditorSectionFragment(),
     ReportEditorSectionFragment.OnExpandChange {
     private var listener: OnWorkItemEditorInteractionListener? = null
-    var workItemContainerData: WorkItemContainerData? = null
     lateinit var dataBinding: FragmentWorkItemEditorBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Log.d("Arbeitsbericht","WorkItemEditorFragment.onCreate called")
-        workItemContainerData = listener!!.getWorkItemContainerData()
     }
 
     override fun onCreateView(
@@ -44,18 +42,21 @@ class WorkItemEditorFragment : ReportEditorSectionFragment(),
         setHeadline(getString(R.string.workitems))
 
         dataBinding.lifecycleOwner = this
-        dataBinding.workItemContainerData = workItemContainerData!!
+        GlobalScope.launch(Dispatchers.Main) {
+            val workItemContainerData = listener!!.getWorkItemContainerData()
+            dataBinding.workItemContainerData = workItemContainerData
 
-        for(wt in workItemContainerData!!.items) {
-            addWorkItemView(wt)
-        }
-
-        dataBinding.root.findViewById<ImageButton>(R.id.work_item_add_button).setOnClickListener(object: View.OnClickListener {
-            override fun onClick(btn: View) {
-                val wi = workItemContainerData!!.addWorkItem()
-                addWorkItemView(wi)
+            for (wi in workItemContainerData.items) {
+                addWorkItemView(wi, workItemContainerData)
             }
-        })
+
+            dataBinding.root.findViewById<ImageButton>(R.id.work_item_add_button).setOnClickListener(object : View.OnClickListener {
+                override fun onClick(btn: View) {
+                    val wi = workItemContainerData.addWorkItem()
+                    addWorkItemView(wi, workItemContainerData)
+                }
+            })
+        }
 
         return root
     }
@@ -83,10 +84,10 @@ class WorkItemEditorFragment : ReportEditorSectionFragment(),
     }
 
     interface OnWorkItemEditorInteractionListener {
-        fun getWorkItemContainerData(): WorkItemContainerData
+        suspend fun getWorkItemContainerData(): WorkItemContainerData
     }
 
-    fun addWorkItemView(wi: WorkItemData) {
+    fun addWorkItemView(wi: WorkItemData, workItemContainerData: WorkItemContainerData) {
         val inflater = layoutInflater
         val container = dataBinding.root.findViewById<LinearLayout>(R.id.work_item_content_container) as LinearLayout
         val workItemDataBinding: WorkItemLayoutBinding = WorkItemLayoutBinding.inflate(inflater, null, false)

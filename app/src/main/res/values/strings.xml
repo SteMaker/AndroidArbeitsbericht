@@ -18,6 +18,7 @@
     <string name="unknown">Unbekannt</string>
     <string name="send">Senden</string>
     <string name="_new">Neu</string>
+    <string name="filter">Filter</string>
     <string name="settings">Einstellungen</string>
     <string name="employee_name">Mitarbeiter</string>
     <string name="device_name">Gerätename</string>
@@ -62,6 +63,16 @@
     <string name="lump_sum_from_server">Pauschalendefinition von einem server beziehen</string>
     <string name="sftp_path_lump_sum">Pfad zur Pauschalendatei auf dem SFTP server</string>
     <string name="crashlog_enable">Im Falle eines Absturzes Bericht an Autor senden</string>
+    <string name="in_work">In Arbeit</string>
+    <string name="on_hold">Unterbrochen</string>
+    <string name="done">Erledigt</string>
+    <string name="archived">Archiviert</string>
+    <string name="delete">Löschen</string>
+    <string name="set_in_work">Auf In Arbeit setzen</string>
+    <string name="set_done">Auf Erledigt setzen</string>
+    <string name="set_on_hold">Auf Unterbrochen setzen</string>
+    <string name="archive">Archivieren</string>
+    <string name="db_loading">Berichte werden geladen</string>
 
     <!-- Configuration -->
     <string name="reportid_change_conf">Die laufende Nummer wurde geändert</string>

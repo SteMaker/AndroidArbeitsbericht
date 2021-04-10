@@ -20,6 +20,16 @@ class PhotoContainerData(): ViewModel() {
         }
     }
 
+    fun copyFromDb(w: PhotoContainerDb) {
+        visibility.value = w.pVisibility
+        items.clear()
+        for(element in w.pItems) {
+            val item = PhotoData()
+            item.copyFromDb(element)
+            items.add(item)
+        }
+    }
+
     fun addPhoto(): PhotoData {
         Log.d("Arbeitsbericht.debug", "Adding photo, before: ${items.size}, object: ${this.toString()}")
         val p = PhotoData()
@@ -46,7 +56,6 @@ class PhotoData: ViewModel() {
         description.value = p.description
         imageHeight = p.imageHeight
         imageWidth = p.imageWidth
-        Log.d("Arbeitsbericht.debug", "imageWidth is ${imageWidth}, imageHeight is ${imageHeight}")
         // Normally this was already filled in at the time of taking the photo. But in case this was taken with an older app version, it might not
         if(imageWidth <= 0 || imageHeight <= 0) {
             val options = BitmapFactory.Options()
@@ -61,5 +70,11 @@ class PhotoData: ViewModel() {
                 imageHeight = 1
             }
         }
+    }
+    fun copyFromDb(p: PhotoContainerDb.PhotoDb) {
+        file.value = p.pFile
+        description.value = p.pDescription
+        imageHeight = p.pImageHeight
+        imageWidth = p.pImageWidth
     }
 }

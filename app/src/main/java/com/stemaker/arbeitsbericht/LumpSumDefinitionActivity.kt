@@ -13,9 +13,11 @@ import androidx.appcompat.app.AlertDialog
 import androidx.cardview.widget.CardView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.stemaker.arbeitsbericht.databinding.ActivityLumpSumDefinitionBinding
+import com.stemaker.arbeitsbericht.databinding.LumpSumEditLayoutBinding
 import com.stemaker.arbeitsbericht.helpers.SftpProvider
 import com.stemaker.arbeitsbericht.helpers.showConfirmationDialog
-import kotlinx.android.synthetic.main.activity_lump_sum_definition.*
+//import kotlinx.android.synthetic.main.activity_lump_sum_definition.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -23,25 +25,38 @@ import java.lang.Exception
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.suspendCoroutine
 
-private const val TAG = "LumpSumDefinitionActivity"
+private const val TAG = "LumpSumDefinitionAct"
 private const val PERMISSION_CODE_REQUEST_INTERNET = 1
 
 class LumpSumDefinitionActivity : AppCompatActivity() {
     private var internetPermissionContinuation: Continuation<Boolean>? = null
+    private lateinit var binding: ActivityLumpSumDefinitionBinding
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_lump_sum_definition)
+        binding = ActivityLumpSumDefinitionBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         setSupportActionBar(findViewById(R.id.lump_sum_configuration_activity_toolbar))
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.setTitle(R.string.lump_sum_define)
 
-        findViewById<EditText>(R.id.lump_sum_ftp_path).setText(configuration().lumpSumServerPath)
-        val lumpSums = configuration().lumpSums
-        for (ls in lumpSums) {
-            addLumpSumView(ls)
+        val storageInitJob = storageHandler().initialize()
+
+        GlobalScope.launch(Dispatchers.Main) {
+            storageInitJob?.let {
+                if (!it.isCompleted) {
+                    findViewById<ProgressBar>(R.id.sftp_progress).visibility = View.VISIBLE
+                    it.join()
+                    findViewById<ProgressBar>(R.id.sftp_progress).visibility = View.GONE
+                }
+            } ?: run { Log.e(TAG, "storageHandler job was null :(") }
+            binding.lumpSumFtpPath.setText(configuration().lumpSumServerPath)
+            val lumpSums = configuration().lumpSums
+            for (ls in lumpSums) {
+                addLumpSumView(ls)
+            }
         }
     }
 
@@ -66,7 +81,7 @@ class LumpSumDefinitionActivity : AppCompatActivity() {
         addLumpSumView("Unbekannt")
     }
 
-    fun addLumpSumView(ls: String) {
+    private fun addLumpSumView(ls: String) {
         // Prepare a lump_sum_layout instance
         val inflater = getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
         val cV = inflater.inflate(R.layout.lump_sum_layout, null) as CardView
@@ -75,35 +90,40 @@ class LumpSumDefinitionActivity : AppCompatActivity() {
         val btnDel = cV.findViewById<ImageButton>(R.id.lump_sum_del_button)
         btnDel.setTag(R.id.TAG_CARDVIEW, cV)
 
-        val pos = lump_sums_container.getChildCount()
-        Log.d("Arbeitsbericht.LumpSumDefinitionActivity.addLumpSumView", "Adding lump-sum card $pos to UI")
-        lump_sums_container.addView(cV, pos)
+        val pos = binding.lumpSumsContainer.childCount
+        Log.d(TAG, "Adding lump-sum card $pos to UI")
+        binding.lumpSumsContainer.addView(cV, pos)
     }
 
-    fun save() {
-        Log.d("Arbeitsbericht.LumpSumDefinitionActivity.onClickSave", "saving ${lump_sums_container.getChildCount()} lump-sums ...")
-        val lumpSums = mutableListOf<String>()
-        for (pos in 0 until lump_sums_container.getChildCount()) {
-            val cV = lump_sums_container.getChildAt(pos) as CardView
-            val lumpSum = cV.findViewById<EditText>(R.id.lump_sum_text).text.toString()
-            lumpSums.add(lumpSum)
-            Log.d("Arbeitsbericht.LumpSumDefinitionActivity.onClickSave", "saving $pos")
+    private fun save() {
+        GlobalScope.launch(Dispatchers.Main) {
+            Log.d(TAG, "saving ${binding.lumpSumsContainer.childCount} lump-sums ...")
+            val lumpSums = mutableListOf<String>()
+            for (pos in 0 until binding.lumpSumsContainer.childCount) {
+                val cV = binding.lumpSumsContainer.getChildAt(pos) as CardView
+                val lumpSum = cV.findViewById<EditText>(R.id.lump_sum_text).text.toString()
+                lumpSums.add(lumpSum)
+                Log.d(TAG, "saving $pos")
+            }
+            configuration().lock()
+            configuration().lumpSums = lumpSums
+            configuration().lumpSumServerPath = findViewById<EditText>(R.id.lump_sum_ftp_path).text.toString()
+            configuration().save()
+            configuration().unlock()
+            storageHandler().saveConfigurationToFile(getApplicationContext())
+            val intent = Intent(this@LumpSumDefinitionActivity, MainActivity::class.java).apply {}
+            startActivity(intent)
         }
-        configuration().lumpSums = lumpSums
-        configuration().lumpSumServerPath = findViewById<EditText>(R.id.lump_sum_ftp_path).text.toString()
-        storageHandler().saveConfigurationToFile(getApplicationContext())
-        val intent = Intent(this, MainActivity::class.java).apply {}
-        startActivity(intent)
     }
 
     fun onClickDelLumpSum(btn: View) {
         GlobalScope.launch(Dispatchers.Main) {
             val answer = showConfirmationDialog(getString(R.string.del_confirmation), this@LumpSumDefinitionActivity)
             if(answer == AlertDialog.BUTTON_POSITIVE) {
-                Log.d("Arbeitsbericht.LumpSumDefinitionActivity.onClickDelLumpSum", "deleting a lump sum element")
-                lump_sums_container.removeView(btn.getTag(R.id.TAG_CARDVIEW) as View)
+                Log.d(TAG, "deleting a lump sum element")
+                binding.lumpSumsContainer.removeView(btn.getTag(R.id.TAG_CARDVIEW) as View)
             } else {
-                Log.d("Arbeitsbericht.LumpSumDefinitionActivity.onClickDelLumpSum", "Cancelled deleting a lump sum element")
+                Log.d(TAG, "Cancelled deleting a lump sum element")
             }
         }
     }
@@ -130,12 +150,12 @@ class LumpSumDefinitionActivity : AppCompatActivity() {
                     if (filtered.size == 0) {
                         val answer = showConfirmationDialog(getString(R.string.no_lump_sums_found), this@LumpSumDefinitionActivity)
                         if (answer == AlertDialog.BUTTON_POSITIVE) {
-                            lump_sums_container.removeAllViews()
+                            binding.lumpSumsContainer.removeAllViews()
                         }
                     } else {
                         val answer = showConfirmationDialog(getString(R.string.lump_sums_found, filtered.size), this@LumpSumDefinitionActivity)
                         if (answer == AlertDialog.BUTTON_POSITIVE) {
-                            lump_sums_container.removeAllViews()
+                            binding.lumpSumsContainer.removeAllViews()
                             for (line in filtered)
                                 addLumpSumView(line)
                         }

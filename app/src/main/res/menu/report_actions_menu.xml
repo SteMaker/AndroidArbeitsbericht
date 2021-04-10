@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+            android:id="@+id/delete"
+            android:icon="@drawable/ic_delete_black_24dp"
+            android:title="@string/delete">
+    </item>
+    <item
+            android:id="@+id/status_in_work"
+            android:icon="@drawable/ic_baseline_handyman_24"
+            android:visible="true"
+            android:title="@string/set_in_work">
+    </item>
+    <item
+            android:id="@+id/status_on_hold"
+            android:icon="@drawable/ic_baseline_pause_24"
+            android:visible="true"
+            android:title="@string/set_on_hold">
+    </item>
+    <item
+            android:id="@+id/status_done"
+            android:icon="@drawable/ic_baseline_done_24"
+            android:visible="true"
+            android:title="@string/set_done">
+    </item>
+    <item
+            android:id="@+id/status_archived"
+            android:icon="@drawable/ic_baseline_pause_24"
+            android:visible="true"
+            android:title="@string/archive">
+    </item>
+</menu>

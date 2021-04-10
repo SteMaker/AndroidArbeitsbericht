@@ -27,13 +27,11 @@ import kotlinx.coroutines.launch
 class WorkTimeEditorFragment : ReportEditorSectionFragment(),
     ReportEditorSectionFragment.OnExpandChange {
     private var listener: OnWorkTimeEditorInteractionListener? = null
-    var workTimeContainerData: WorkTimeContainerData? = null
     lateinit var dataBinding: FragmentWorkTimeEditorBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Log.d("Arbeitsbericht","WorkTimeEditorFragment.onCreate called")
-        workTimeContainerData = listener!!.getWorkTimeContainerData()
     }
 
     override fun onCreateView(
@@ -49,18 +47,21 @@ class WorkTimeEditorFragment : ReportEditorSectionFragment(),
         setHeadline(getString(R.string.worktimes))
 
         dataBinding.lifecycleOwner = this
-        dataBinding.workTimeContainerData = workTimeContainerData!!
+        GlobalScope.launch(Dispatchers.Main) {
+            val workTimeContainerData = listener!!.getWorkTimeContainerData()
+            dataBinding.workTimeContainerData = workTimeContainerData
 
-        for(wt in workTimeContainerData!!.items) {
-            addWorkTimeView(wt)
-        }
-
-        dataBinding.root.findViewById<ImageButton>(R.id.work_time_add_button).setOnClickListener(object: View.OnClickListener {
-            override fun onClick(btn: View) {
-                val wt = workTimeContainerData!!.addWorkTime()
-                addWorkTimeView(wt)
+            for (wt in workTimeContainerData.items) {
+                addWorkTimeView(wt, workTimeContainerData)
             }
-        })
+
+            dataBinding.root.findViewById<ImageButton>(R.id.work_time_add_button).setOnClickListener(object : View.OnClickListener {
+                override fun onClick(btn: View) {
+                    val wt = workTimeContainerData.addWorkTime()
+                    addWorkTimeView(wt, workTimeContainerData)
+                }
+            })
+        }
 
         return root
     }
@@ -88,10 +89,10 @@ class WorkTimeEditorFragment : ReportEditorSectionFragment(),
     }
 
     interface OnWorkTimeEditorInteractionListener {
-        fun getWorkTimeContainerData(): WorkTimeContainerData
+        suspend fun getWorkTimeContainerData(): WorkTimeContainerData
     }
 
-    fun addWorkTimeView(wt: WorkTimeData) {
+    fun addWorkTimeView(wt: WorkTimeData, workTimeContainerData: WorkTimeContainerData) {
         val inflater = layoutInflater
         val container = dataBinding.root.findViewById<LinearLayout>(R.id.work_time_content_container) as LinearLayout
         val workTimeDataBinding: WorkTimeLayoutBinding = WorkTimeLayoutBinding.inflate(inflater, null, false)
@@ -140,8 +141,8 @@ class WorkTimeEditorFragment : ReportEditorSectionFragment(),
         })
         workTimeDataBinding.root.findViewById<ImageButton>(R.id.work_time_copy_button).setOnClickListener(object: View.OnClickListener {
             override fun onClick(btn: View) {
-                val wt2 = workTimeContainerData!!.addWorkTime(wt)
-                addWorkTimeView(wt2)
+                val wt2 = workTimeContainerData.addWorkTime(wt)
+                addWorkTimeView(wt2, workTimeContainerData)
             }
         })
         workTimeDataBinding.root.findViewById<ImageButton>(R.id.work_time_del_button).setOnClickListener(object: View.OnClickListener {
@@ -152,7 +153,7 @@ class WorkTimeEditorFragment : ReportEditorSectionFragment(),
                     if (answer == AlertDialog.BUTTON_POSITIVE) {
                         Log.d("Arbeitsbericht.WorkTimeEditorFragment.work_time_del_button.onClick", "deleting work time element")
                         container.removeView(workTimeDataBinding.root)
-                        workTimeContainerData!!.removeWorkTime(wt)
+                        workTimeContainerData.removeWorkTime(wt)
                     } else {
                         Log.d("Arbeitsbericht.WorkTimeEditorFragment.work_time_del_button.onClick", "cancelled deleting work time element")
                     }

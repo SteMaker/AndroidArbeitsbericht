@@ -23,13 +23,11 @@ import kotlinx.coroutines.launch
 class MaterialEditorFragment : ReportEditorSectionFragment(),
     ReportEditorSectionFragment.OnExpandChange {
     private var listener: OnMaterialEditorInteractionListener? = null
-    var materialContainerData: MaterialContainerData? = null
     lateinit var dataBinding: FragmentMaterialEditorBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Log.d("Arbeitsbericht","MaterialEditorFragment.onCreate called")
-        materialContainerData = listener!!.getMaterialContainerData()
     }
 
     override fun onCreateView(
@@ -45,18 +43,21 @@ class MaterialEditorFragment : ReportEditorSectionFragment(),
         setHeadline(getString(R.string.material))
 
         dataBinding.lifecycleOwner = this
-        dataBinding.materialContainerData = materialContainerData!!
+        GlobalScope.launch(Dispatchers.Main) {
+            val materialContainerData = listener!!.getMaterialContainerData()
+            dataBinding.materialContainerData = materialContainerData
 
-        for(wt in materialContainerData!!.items) {
-            addMaterialView(wt)
-        }
-
-        dataBinding.root.findViewById<ImageButton>(R.id.material_add_button).setOnClickListener(object: View.OnClickListener {
-            override fun onClick(btn: View) {
-                val wi = materialContainerData!!.addMaterial()
-                addMaterialView(wi)
+            for (wt in materialContainerData.items) {
+                addMaterialView(wt, materialContainerData)
             }
-        })
+
+            dataBinding.root.findViewById<ImageButton>(R.id.material_add_button).setOnClickListener(object : View.OnClickListener {
+                override fun onClick(btn: View) {
+                    val wi = materialContainerData.addMaterial()
+                    addMaterialView(wi, materialContainerData)
+                }
+            })
+        }
 
         return root
     }
@@ -84,10 +85,10 @@ class MaterialEditorFragment : ReportEditorSectionFragment(),
     }
 
     interface OnMaterialEditorInteractionListener {
-        fun getMaterialContainerData(): MaterialContainerData
+        suspend fun getMaterialContainerData(): MaterialContainerData
     }
 
-    fun addMaterialView(wi: MaterialData) {
+    fun addMaterialView(wi: MaterialData, materialContainerData: MaterialContainerData) {
         val inflater = layoutInflater
         val container = dataBinding.root.findViewById<LinearLayout>(R.id.material_content_container) as LinearLayout
         val materialDataBinding: MaterialLayoutBinding = MaterialLayoutBinding.inflate(inflater, null, false)

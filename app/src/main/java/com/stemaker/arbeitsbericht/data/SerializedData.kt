@@ -203,6 +203,7 @@ class ReportDataSerialized() {
     var formatVersion: Int = 0
     var id: Int = 0 // Called cnt in ReportData
     var create_date: String = "00:00"
+    var state: Int = 0
     var change_date: String = ""
     var project = ProjectDataSerialized()
     var bill = BillDataSerialized()
@@ -217,6 +218,7 @@ class ReportDataSerialized() {
         formatVersion = vers
         id = r.cnt
         create_date = r.create_date.value!!
+        state = ReportData.ReportState.toInt(r.state.value!!)
         change_date = "" // No longer used
         project.copyFromData(r.project)
         bill.copyFromData(r.bill)

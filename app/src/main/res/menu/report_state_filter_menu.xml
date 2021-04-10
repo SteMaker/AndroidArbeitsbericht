@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <group android:checkableBehavior="all">
+        <item android:id="@+id/in_work"
+              android:icon="@drawable/ic_baseline_handyman_24"
+              android:title="@string/in_work" />
+        <item android:id="@+id/on_hold"
+              android:icon="@drawable/ic_baseline_pause_24"
+              android:title="@string/on_hold" />
+        <item android:id="@+id/done"
+                android:icon="@drawable/ic_baseline_done_24"
+                android:title="@string/done" />
+        <item android:id="@+id/archived"
+              android:icon="@drawable/ic_baseline_done_24"
+              android:title="@string/archived" />
+    </group>
+
+</menu>

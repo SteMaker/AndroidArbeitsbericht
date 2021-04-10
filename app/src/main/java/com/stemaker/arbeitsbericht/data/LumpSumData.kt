@@ -25,6 +25,16 @@ class LumpSumContainerData(): ViewModel() {
         }
     }
 
+    fun copyFromDb(w: LumpSumContainerDb) {
+        visibility.value = w.lVisibility
+        items.clear()
+        for(element in w.lItems) {
+            val item = LumpSumData()
+            item.copyFromDb(element)
+            items.add(item)
+        }
+    }
+
     fun addLumpSum(): LumpSumData {
         val l = LumpSumData()
         items.add(l)
@@ -36,7 +46,7 @@ class LumpSumContainerData(): ViewModel() {
     }
 }
 
-class LumpSumData() {
+class LumpSumData(): ViewModel() {
     var item = MutableLiveData<String>().apply { value = "" }
     var amount = MutableLiveData<Int>().apply { value = 0 }
     var comment = MutableLiveData<String>().apply { value = "" }
@@ -45,5 +55,11 @@ class LumpSumData() {
         item.value = l.item
         amount.value = l.amount
         comment.value = l.comment
+    }
+
+    fun copyFromDb(l: LumpSumContainerDb.LumpSumDb) {
+        item.value = l.lItem
+        amount.value = l.lAmount
+        comment.value = l.lComment
     }
 }

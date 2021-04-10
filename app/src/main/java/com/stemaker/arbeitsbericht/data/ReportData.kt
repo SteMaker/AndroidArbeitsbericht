@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import com.stemaker.arbeitsbericht.configuration
 import kotlinx.serialization.json.Json
 import java.util.*
+import com.stemaker.arbeitsbericht.R
 
 private const val TAG="ReportData"
 
@@ -17,11 +18,11 @@ class ReportData private constructor(var cnt: Int = 0): ViewModel() {
 
     val id: String
         get() {
+            // TODO: Check how often this is executed, performance impact?
             var string = configuration().reportIdPattern
             // Replace %<n>c -> running counter
             val regex = """(%c|%[0-9]c)""".toRegex()
             string = regex.replace(string) { m ->
-                Log.d(TAG, m.value)
                 when (m.value) {
                     "%c" -> cnt.toString()
                     else -> {
@@ -47,6 +48,24 @@ class ReportData private constructor(var cnt: Int = 0): ViewModel() {
     val create_date: LiveData<String>
         get() = _create_date
 
+    enum class ReportState(v: Int) {
+        IN_WORK(0), ON_HOLD(1), DONE(2), ARCHIVED(3);
+
+        companion object {
+            fun fromInt(value: Int) = values().first() { it.ordinal == value }
+            fun toInt(s: ReportState) = s.ordinal
+            fun toStringId(s: ReportState): Int {
+                return when(s) {
+                    IN_WORK -> R.string.in_work
+                    ON_HOLD -> R.string.on_hold
+                    DONE -> R.string.done
+                    ARCHIVED -> R.string.archived
+                }
+            }
+        }
+    }
+    val state = MutableLiveData<ReportState>().apply { value = ReportState.IN_WORK }
+
     var lastStoreHash: Int = 0
 
     var project = ProjectData()
@@ -65,6 +84,7 @@ class ReportData private constructor(var cnt: Int = 0): ViewModel() {
     private fun copyFromSerialized(r: ReportDataSerialized) {
         cnt = r.id
         _create_date.value = r.create_date
+        state.value = ReportState.fromInt(r.state)
         project.copyFromSerialized(r.project)
         bill.copyFromSerialized(r.bill)
         workTimeContainer.copyFromSerialized(r.workTimeContainer)
@@ -73,6 +93,21 @@ class ReportData private constructor(var cnt: Int = 0): ViewModel() {
         lumpSumContainer.copyFromSerialized(r.lumpSumContainer)
         photoContainer.copyFromSerialized(r.photoContainer)
         signatureData.copyFromSerialized(r.signatureData)
+    }
+
+    private fun copyFromDb(r: ReportDb) {
+        cnt = r.cnt
+        _create_date.value = r.create_date
+        state.value = ReportState.fromInt(r.state)
+        project.copyFromDb(r.project)
+        bill.copyFromDb(r.bill)
+        workTimeContainer.copyFromDb(r.workTimeContainer)
+        workItemContainer.copyFromDb(r.workItemContainer)
+        materialContainer.copyFromDb(r.materialContainer)
+        lumpSumContainer.copyFromDb(r.lumpSumContainer)
+        photoContainer.copyFromDb(r.photoContainer)
+        signatureData.copyFromDb(r.signatures)
+
     }
 
     private fun getCurrentDate(): String {
@@ -86,25 +121,24 @@ class ReportData private constructor(var cnt: Int = 0): ViewModel() {
 
     companion object {
         fun getReportFromJson(jsonData: String): ReportData {
-            val serialized = Json.parse(ReportDataSerialized.serializer(), jsonData)
+            val serialized = Json.decodeFromString(ReportDataSerialized.serializer(), jsonData)
             val report = ReportData()
             report.copyFromSerialized(serialized)
             return report
         }
 
+        fun getReportFromDb(rDb: ReportDb, r: ReportData) {
+            r.copyFromDb(rDb)
+        }
+
         fun getJsonFromReport(r: ReportData): String {
             val serialized = ReportDataSerialized()
             serialized.copyFromData(r) // Copy from data object into serialized object
-            val json: String = Json.stringify(ReportDataSerialized.serializer(), serialized)
-            return json
+            return Json.encodeToString(ReportDataSerialized.serializer(), serialized)
         }
 
-        fun createReport(idNr: Int): ReportData {
-            val d = Date()
-            val cal = Calendar.getInstance()
-            cal.time = d
-
-            return ReportData(idNr)
+        fun createReport(cnt: Int): ReportData {
+            return ReportData(cnt)
         }
     }
 }

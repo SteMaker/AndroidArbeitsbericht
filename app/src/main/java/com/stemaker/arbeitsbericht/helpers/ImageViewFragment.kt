@@ -10,6 +10,8 @@ import android.widget.ImageView
 import com.stemaker.arbeitsbericht.GlideApp
 import com.stemaker.arbeitsbericht.R
 
+private const val TAG = "ImageViewFragment"
+
 class ImageViewFragment(val file: String) : DialogFragment() {
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -21,7 +23,6 @@ class ImageViewFragment(val file: String) : DialogFragment() {
                 dismiss()
             }
         })
-        Log.d("Arbeitsbericht.ImageViewFragment.onCreateView", "loading image")
         GlideApp.with(this).load(file).into(imgV)
         return v
     }

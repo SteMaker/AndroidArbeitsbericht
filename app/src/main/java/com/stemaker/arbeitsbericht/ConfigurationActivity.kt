@@ -129,12 +129,30 @@ class ConfigurationActivity : AppCompatActivity() {
                 override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                     fontst.text = "${getString(R.string.fontsize)}: ${fontsb.progress}"
                 }
-
-                override fun onStartTrackingTouch(seekBar: SeekBar?) {
+                override fun onStartTrackingTouch(seekBar: SeekBar?) { }
+                override fun onStopTrackingTouch(seekBar: SeekBar?) { }
+            })
+            val xlsxLogoWidthSb = findViewById<SeekBar>(R.id.xlsx_logo_width_seekbar)
+            val xlsxLogoWidthSt = findViewById<TextView>(R.id.xlsx_logo_width_text)
+            xlsxLogoWidthSb.progress = configuration().xlsxLogoWidth
+            xlsxLogoWidthSt.text = "${getString(R.string.logowidth)}: ${xlsxLogoWidthSb.progress}"
+            xlsxLogoWidthSb.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+                override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                    xlsxLogoWidthSt.text = "${getString(R.string.logowidth)}: ${xlsxLogoWidthSb.progress}"
                 }
-
-                override fun onStopTrackingTouch(seekBar: SeekBar?) {
+                override fun onStartTrackingTouch(seekBar: SeekBar?) { }
+                override fun onStopTrackingTouch(seekBar: SeekBar?) { }
+            })
+            val xlsxFooterWidthSb = findViewById<SeekBar>(R.id.xlsx_footer_width_seekbar)
+            val xlsxFooterWidthSt = findViewById<TextView>(R.id.xlsx_footer_width_text)
+            xlsxFooterWidthSb.progress = configuration().xlsxFooterWidth
+            xlsxFooterWidthSt.text = "${getString(R.string.footerwidth)}: ${xlsxFooterWidthSb.progress}"
+            xlsxFooterWidthSb.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+                override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                    xlsxFooterWidthSt.text = "${getString(R.string.footerwidth)}: ${xlsxFooterWidthSb.progress}"
                 }
+                override fun onStartTrackingTouch(seekBar: SeekBar?) { }
+                override fun onStopTrackingTouch(seekBar: SeekBar?) { }
             })
         }
     }
@@ -211,7 +229,9 @@ class ConfigurationActivity : AppCompatActivity() {
         configuration().pdfUseLogo = findViewById<CheckBox>(R.id.pdf_use_logo).isChecked
         configuration().pdfUseFooter = findViewById<CheckBox>(R.id.pdf_use_footer).isChecked
         configuration().xlsxUseLogo = findViewById<CheckBox>(R.id.xlsx_use_logo).isChecked
+        configuration().xlsxLogoWidth = findViewById<SeekBar>(R.id.xlsx_logo_width_seekbar).progress
         configuration().xlsxUseFooter = findViewById<CheckBox>(R.id.xlsx_use_footer).isChecked
+        configuration().xlsxFooterWidth = findViewById<SeekBar>(R.id.xlsx_footer_width_seekbar).progress
         configuration().save()
 
         findViewById<ProgressBar>(R.id.sftp_progress).visibility = View.GONE

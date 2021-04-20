@@ -20,8 +20,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
-class MaterialEditorFragment : ReportEditorSectionFragment(),
-    ReportEditorSectionFragment.OnExpandChange {
+class MaterialEditorFragment : ReportEditorSectionFragment() {
     private var listener: OnMaterialEditorInteractionListener? = null
     lateinit var dataBinding: FragmentMaterialEditorBinding
 
@@ -63,7 +62,7 @@ class MaterialEditorFragment : ReportEditorSectionFragment(),
     }
 
     override fun onAttach(context: Context) {
-        super.onAttach(context, this)
+        super.onAttach(context)
         if (context is OnMaterialEditorInteractionListener) {
             listener = context
         } else {
@@ -101,11 +100,9 @@ class MaterialEditorFragment : ReportEditorSectionFragment(),
                     val answer =
                         showConfirmationDialog(getString(R.string.del_confirmation), btn.context)
                     if (answer == AlertDialog.BUTTON_POSITIVE) {
-                        Log.d("Arbeitsbericht.MaterialEditorFragment.material_del_button.onClick", "deleting material element")
                         container.removeView(materialDataBinding.root)
                         materialContainerData!!.removeMaterial(wi)
                     } else {
-                        Log.d("Arbeitsbericht.MaterialEditorFragment.material_del_button.onClick", "cancelled deleting material element")
                     }
                 }
             }
@@ -116,7 +113,6 @@ class MaterialEditorFragment : ReportEditorSectionFragment(),
         } }
 
         val pos = container.getChildCount()
-        Log.d("Arbeitsbericht", "Adding material card $pos to UI")
         container.addView(materialDataBinding.root, pos)
     }
 

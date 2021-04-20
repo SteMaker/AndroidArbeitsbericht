@@ -19,14 +19,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
-class WorkItemEditorFragment : ReportEditorSectionFragment(),
-    ReportEditorSectionFragment.OnExpandChange {
+class WorkItemEditorFragment : ReportEditorSectionFragment() {
     private var listener: OnWorkItemEditorInteractionListener? = null
     lateinit var dataBinding: FragmentWorkItemEditorBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Log.d("Arbeitsbericht","WorkItemEditorFragment.onCreate called")
     }
 
     override fun onCreateView(
@@ -34,7 +32,6 @@ class WorkItemEditorFragment : ReportEditorSectionFragment(),
         savedInstanceState: Bundle?
     ): View? {
         // Inflate the layout for this fragment
-        Log.d("Arbeitsbericht","WorkItemEditorFragment.onCreateView called")
         val root = super.onCreateView(inflater, container, savedInstanceState)
         dataBinding = FragmentWorkItemEditorBinding.inflate(inflater, container,false)
         root!!.findViewById<LinearLayout>(R.id.section_container).addView(dataBinding.root)
@@ -62,7 +59,7 @@ class WorkItemEditorFragment : ReportEditorSectionFragment(),
     }
 
     override fun onAttach(context: Context) {
-        super.onAttach(context, this)
+        super.onAttach(context)
         if (context is OnWorkItemEditorInteractionListener) {
             listener = context
         } else {
@@ -100,18 +97,15 @@ class WorkItemEditorFragment : ReportEditorSectionFragment(),
                     val answer =
                         showConfirmationDialog(getString(R.string.del_confirmation), btn.context)
                     if (answer == AlertDialog.BUTTON_POSITIVE) {
-                        Log.d("Arbeitsbericht.WorkItemEditorFragment.work_item_del_button.onClick", "deleting work item element")
                         container.removeView(workItemDataBinding.root)
                         workItemContainerData!!.removeWorkItem(wi)
                     } else {
-                        Log.d("Arbeitsbericht.WorkTimeEditorFragment.work_time_del_button.onClick", "cancelled deleting work item element")
                     }
                 }
             }
         })
 
         val pos = container.getChildCount()
-        Log.d("Arbeitsbericht", "Adding work item card $pos to UI")
         container.addView(workItemDataBinding.root, pos)
     }
 

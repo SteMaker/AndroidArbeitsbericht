@@ -17,6 +17,8 @@ import com.stemaker.arbeitsbericht.helpers.LinearLayoutVisListener
 import java.io.File
 import java.text.DecimalFormatSymbols
 
+private const val TAG = "BindingAdapters"
+
 object BindingAdapters {
     /******************************************************************/
     /* Binding Adapters to bind an EditText with an integer data value*/
@@ -33,7 +35,6 @@ object BindingAdapters {
                 }
 
                 override fun afterTextChanged(editable: Editable) {
-                    Log.d("Arbeitsbericht.BindingAdapters.textInt.setListener","afterTextChanged")
                     listener.onChange()
                 }
             })

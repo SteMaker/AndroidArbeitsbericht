@@ -26,7 +26,6 @@ class TimePickerFragment(_timeString: MutableLiveData<String>) : DialogFragment(
             minute = c.get(Calendar.MINUTE)
         } else {
             val timeVal = timeString.value!!
-            Log.d("Arbeitsbericht.TimePickerFragment.onCreateDialog", "Default duration: ${timeVal}")
             hour = timeVal.substring(0,2).toInt()
             minute = timeVal.substring(3,5).toInt()
         }

@@ -10,6 +10,9 @@ class LumpSumContainerData(): ViewModel() {
     private var _list = MutableLiveData<List<String>>().apply { value = configuration().lumpSums }
     val list: LiveData<List<String>>
         get() = _list
+    fun updateLumpSums() {
+        _list.value = configuration().lumpSums
+    }
     val visibility = MutableLiveData<Boolean>().apply { value = false }
 
     fun copyFromSerialized(l: LumpSumContainerDataSerialized) {

@@ -36,15 +36,13 @@ import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
-class PhotoEditorFragment : ReportEditorSectionFragment(),
-    ReportEditorSectionFragment.OnExpandChange {
+class PhotoEditorFragment : ReportEditorSectionFragment() {
     private var listener: OnPhotoEditorInteractionListener? = null
     lateinit var dataBinding: FragmentPhotoEditorBinding
     var activePhoto: PhotoData? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Log.d("Arbeitsbericht","PhotoEditorFragment.onCreate called")
     }
 
     override fun onCreateView(
@@ -81,7 +79,7 @@ class PhotoEditorFragment : ReportEditorSectionFragment(),
     }
 
     override fun onAttach(context: Context) {
-        super.onAttach(context, this)
+        super.onAttach(context)
         if (context is OnPhotoEditorInteractionListener) {
             listener = context
         } else {
@@ -120,11 +118,9 @@ class PhotoEditorFragment : ReportEditorSectionFragment(),
                     val answer =
                         showConfirmationDialog(getString(R.string.del_confirmation), btn.context)
                     if (answer == AlertDialog.BUTTON_POSITIVE) {
-                        Log.d("Arbeitsbericht.PhotoEditorFragment.photo_del_button.onClick", "deleting work item element")
                         container.removeView(photoDataBinding.root)
                         photoContainerData!!.removePhoto(p)
                     } else {
-                        Log.d("Arbeitsbericht.WorkTimeEditorFragment.work_time_del_button.onClick", "cancelled deleting work item element")
                     }
                 }
             }
@@ -146,7 +142,6 @@ class PhotoEditorFragment : ReportEditorSectionFragment(),
                         // Continue only if the File was successfully created
                         photoFile?.also {
                             val photoURI: Uri = FileProvider.getUriForFile(activity!!.applicationContext, "com.stemaker.arbeitsbericht.fileprovider", it)
-                            Log.d("Arbeitsbericht.PhotoEditorFragment.onClickTakePhoto", "PhotoURI: ${photoURI}")
                             takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
                             p.file.value = photoFile.absolutePath
                             activePhoto = p
@@ -159,7 +154,6 @@ class PhotoEditorFragment : ReportEditorSectionFragment(),
 
         photoDataBinding.root.findViewById<ImageView>(R.id.photo_view).setOnClickListener(object : View.OnClickListener {
             override fun onClick(btn: View) {
-                Log.d("Arbeitsbericht.PhotoEditorFragment.photo_view.onClick", "Image clicked")
                 if(p.file.value != "") {
                     val photoView = ImageViewFragment(p.file.value!!)
                     photoView.show(activity!!.supportFragmentManager, "PhotoView")
@@ -168,7 +162,6 @@ class PhotoEditorFragment : ReportEditorSectionFragment(),
         })
 
         val pos = container.getChildCount()
-        Log.d("Arbeitsbericht", "Adding work item card $pos to UI")
         container.addView(photoDataBinding.root, pos)
     }
 

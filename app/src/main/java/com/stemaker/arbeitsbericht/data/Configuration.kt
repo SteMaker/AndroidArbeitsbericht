@@ -54,7 +54,9 @@ class ConfigurationStore {
     var pdfUseLogo: Boolean = false
     var pdfUseFooter: Boolean = false
     var xlsxUseLogo: Boolean = false
+    var xlsxLogoWidth: Int = 135 // mm
     var xlsxUseFooter: Boolean = false
+    var xlsxFooterWidth: Int = 135 // mm
 }
 
 fun configuration(): Configuration {
@@ -98,20 +100,28 @@ object Configuration {
     }
 
     private fun updateConfiguration(oldVers: Int) {
-        store.vers = ArbeitsberichtApp.getVersionCode() +100
-        if(oldVers < 119) {
+        store.vers = ArbeitsberichtApp.getVersionCode() + 100
+        if(oldVers < 121) {
             try {
                 if(store.logoFile != "") {
                     store.pdfUseLogo = true
                     store.xlsxUseLogo = true
-                    val bitmap = BitmapFactory.decodeFile(store.logoFile)
-                    configuration().logoRatio = bitmap.width.toDouble() / bitmap.height.toDouble()
+                    try {
+                        val bitmap = BitmapFactory.decodeFile(store.logoFile)
+                        configuration().logoRatio = bitmap.width.toDouble() / bitmap.height.toDouble()
+                    } catch (e:Exception) {
+                        configuration().logoRatio = 1.0
+                    }
                 }
                 if(store.footerFile != "") {
                     store.pdfUseFooter = true
                     store.xlsxUseFooter = true
-                    val bitmap = BitmapFactory.decodeFile(store.footerFile)
-                    configuration().footerRatio = bitmap.width.toDouble() / bitmap.height.toDouble()
+                    try {
+                        val bitmap = BitmapFactory.decodeFile(store.footerFile)
+                        configuration().footerRatio = bitmap.width.toDouble() / bitmap.height.toDouble()
+                    } catch (e:Exception) {
+                        configuration().footerRatio = 1.0
+                    }
                 }
                 save()
             } catch(e: Exception) {}
@@ -270,17 +280,27 @@ object Configuration {
     var pdfUseFooter: Boolean
         get(): Boolean = Configuration.store.pdfUseFooter
         set(value) {
-            Configuration.store.pdfUseFooter = value }
+            store.pdfUseFooter = value }
 
     var xlsxUseLogo: Boolean
         get(): Boolean = store.xlsxUseLogo
         set(value) {
             store.xlsxUseLogo = value }
 
+    var xlsxLogoWidth: Int
+        get(): Int = store.xlsxLogoWidth
+        set(value) {
+            store.xlsxLogoWidth = value }
+
     var xlsxUseFooter: Boolean
         get(): Boolean = Configuration.store.xlsxUseFooter
         set(value) {
-            Configuration.store.xlsxUseFooter = value }
+            store.xlsxUseFooter = value }
+
+    var xlsxFooterWidth: Int
+        get(): Int = store.xlsxFooterWidth
+        set(value) {
+            store.xlsxFooterWidth = value }
 
     private fun encryptPassword(pwd: String): String {
         /* Now we try to store the password in an encrypted way. First we retrieve a key
@@ -308,7 +328,7 @@ object Configuration {
             try {
                 Cipher.getInstance("AES/GCM/NoPadding")
             } catch(e: Exception) {
-                Log.d("Configuration::encryptPasswordHash", "Cannot encrypt password since Cipher cannot be found")
+                Log.d(TAG, "Cannot encrypt password since Cipher cannot be found")
                 throw UnsupportedOperationException("Verschlüsseln des Passworts wird von ihrem Telefon nicht unterstützt. Das Passwort kann nicht gespeichert werden")
             }
         ciph?: return ""
@@ -322,7 +342,7 @@ object Configuration {
     }
 
     private fun createPasswordEncryptionKey() {
-        Log.d("Configuration::createPasswordEncryptionKey", "Creating encryption key")
+        Log.d(TAG, "Creating encryption key")
         val keyGenerator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore")
         val paramSpec: KeyGenParameterSpec = KeyGenParameterSpec.Builder(
             KEY_ALIAS,
@@ -339,12 +359,12 @@ object Configuration {
     }
 
     private fun decryptPassword(encryptedBase64Encoded: String, key: SecretKey): String {
-        Log.d("Configuration::decryptPasswordHash", "called")
+        Log.d(TAG, "called")
         val ciph: Cipher? =
             try {
                 Cipher.getInstance("AES/GCM/NoPadding")
             } catch(e: Exception) {
-                Log.d("Configuration::decryptPasswordHash", "Cannot decrypt password since Cipher cannot be found")
+                Log.d(TAG, "Cannot decrypt password since Cipher cannot be found")
                 throw UnsupportedOperationException("Entschlüsseln des Passworts wird von ihrem Telefon nicht unterstützt. Das Passwort kann nicht gespeichert werden")
             }
         ciph?: return ""

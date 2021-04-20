@@ -83,6 +83,8 @@
     <string name="fontsize">Schriftgröße</string>
     <string name="use_logo">Logo verwenden</string>
     <string name="use_footer">Fusszeile verwenden</string>
+    <string name="logowidth">Logobreite [mm]</string>
+    <string name="footerwidth">Fusszeilenbreite [mm]</string>
 
     <!-- SFTP related -->
     <string name="sftp_settings">SFTP</string>

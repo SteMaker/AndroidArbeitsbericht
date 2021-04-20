@@ -109,6 +109,7 @@ class LumpSumDefinitionActivity : AppCompatActivity() {
             configuration().lumpSums = lumpSums
             configuration().lumpSumServerPath = findViewById<EditText>(R.id.lump_sum_ftp_path).text.toString()
             configuration().save()
+            storageHandler().getReport()?.lumpSumContainer?.updateLumpSums()
             configuration().unlock()
             storageHandler().saveConfigurationToFile(getApplicationContext())
             val intent = Intent(this@LumpSumDefinitionActivity, MainActivity::class.java).apply {}

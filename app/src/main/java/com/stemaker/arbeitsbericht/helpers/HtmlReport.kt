@@ -8,6 +8,8 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.IOException
 
+private const val TAG = "HtmlReport"
+
 object HtmlReport {
 
     fun readFileToBytes(f: File): ByteArray {
@@ -34,7 +36,6 @@ object HtmlReport {
     }
 
     fun encodeReport(rep: ReportData, inclSignatures: Boolean = true): String {
-        Log.d("Arbeitsbericht.HtmlReport.encodeReport", "Generating HTML report for ID:${rep.id}, Name: ${rep.project.name.value}")
         val fs = "font-size:${configuration().fontSize}px"
         var html: String =
             "<!DOCTYPE html>" +
@@ -42,9 +43,10 @@ object HtmlReport {
                     "<head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"/></head>" +
                     "<body>"
         if(configuration().logoFile != "" && configuration().pdfUseLogo) {
-            val logoFileContent = readFileToBytes(File(configuration().logoFile))
-            val logo = Base64.encodeToString(logoFileContent, Base64.DEFAULT)
-            html += "<img src=\"data:image/jpg;base64,${logo}\" style=\"height: 100%; width: 100%; object-fit: contain\"/>"
+            //val logoFileContent = readFileToBytes(File(configuration().logoFile))
+            //val logo = Base64.encodeToString(logoFileContent, Base64.DEFAULT)
+            //html += "<img src=\"data:image/jpg;base64,${logo}\" style=\"height: 100%; width: 100%; object-fit: contain\"/>"
+            html += "<img src=\"file://${configuration().logoFile}\" style=\"height:100%;width:100%;object-fit:contain\">"
         }
         html +=     "<h1>Arbeitsbericht Nr. ${rep.id}</h1>" +
                     "<table style=\"border: 2px solid black;border-collapse: collapse;\">" +
@@ -189,9 +191,10 @@ object HtmlReport {
             }
         }
         if(configuration().footerFile != "" && configuration().pdfUseFooter) {
-            val footerFileContent = readFileToBytes(File(configuration().footerFile))
-            val footer = Base64.encodeToString(footerFileContent, Base64.DEFAULT)
-            html += "<img src=\"data:image/jpg;base64,${footer}\" style=\"height: 100%; width: 100%; object-fit: contain\"/>"
+            //val footerFileContent = readFileToBytes(File(configuration().footerFile))
+            //val footer = Base64.encodeToString(footerFileContent, Base64.DEFAULT)
+            //html += "<img src=\"data:image/jpg;base64,${footer}\" style=\"height: 100%; width: 100%; object-fit: contain\"/>"
+            html += "<img src=\"file://${configuration().footerFile}\" style=\"height:100%;width:100%;object-fit:contain\">"
         }
 
         html += "</body></html>"

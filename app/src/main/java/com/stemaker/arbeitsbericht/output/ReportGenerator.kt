@@ -69,6 +69,8 @@ abstract class ReportGenerator(val activity: Activity, val report: ReportData, p
                         }
                         overwriteChecked = true
                     }
+                    f.delete()
+                    f.createNewFile()
                 } else {
                     f.createNewFile()
                 }
@@ -103,8 +105,10 @@ abstract class ReportGenerator(val activity: Activity, val report: ReportData, p
                 cont!!.resume(it)
             }
             val success = suspendCoroutine<Boolean> {
+                Log.d(TAG, "Suspend create")
                 cont = it
             }
+            Log.d(TAG, "resume")
         } else {
             val msg = Message()
             msg.what = MSG_CREATE

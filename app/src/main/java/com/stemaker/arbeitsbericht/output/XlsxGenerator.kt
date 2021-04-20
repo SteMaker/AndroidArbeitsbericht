@@ -50,12 +50,14 @@ class XlsxGenerator(activity: Activity, report: ReportData, progressBar: Progres
         var rown = 0
         sheetGeneral.setColumnWidth(0, (12.5f*256).toInt())
 
-        rown = rown.plus(setLogo(wb, sheetGeneral, rown)+1)
+        if(configuration().logoFile != "" && configuration().xlsxUseLogo)
+            rown = rown.plus(setLogo(wb, sheetGeneral, rown)+1)
         rown = rown.plus(setHeadline(sheetGeneral, rown)+1)
         rown = rown.plus(setBaseData(sheetGeneral, rown)+1)
         rown =  rown.plus(setBillData(sheetGeneral, rown)+1)
         rown = rown.plus(setSignatures(wb, sheetGeneral, rown+1, clientSigFile, employeeSigFile)+1)
-        rown = rown.plus(setFooter(wb, sheetGeneral, rown)+1)
+        if(configuration().footerFile != "" && configuration().xlsxUseFooter)
+            rown = rown.plus(setFooter(wb, sheetGeneral, rown)+1)
 
         rown = setWorkTime(sheetData, 0) + 1
         rown = rown.plus(setWorkItem(sheetData, rown)+1)
@@ -284,20 +286,50 @@ class XlsxGenerator(activity: Activity, report: ReportData, progressBar: Progres
         })
     }
 
-    val logoWidth = 150*Units.EMU_PER_CENTIMETER/10 // in EMU
     private fun setLogo(wb: XSSFWorkbook, sheet: XSSFSheet, rown: Int): Int {
+        // The factor of 1.1 is found by trail and error :(
+        val logoWidth = (configuration().xlsxLogoWidth * Units.EMU_PER_CENTIMETER / 10f / 1.1f).roundToInt() // in EMU
         var width = 0
         var columns = 0
         while(width < logoWidth) {
             width += Units.columnWidthToEMU(sheet.getColumnWidth(columns))
             columns++
         }
-        //columns -= 2
-        //width -= Units.columnWidthToEMU(sheet.getColumnWidth(columns))
         val dx2 = logoWidth-width
-        if(configuration().logoFile != "" && configuration().xlsxUseLogo) {
+        try {
+            val iStream = FileInputStream(configuration().logoFile)
+            val bytes = IOUtils.toByteArray(iStream)
+            val picIdx = wb.addPicture(bytes, Workbook.PICTURE_TYPE_PNG)
+            iStream.close()
+            val helper = wb.creationHelper
+            val drawing = sheet.createDrawingPatriarch()
+            val anchor = helper.createClientAnchor()
+            anchor.anchorType = ClientAnchor.AnchorType.DONT_MOVE_AND_RESIZE
+            val row = sheet.createRow(rown)
+            anchor.setRow1(rown)
+            anchor.setRow2(rown + 1)
+            anchor.setCol1(0)
+            anchor.setCol2(columns)
+            anchor.dx2 = dx2
+            val picture = drawing.createPicture(anchor, picIdx)
+            val rowHeight = (logoWidth * 20 / configuration().logoRatio)/Units.EMU_PER_POINT
+            row.height = rowHeight.toInt().toShort()
+            return 1
+        } catch(e: Exception) {}
+        return 0
+    }
+    private fun setFooter(wb: XSSFWorkbook, sheet: XSSFSheet, rown: Int): Int {
+            // The factor of 1.1 is found by trail and error :(
+            val footerWidth = (configuration().xlsxFooterWidth * Units.EMU_PER_CENTIMETER / 10f / 1.1f).roundToInt() // in EMU
+            var width = 0
+            var columns = 0
+            while(width < footerWidth) {
+                width += Units.columnWidthToEMU(sheet.getColumnWidth(columns))
+                columns++
+            }
+            val dx2 = footerWidth-width
             try {
-                val iStream = FileInputStream(configuration().logoFile)
+                val iStream = FileInputStream(configuration().footerFile)
                 val bytes = IOUtils.toByteArray(iStream)
                 val picIdx = wb.addPicture(bytes, Workbook.PICTURE_TYPE_PNG)
                 iStream.close()
@@ -312,31 +344,10 @@ class XlsxGenerator(activity: Activity, report: ReportData, progressBar: Progres
                 anchor.setCol2(columns)
                 anchor.dx2 = dx2
                 val picture = drawing.createPicture(anchor, picIdx)
-                val rowHeight = (logoWidth * 20 / configuration().logoRatio)/Units.EMU_PER_POINT
+                val rowHeight = (footerWidth * 20 / configuration().logoRatio)/Units.EMU_PER_POINT
                 row.height = rowHeight.toInt().toShort()
                 return 1
             } catch(e: Exception) {}
-        }
-        return 0
-    }
-    private fun setFooter(wb: XSSFWorkbook, sheet: XSSFSheet, rown: Int): Int {
-        if(configuration().footerFile != "" && configuration().xlsxUseFooter) {
-            try {
-                val iStream = FileInputStream(configuration().footerFile)
-                val bytes = IOUtils.toByteArray(iStream)
-                val picIdx = wb.addPicture(bytes, Workbook.PICTURE_TYPE_PNG)
-                iStream.close()
-                val helper = wb.creationHelper
-                val drawing = sheet.createDrawingPatriarch()
-                val anchor = helper.createClientAnchor()
-                anchor.setRow1(rown)
-                anchor.setRow2(rown + 1)
-                anchor.setCol1(0)
-                anchor.setCol2(8)
-                val picture = drawing.createPicture(anchor, picIdx)
-                return 1
-            } catch(e: Exception) {}
-        }
         return 0
     }
 

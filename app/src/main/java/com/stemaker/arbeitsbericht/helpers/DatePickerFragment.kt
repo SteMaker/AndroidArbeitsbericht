@@ -27,7 +27,6 @@ class DatePickerFragment(_dateString: MutableLiveData<String>, val ctx: Context)
             day = c.get(Calendar.DAY_OF_MONTH)
         } else {
             val dateVal = dateString.value!!
-            Log.d("Arbeitsbericht.DatePickerFragment.onCreateDialog", "Default date: ${dateVal}")
             day = dateVal.substring(0,2).toInt()
             month = dateVal.substring(3,5).toInt()
             year = dateVal.substring(6,10).toInt()
@@ -41,6 +40,5 @@ class DatePickerFragment(_dateString: MutableLiveData<String>, val ctx: Context)
         dateString.value = day.toString().padStart(2,'0') + "." +
                 (month+1).toString().padStart(2,'0') + "." +
                 year.toString().padStart(4,'0')
-        Log.d("DatePickerFragment.onDateSet", "New Date: $dateString")
     }
 }

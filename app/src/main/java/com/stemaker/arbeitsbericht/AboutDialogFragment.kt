@@ -9,6 +9,8 @@ import android.widget.Button
 import androidx.fragment.app.DialogFragment
 import android.webkit.WebView
 
+private const val TAG = "AboutDialogFragment"
+
 class AboutDialogFragment : DialogFragment() {
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -20,7 +22,7 @@ class AboutDialogFragment : DialogFragment() {
                 dismiss()
             }
         })
-        Log.d("Arbeitsbericht.AboutDialogFragment.onCreateView", "loading about.html into WebView")
+        Log.d(TAG, "loading about.html into WebView")
         val wv = v.findViewById<WebView>(R.id.about_webview)
         wv.loadUrl("file:///android_asset/about.html")
         return v

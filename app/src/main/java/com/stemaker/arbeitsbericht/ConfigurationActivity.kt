@@ -270,6 +270,8 @@ class ConfigurationActivity : AppCompatActivity() {
         super.onActivityResult(requestCode, resultCode, data);
         if(requestCode == REQUEST_LOAD && resultCode == RESULT_OK) {
             val selectedfile = data?.getData()
+            //TODO: We would need to handle the case the app gets destroyed in between, can be easily
+            //reproduced by enabling don't keep activities in the dev options
             continuation!!.resume(selectedfile)
         }
     }

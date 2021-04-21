@@ -1,6 +1,7 @@
 package com.stemaker.arbeitsbericht
 
 import android.Manifest
+import android.content.ClipData
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.content.Intent
@@ -375,17 +376,33 @@ class SummaryActivity : AppCompatActivity() {
     }
 
     private fun sendMail(xdfFile: File?, report: ReportData) {
+        val fileUri: Uri? = xdfFile?.let {
+            try {
+                FileProvider.getUriForFile(
+                    this@SummaryActivity,
+                    "com.stemaker.arbeitsbericht.fileprovider",
+                    xdfFile
+                )
+            } catch (e: IllegalArgumentException) {
+                Log.e(TAG, "The selected file can't be shared: $xdfFile")
+                GlobalScope.launch(Dispatchers.Main) {
+                    showInfoDialog(getString(R.string.send_fail), this@SummaryActivity)
+                }
+                return
+            }
+        }
         val subj = "Arbeitsbericht von ${configuration().employeeName}: Kunde: ${report.project.name.value}, Berichtsnr: ${report.id}"
-        val emailIntent = Intent(Intent.ACTION_SENDTO)
-        emailIntent.data = Uri.parse("mailto:" + configuration().recvMail)
-        emailIntent.putExtra(Intent.EXTRA_SUBJECT, subj)
-        if(xdfFile != null) {
-            emailIntent.putExtra(Intent.EXTRA_TEXT, "Bericht im Anhang")
-            emailIntent .putExtra(Intent.EXTRA_STREAM, Uri.parse("file://"+xdfFile.path))
-            Log.d(TAG, "Added attachement file://${xdfFile.path}")
-        } else {
-            emailIntent.putExtra(Intent.EXTRA_TEXT, HtmlReport.encodeReport(report, true))
-            Log.d(TAG, "No attachement")
+        val emailIntent = Intent(Intent.ACTION_SENDTO).apply {
+            data = Uri.parse("mailto:" + configuration().recvMail)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            putExtra(Intent.EXTRA_SUBJECT, subj)
+            fileUri?.let {
+                putExtra(Intent.EXTRA_TEXT, "Bericht im Anhang")
+                putExtra(Intent.EXTRA_STREAM, fileUri)
+                clipData = ClipData.newUri(this@SummaryActivity.contentResolver, xdfFile?.name?:"file", it)
+            } ?: run {
+                putExtra(Intent.EXTRA_TEXT, HtmlReport.encodeReport(report, true))
+            }
         }
 
         try {

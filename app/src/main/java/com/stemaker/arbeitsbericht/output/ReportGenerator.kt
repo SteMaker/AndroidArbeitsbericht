@@ -34,24 +34,21 @@ abstract class ReportGenerator(val activity: Activity, val report: ReportData, p
     abstract fun createDoc(files: Array<File>, done: (success: Boolean) -> Unit)
 
     suspend fun getFilesForGeneration(): Array<File>? {
-        val publicPath = "${Environment.getExternalStorageDirectory().absolutePath}/Arbeitsbericht"
         val privatePath = "${activity.filesDir.absolutePath}/Arbeitsbericht"
 
         /* Create the Documents folder if it doesn't exist */
-        for(path in arrayOf(publicPath, privatePath)) {
-            val folder = File(path)
-            if (!folder.exists()) {
-                if (!folder.mkdirs()) {
-                    Log.d(TAG, "Could not create documents directory")
-                    showInfoDialog(activity.getString(R.string.cannot_createdocs_dir), activity)
-                    return null
-                }
+        val folder = File(privatePath)
+        if (!folder.exists()) {
+            if (!folder.mkdirs()) {
+                Log.d(TAG, "Could not create documents directory")
+                showInfoDialog(activity.getString(R.string.cannot_createdocs_dir), activity)
+                return null
             }
         }
 
         val docFiles = mutableListOf<File>()
         for (postfixExt in filePostFixExt)
-            docFiles.add(File(publicPath, "report_${report.id}${postfixExt.first}.${postfixExt.second}"))
+            docFiles.add(File(privatePath, "report_${report.id}${postfixExt.first}.${postfixExt.second}"))
 
         val clientSigFile = File(privatePath, "report_client_sig_${report.id}.png")
         val employeeSigFile = File(privatePath, "report_employee_sig_${report.id}.png")

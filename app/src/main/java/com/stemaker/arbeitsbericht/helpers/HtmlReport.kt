@@ -35,7 +35,7 @@ object HtmlReport {
         return bytes
     }
 
-    fun encodeReport(rep: ReportData, inclSignatures: Boolean = true): String {
+    fun encodeReport(rep: ReportData, dir: File, inclSignatures: Boolean = true): String {
         val fs = "font-size:${configuration().fontSize}px"
         var html: String =
             "<!DOCTYPE html>" +
@@ -43,10 +43,9 @@ object HtmlReport {
                     "<head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"/></head>" +
                     "<body>"
         if(configuration().logoFile != "" && configuration().pdfUseLogo) {
-            //val logoFileContent = readFileToBytes(File(configuration().logoFile))
-            //val logo = Base64.encodeToString(logoFileContent, Base64.DEFAULT)
-            //html += "<img src=\"data:image/jpg;base64,${logo}\" style=\"height: 100%; width: 100%; object-fit: contain\"/>"
-            html += "<img src=\"file://${configuration().logoFile}\" style=\"height:100%;width:100%;object-fit:contain\">"
+            val logoFileContent = readFileToBytes(File(dir, configuration().logoFile))
+            val logo = Base64.encodeToString(logoFileContent, Base64.DEFAULT)
+            html += "<img src=\"data:image/jpg;base64,${logo}\" style=\"height: 100%; width: 100%; object-fit: contain\"/>"
         }
         html +=     "<h1>Arbeitsbericht Nr. ${rep.id}</h1>" +
                     "<table style=\"border: 2px solid black;border-collapse: collapse;\">" +
@@ -161,7 +160,8 @@ object HtmlReport {
         if(rep.photoContainer.items.size != 0) {
             html += "<h2>Fotos</h2>"
             rep.photoContainer.items.forEach {
-                html += "<img src=\"file://${it.file.value}\" style=\"max-width:100%\">"
+                val fileName = File(it.file.value).name // old version stored full path
+                html += "<img src=\"content://com.stemaker.arbeitsbericht.fileprovider/ArbeitsberichtPhotos/$fileName\" style=\"max-width:100%\">"
                 html += "${it.description.value}"
             }
             html += "<hr>"
@@ -179,11 +179,11 @@ object HtmlReport {
                         "</tr>" +
                         "<tr>"
                 if(rep.signatureData.employeeSignatureSvg.value != "" && rep.signatureData.employeeSignaturePngFile != null)
-                    html += "<th><img src=\"file://${rep.signatureData.employeeSignaturePngFile!!.absoluteFile}\" style=\"max-width:50%\"></th>"
+                    html += "<th><img src=\"content://com.stemaker.arbeitsbericht.fileprovider/ArbeitsberichtSignatures/${rep.signatureData.employeeSignaturePngFile!!.name}\" style=\"max-width:50%\"></th>"
                 else
                     html += "<th>Keine Unterschrift</th>"
                 if(rep.signatureData.clientSignatureSvg.value != "" && rep.signatureData.clientSignaturePngFile != null)
-                    html += "<th><img src=\"file://${rep.signatureData.clientSignaturePngFile!!.absoluteFile}\" style=\"max-width:50%\"></th>"
+                    html += "<th><img src=\"content://com.stemaker.arbeitsbericht.fileprovider/ArbeitsberichtSignatures/${rep.signatureData.clientSignaturePngFile!!.name}\" style=\"max-width:50%\"></th>"
                 else
                     html += "<th>Keine Unterschrift</th>"
                 html += "</tr>" +
@@ -191,10 +191,9 @@ object HtmlReport {
             }
         }
         if(configuration().footerFile != "" && configuration().pdfUseFooter) {
-            //val footerFileContent = readFileToBytes(File(configuration().footerFile))
-            //val footer = Base64.encodeToString(footerFileContent, Base64.DEFAULT)
-            //html += "<img src=\"data:image/jpg;base64,${footer}\" style=\"height: 100%; width: 100%; object-fit: contain\"/>"
-            html += "<img src=\"file://${configuration().footerFile}\" style=\"height:100%;width:100%;object-fit:contain\">"
+            val footerFileContent = readFileToBytes(File(dir, configuration().footerFile))
+            val footer = Base64.encodeToString(footerFileContent, Base64.DEFAULT)
+            html += "<img src=\"data:image/jpg;base64,${footer}\" style=\"height: 100%; width: 100%; object-fit: contain\"/>"
         }
 
         html += "</body></html>"

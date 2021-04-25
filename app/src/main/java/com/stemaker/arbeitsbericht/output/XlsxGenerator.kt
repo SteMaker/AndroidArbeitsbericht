@@ -1,6 +1,7 @@
 package com.stemaker.arbeitsbericht
 
 import android.app.Activity
+import android.os.Environment
 import android.util.Log
 import android.widget.ProgressBar
 import android.widget.TextView
@@ -297,7 +298,7 @@ class XlsxGenerator(activity: Activity, report: ReportData, progressBar: Progres
         }
         val dx2 = logoWidth-width
         try {
-            val iStream = FileInputStream(configuration().logoFile)
+            val iStream = FileInputStream("${activity.filesDir}/${configuration().logoFile}")
             val bytes = IOUtils.toByteArray(iStream)
             val picIdx = wb.addPicture(bytes, Workbook.PICTURE_TYPE_PNG)
             iStream.close()
@@ -329,7 +330,7 @@ class XlsxGenerator(activity: Activity, report: ReportData, progressBar: Progres
             }
             val dx2 = footerWidth-width
             try {
-                val iStream = FileInputStream(configuration().footerFile)
+                val iStream = FileInputStream("${activity.filesDir}/${configuration().footerFile}")
                 val bytes = IOUtils.toByteArray(iStream)
                 val picIdx = wb.addPicture(bytes, Workbook.PICTURE_TYPE_PNG)
                 iStream.close()
@@ -344,7 +345,7 @@ class XlsxGenerator(activity: Activity, report: ReportData, progressBar: Progres
                 anchor.setCol2(columns)
                 anchor.dx2 = dx2
                 val picture = drawing.createPicture(anchor, picIdx)
-                val rowHeight = (footerWidth * 20 / configuration().logoRatio)/Units.EMU_PER_POINT
+                val rowHeight = (footerWidth * 20 / configuration().footerRatio)/Units.EMU_PER_POINT
                 row.height = rowHeight.toInt().toShort()
                 return 1
             } catch(e: Exception) {}
@@ -576,8 +577,10 @@ class XlsxGenerator(activity: Activity, report: ReportData, progressBar: Progres
 
     private fun setPhoto(wb: XSSFWorkbook) {
         report.photoContainer.items.forEachIndexed { index, photoData ->
-            photoData.file.value?.also { file ->
+            photoData.file.value?.also {
                 try {
+                    val tmpFile = File(it) // because old app version stored the path here as well
+                    val file = File(activity.getExternalFilesDir(Environment.DIRECTORY_PICTURES), tmpFile.name)
                     val safeName = WorkbookUtil.createSafeSheetName("Foto $index")
                     val sheet = wb.createSheet(safeName)
                     val iStream = FileInputStream(file)
@@ -608,7 +611,7 @@ class XlsxGenerator(activity: Activity, report: ReportData, progressBar: Progres
                         cell.setCellValue(photoData.description.value)
                     }
                 } catch(e: Exception) {
-                    Log.e(TAG, "Could not add picture $file")
+                    Log.e(TAG, "Could not add picture $it")
                 }
             }
         }

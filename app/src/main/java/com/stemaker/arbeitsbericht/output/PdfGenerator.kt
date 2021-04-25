@@ -37,7 +37,7 @@ class PdfGenerator(activity: Activity, report: ReportData, progressBar: Progress
         .build()
     override fun createDoc(files: Array<File>, done: (success:Boolean) -> Unit) {
         // Generate a webview including signatures and then print it to pdf
-        html = HtmlReport.encodeReport(report, true)
+        html = HtmlReport.encodeReport(report, activity.filesDir, true)
         webView = WebView(activity)
 
         webView?.let {
@@ -65,7 +65,7 @@ class PdfGenerator(activity: Activity, report: ReportData, progressBar: Progress
                     )
                 }
             }
-            it.loadDataWithBaseURL("", html, "text/html", "UTF-8", "")
+            it.loadDataWithBaseURL("", html?:"Internal error occured", "text/html", "UTF-8", "")
         }?: run {
            done(false)
         }

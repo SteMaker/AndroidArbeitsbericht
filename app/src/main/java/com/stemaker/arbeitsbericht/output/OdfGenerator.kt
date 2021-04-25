@@ -122,15 +122,17 @@ class OdfGenerator(activity: Activity, report: ReportData, progressBar: Progress
 
     private fun addImagesToPackage(): OdfPackage {
         val templateFile: InputStream
-        if(configuration().odfTemplateFile != "" && File(configuration().odfTemplateFile).exists())
-            templateFile = FileInputStream(File(configuration().odfTemplateFile))
+        if(configuration().odfTemplateFile != "" && File(activity.filesDir, configuration().odfTemplateFile).exists())
+            templateFile = FileInputStream(File(activity.filesDir, configuration().odfTemplateFile))
         else
             templateFile = activity.assets.open("output_template.ott")
 
         val pkg = OdfPackage.loadPackage(templateFile)
         report.photoContainer.items.forEachIndexed { index, elem ->
-            if(File(elem.file.value).exists()) {
-                pkg.insert(File(elem.file.value).toURI(), "Pictures/photo$index.jpg", "image/jpg")
+            val tmpFile = File(elem.file.value)
+            val file = File(activity.getExternalFilesDir(Environment.DIRECTORY_PICTURES), tmpFile.name)
+            if(file.exists()) {
+                pkg.insert(file.toURI(), "Pictures/photo$index.jpg", "image/jpg")
             }
         }
         val csf = clientSigFile

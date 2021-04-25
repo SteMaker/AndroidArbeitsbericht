@@ -1,6 +1,7 @@
 package com.stemaker.arbeitsbericht
 
 import android.graphics.drawable.PictureDrawable
+import android.os.Environment
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
@@ -177,9 +178,11 @@ object BindingAdapters {
     /* Binding Adapter to bind a file string to an ImageView */
     /*********************************************************/
     @JvmStatic
-    @BindingAdapter("srcFile")
-    fun setSrcFile(imgView: ImageView, file: String) {
-        if(file != "" && File(file).length() > 0)
+    @BindingAdapter("srcPhotoFile")
+    fun setSrcPhotoFile(imgView: ImageView, fileName: String) {
+        val tmpFile = File(fileName) // because old app version stored the path here as well
+        val file = File(imgView.context.getExternalFilesDir(Environment.DIRECTORY_PICTURES), tmpFile.name)
+        if(file.exists())
             GlideApp.with(imgView.context).load(file).into(imgView)
     }
 

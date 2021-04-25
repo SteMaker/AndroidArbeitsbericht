@@ -19,12 +19,12 @@ plugins {
 //apply plugin: 'com.google.firebase.crashlytics'
 
 android {
-    compileSdkVersion 29
+    compileSdkVersion 30
     buildToolsVersion "29.0.2"
     defaultConfig {
         applicationId "com.stemaker.arbeitsbericht"
         minSdkVersion 23
-        targetSdkVersion 29
+        targetSdkVersion 30
         versionCode 21
         versionName "v2.11.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"

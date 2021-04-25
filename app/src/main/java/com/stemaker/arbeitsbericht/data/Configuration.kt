@@ -123,7 +123,13 @@ object Configuration {
                         configuration().footerRatio = 1.0
                     }
                 }
-                save()
+                if(store.logoFile != "")
+                    store.logoFile = "logo.jpg"
+                if(store.footerFile != "")
+                    store.footerFile = "footer.jpg"
+                if(configuration().odfTemplateFile != "")
+                    configuration().odfTemplateFile = "custom_output_template.ott"
+                    save()
             } catch(e: Exception) {}
         }
     }

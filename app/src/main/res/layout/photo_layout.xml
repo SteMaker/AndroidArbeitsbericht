@@ -48,7 +48,7 @@
                 android:id="@+id/photo_view"
                 android:layout_width="100dp"
                 android:layout_height="100dp"
-                app:srcFile="@{photo.file}"
+                app:srcPhotoFile="@{photo.file}"
             />
         </LinearLayout>
         <com.google.android.material.textfield.TextInputLayout

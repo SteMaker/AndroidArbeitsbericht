@@ -157,20 +157,23 @@ class ConfigurationActivity : AppCompatActivity() {
         }
     }
 
-    fun showFileInImageView(fileName: String, id: Int) {
+    private fun showFileInImageView(fileName: String, id: Int): Double {
         val imgV = findViewById<ImageView>(id)
+        var ratio = 1.0
         if(fileName == "") {
             imgV.setImageResource(R.drawable.ic_clear_black_24dp)
         } else {
-            val file = File(fileName)
+            val file = File(this@ConfigurationActivity.filesDir, fileName)
             if (file.exists()) {
                 val bitmap = BitmapFactory.decodeFile(file.absolutePath)
-                configuration().logoRatio = bitmap.width.toDouble() / bitmap.height.toDouble()
+                ratio = bitmap.width.toDouble() / bitmap.height.toDouble()
                 imgV.setImageBitmap(bitmap)
+                return ratio
             } else {
                 imgV.setImageResource(R.drawable.ic_clear_black_24dp)
             }
         }
+        return ratio
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -276,10 +279,10 @@ class ConfigurationActivity : AppCompatActivity() {
         }
     }
 
-    private fun copyUriToFile(uri: Uri, filePath: String) {
+    private fun copyUriToFile(uri: Uri, fileName: String) {
         val inStream =  contentResolver.openInputStream(uri);
         if(inStream == null) throw Exception("Could not open input file")
-        val outStream = FileOutputStream(File(filePath));
+        val outStream = FileOutputStream(File(this@ConfigurationActivity.filesDir, fileName));
         val buf = ByteArray(1024)
         var len: Int = inStream.read(buf);
         while(len > 0) {
@@ -305,7 +308,7 @@ class ConfigurationActivity : AppCompatActivity() {
             } else {
                 Log.d(TAG, "Selected ODF template: ${file}")
                 try {
-                    val dst = "${filesDir}/custom_output_template.ott"
+                    val dst = "custom_output_template.ott"
                     copyUriToFile(file, dst)
                     configuration().odfTemplateFile = dst
                 } catch (e: Exception) {
@@ -330,8 +333,8 @@ class ConfigurationActivity : AppCompatActivity() {
                     sftpProvider.connect(user, pwd, host, port)
                     Log.d(TAG, "Connection success")
                     val src = findViewById<AutoCompleteTextView>(R.id.odf_template_ftp_path).text.toString()
-                    val dst = "${filesDir}/custom_output_template.ott"
-                    sftpProvider.copyFile(src, dst)
+                    val dst = "custom_output_template.ott"
+                    sftpProvider.copyFile(src, "${filesDir}/$dst")
                     sftpProvider.disconnect()
                     configuration().odfTemplateFile = dst
                 } catch (e: Exception) {
@@ -360,10 +363,10 @@ class ConfigurationActivity : AppCompatActivity() {
             } else {
                 Log.d(TAG, "Selected logo: ${file}")
                 try {
-                    val dst = "${filesDir}/logo.jpg"
+                    val dst = "logo.jpg"
                     copyUriToFile(file, dst)
                     configuration().logoFile = dst
-                    showFileInImageView(dst, R.id.logo_image)
+                    configuration().logoRatio = showFileInImageView(dst, R.id.logo_image)
                 } catch (e: Exception) {
                     showInfoDialog(getString(R.string.getfile_error), this@ConfigurationActivity, e.message?:getString(R.string.unknown))
                 }
@@ -389,11 +392,11 @@ class ConfigurationActivity : AppCompatActivity() {
                         val sftpProvider = SftpProvider(this@ConfigurationActivity)
                         sftpProvider.connect(user, pwd, host, port)
                         Log.d(TAG, "Connection success")
-                        val dst = "${filesDir}/logo.jpg"
-                        sftpProvider.copyFile(src, dst)
+                        val dst = "logo.jpg"
+                        sftpProvider.copyFile(src, "${filesDir}/$dst")
                         sftpProvider.disconnect()
                         configuration().logoFile = dst
-                        showFileInImageView(dst, R.id.logo_image)
+                        configuration().logoRatio = showFileInImageView(dst, R.id.logo_image)
                     } catch (e: Exception) {
                         showInfoDialog(getString(R.string.getfile_error), this@ConfigurationActivity, e.message ?: getString(R.string.unknown))
                     }
@@ -421,10 +424,10 @@ class ConfigurationActivity : AppCompatActivity() {
             } else {
                 Log.d(TAG, "Selected footer: ${file}")
                 try {
-                    val dst = "${filesDir}/footer.jpg"
+                    val dst = "footer.jpg"
                     copyUriToFile(file, dst)
                     configuration().footerFile = dst
-                    showFileInImageView(dst, R.id.footer_image)
+                    configuration().footerRatio = showFileInImageView(dst, R.id.footer_image)
                 } catch (e: Exception) {
                     showInfoDialog(getString(R.string.getfile_error), this@ConfigurationActivity, e.message?:getString(R.string.unknown))
                 }
@@ -450,11 +453,11 @@ class ConfigurationActivity : AppCompatActivity() {
                         val sftpProvider = SftpProvider(this@ConfigurationActivity)
                         sftpProvider.connect(user, pwd, host, port)
                         Log.d(TAG, "Connection success")
-                        val dst = "${filesDir}/footer.jpg"
-                        sftpProvider.copyFile(src, dst)
+                        val dst = "footer.jpg"
+                        sftpProvider.copyFile(src, "${filesDir}/$dst")
                         sftpProvider.disconnect()
-                        configuration().footerFile = dst
-                        showFileInImageView(dst, R.id.footer_image)
+                        configuration().footerFile = "footer.jpg"
+                        configuration().footerRatio = showFileInImageView(dst, R.id.footer_image)
                     } catch (e: Exception) {
                         showInfoDialog(getString(R.string.getfile_error), this@ConfigurationActivity, e.message ?: getString(R.string.unknown))
                     }

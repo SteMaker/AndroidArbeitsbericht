@@ -83,7 +83,7 @@ class SummaryActivity : AppCompatActivity() {
             val clientSigText = findViewById<TextView>(R.id.client_signature_text)
             clientSigText!!.setOnClickListener { onClickHideShowClientSignature(findViewById<ImageButton>(R.id.hide_client_signature_btn)) }
 
-            val html = HtmlReport.encodeReport(storageHandler().getReport()!!, false)
+            val html = HtmlReport.encodeReport(storageHandler().getReport()!!, this@SummaryActivity.filesDir, false)
             val wv = findViewById<WebView>(R.id.webview)
             wv.loadDataWithBaseURL("", html, "text/html", "UTF-8", "")
         }
@@ -401,7 +401,7 @@ class SummaryActivity : AppCompatActivity() {
                 putExtra(Intent.EXTRA_STREAM, fileUri)
                 clipData = ClipData.newUri(this@SummaryActivity.contentResolver, xdfFile?.name?:"file", it)
             } ?: run {
-                putExtra(Intent.EXTRA_TEXT, HtmlReport.encodeReport(report, true))
+                putExtra(Intent.EXTRA_TEXT, HtmlReport.encodeReport(report, this@SummaryActivity.filesDir, true))
             }
         }
 

@@ -34,7 +34,7 @@ abstract class ReportGenerator(val activity: Activity, val report: ReportData, p
     abstract fun createDoc(files: Array<File>, done: (success: Boolean) -> Unit)
 
     suspend fun getFilesForGeneration(): Array<File>? {
-        val privatePath = "${activity.filesDir.absolutePath}/Arbeitsbericht"
+        val privatePath = "${activity.filesDir.canonicalPath}/Arbeitsbericht"
 
         /* Create the Documents folder if it doesn't exist */
         val folder = File(privatePath)
@@ -123,7 +123,7 @@ abstract class ReportGenerator(val activity: Activity, val report: ReportData, p
     /////////////////////////
     // This class is used to handle messages within the doc generator thread
     private inner class DocThreadHandler(looper: Looper): Handler(looper) {
-        override fun handleMessage(msg: Message?) {
+        override fun handleMessage(msg: Message) {
             super.handleMessage(msg)
             when(msg?.what) {
                 MSG_CREATE -> handleCreate(msg)
@@ -133,7 +133,7 @@ abstract class ReportGenerator(val activity: Activity, val report: ReportData, p
 
     /* This class is used to handle messages within the UI thread */
     private inner class UiThreadHandler(looper: Looper): Handler(looper) {
-        override fun handleMessage(msg: Message?) {
+        override fun handleMessage(msg: Message) {
             super.handleMessage(msg)
             when (msg?.what) {
                 MSG_PROGRESS_INFO -> handleProgressInfo(msg)

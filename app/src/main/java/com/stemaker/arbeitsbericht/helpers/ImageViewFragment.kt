@@ -1,7 +1,6 @@
 package com.stemaker.arbeitsbericht.helpers
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -9,8 +8,11 @@ import androidx.fragment.app.DialogFragment
 import android.widget.ImageView
 import com.stemaker.arbeitsbericht.GlideApp
 import com.stemaker.arbeitsbericht.R
+import java.io.File
 
-class ImageViewFragment(val file: String) : DialogFragment() {
+private const val TAG = "ImageViewFragment"
+
+class ImageViewFragment(val file: File) : DialogFragment() {
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         // Inflate the layout for this fragment
@@ -21,7 +23,6 @@ class ImageViewFragment(val file: String) : DialogFragment() {
                 dismiss()
             }
         })
-        Log.d("Arbeitsbericht.ImageViewFragment.onCreateView", "loading image")
         GlideApp.with(this).load(file).into(imgV)
         return v
     }

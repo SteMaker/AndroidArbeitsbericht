@@ -1,4 +1,4 @@
-package com.stemaker.arbeitsbericht
+package com.stemaker.arbeitsbericht.output
 
 import android.app.Activity
 import android.os.*
@@ -6,9 +6,11 @@ import android.util.Log
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
+import com.stemaker.arbeitsbericht.R
 import com.stemaker.arbeitsbericht.data.ReportData
+import com.stemaker.arbeitsbericht.data.configuration
 import com.stemaker.arbeitsbericht.helpers.*
-import kotlinx.coroutines.selects.whileSelect
+import com.stemaker.arbeitsbericht.output.ReportGenerator
 import org.odftoolkit.odfdom.doc.OdfTextDocument
 import org.odftoolkit.odfdom.doc.table.OdfTable
 import org.odftoolkit.odfdom.dom.OdfContentDom
@@ -17,7 +19,6 @@ import org.odftoolkit.odfdom.dom.element.meta.MetaUserDefinedElement
 import org.odftoolkit.odfdom.dom.element.office.OfficeMetaElement
 import org.odftoolkit.odfdom.dom.element.text.TextSoftPageBreakElement
 import org.odftoolkit.odfdom.dom.style.OdfStyleFamily
-import org.odftoolkit.odfdom.dom.style.props.OdfDrawingPageProperties
 import org.odftoolkit.odfdom.dom.style.props.OdfGraphicProperties
 import org.odftoolkit.odfdom.incubator.doc.draw.OdfDrawFrame
 import org.odftoolkit.odfdom.incubator.doc.draw.OdfDrawImage
@@ -38,171 +39,44 @@ import kotlin.coroutines.suspendCoroutine
 
 private const val TAG = "OdfGenerator"
 
-private const val MSG_CREATE = 0x01
-private const val MSG_PROGRESS_INFO = 0x02
+class OdfGenerator(activity: Activity, report: ReportData, progressBar: ProgressBar?, textView: TextView?) :
+    ReportGenerator(activity, report, progressBar, textView) {
 
-private class Create(val odfFile: File, val clientSigFile: File, val employeeSigFile: File?, val cont: Continuation<CreateReturn>)
-private class CreateReturn(val success: Boolean, val error: String = "")
-private class ProgressInfo(val progress: Int, val status: String)
-
-class OdfGenerator(val activity: Activity, val report: ReportData, val progressBar: ProgressBar?, val textView: TextView?) {
-
-    fun isOdfUpToDate(odfFile: File, report: ReportData): Boolean {
+    override fun getHash(files: Array<File>): String? {
+        val odfFile = files[0]
         lateinit var doc: OdfTextDocument
         try {
             doc = getDoc(odfFile)
         } catch(e:Exception) {
-            return false
+            return null
         }
         val metaDom = doc.metaDom
         lateinit var node: Node
         try {
             node = metaDom.xPath.evaluate("//office:document-meta/office:meta/meta:user-defined[@meta:name='reportChksum']", metaDom, XPathConstants.NODE) as Node
         } catch (e: XPathExpressionException) {
-            return false
+            return null
         } catch (e: Exception) {
-            return false
+            return null
         }
 
         node as MetaUserDefinedElement
         Log.d(TAG, "Hash of odf is ${node.textContent}")
-        if(node.textContent == report.lastStoreHash.toString() && report.lastStoreHash != 0) {
-            Log.d(TAG, "ODF is up to date")
-            return true
-        } else {
-            Log.d(TAG, "ODF is outdated")
-            return false
-        }
+        return node.textContent
     }
 
-    suspend fun getFilesForOdfGeneration(): Array<File>? {
-        val path = "${Environment.getExternalStorageDirectory().absolutePath}/Arbeitsbericht"
+    override val filePostFixExt: Array<Pair<String, String>>
+        get() = arrayOf(Pair("", "odt"))
 
-        /* Create the Documents folder if it doesn't exist */
-        val folder = File(path)
-        if(!folder.exists()) {
-            if (!folder.mkdirs()) {
-                Log.d(TAG, "Could not create documents directory")
-                showInfoDialog(activity.getString(R.string.cannot_createdocs_dir), activity)
-                return null
-            }
-        }
 
-        val odfFileName = "report_${report.id}.odt"
-        val odfF = File(path, odfFileName)
-        val clientSigFileName = "report_client_sig_${report.id}.png"
-        val clientSigF = File(path, clientSigFileName)
-        val employeeSigFileName = "report_employee_sig_${report.id}.png"
-        val employeeSigF = File(path, employeeSigFileName)
-
-        try {
-            // ODF file
-            if(odfF.exists()) {
-                Log.d(TAG, "The report did already exist")
-                val answer =
-                    showConfirmationDialog(activity.getString(R.string.report_exists_overwrite), activity)
-                if(answer != AlertDialog.BUTTON_POSITIVE) {
-                    return null
-                }
-            } else {
-                odfF.createNewFile()
-            }
-
-            // client signature bitmap file
-            if(!clientSigF.exists())
-                clientSigF.createNewFile()
-
-            // employee signature bitmap file
-            if(!employeeSigF.exists())
-                employeeSigF.createNewFile()
-        } catch(e:SecurityException) {
-            Log.d(TAG, "Permission denied on file ${odfF.toString()}")
-            showInfoDialog(activity.getString(R.string.report_create_fail_perm), activity)
-            return null
-        } catch(e: IOException) {
-            Log.d(TAG, "IOException: Could not create report file ${odfF.toString()}")
-            showInfoDialog(activity.getString(R.string.report_create_fail_unknown), activity)
-            return null
-        }
-
-        return arrayOf(odfF, clientSigF, employeeSigF)
-    }
-
-    suspend fun create(odfFile: File, clientSigFile: File, employeeSigFile: File?) {
-        val msg = Message()
-        msg.what = MSG_CREATE
-        val ret = suspendCoroutine<CreateReturn> {
-            msg.obj = Create(odfFile, clientSigFile, employeeSigFile, it)
-            odfHandler.sendMessage(msg)
-            Log.d(TAG, "create() Coroutine: suspended")
-        }
-        if(ret.success) return
-        throw(Exception(ret.error))
-    }
-
-    /////////////////////////
-    // THREAD RELATED STUFF
-    /////////////////////////
     var odfFile: File? = null
     var clientSigFile: File? = null
     var employeeSigFile: File? = null
 
-    // This class is used to handle messages within the odf thread
-    private inner class OdfThreadHandler(looper: Looper): Handler(looper) {
-        override fun handleMessage(msg: Message?) {
-            super.handleMessage(msg)
-            Log.d(TAG, "handleMessage ${msg?.what?:-1} in ODF Thread")
-            when(msg?.what) {
-                MSG_CREATE -> handleCreate(msg)
-            }
-        }
-    }
-
-
-    /* This class is used to handle messages within the UI thread */
-    private inner class UiThreadHandler(looper: Looper): Handler(looper) {
-        override fun handleMessage(msg: Message?) {
-            super.handleMessage(msg)
-            Log.d(TAG, "handleMessage ${msg?.what?:-1} in UI Thread")
-            when (msg?.what) {
-                MSG_PROGRESS_INFO -> handleProgressInfo(msg)
-            }
-        }
-    }
-
-    private val odfHandlerThread = HandlerThread("ODF Thread").apply {
-        start()
-    }
-    private val odfHandler = OdfThreadHandler(odfHandlerThread.looper)
-    private val uiHandler = UiThreadHandler(Looper.getMainLooper())
-
-    ///////////////////////////////////////////////////////
-    // BELOW FUNCTIONS ARE SUPPOSED TO RUN IN THE UI THREAD
-    ///////////////////////////////////////////////////////
-    fun handleProgressInfo(msg: Message) {
-        val info = msg.obj as ProgressInfo
-        progressBar?.progress = info.progress
-        textView?.text = info.status
-    }
-
-    ////////////////////////////////////////////////////////
-    // BELOW FUNCTIONS ARE SUPPOSED TO RUN IN THE ODF THREAD
-    ////////////////////////////////////////////////////////
-    private fun progressInfo(progress: Int, status: String) {
-        val msg = Message()
-        msg.what = MSG_PROGRESS_INFO
-        msg.obj = ProgressInfo(progress, status)
-        uiHandler.sendMessage(msg)
-    }
-
-    private fun handleCreate(msg: Message) {
-
-        Log.d(TAG, "create()")
-        val cm = msg.obj as Create
-        // TODO: Add the template File object
-        odfFile = cm.odfFile
-        clientSigFile = cm.clientSigFile
-        employeeSigFile = cm.employeeSigFile
+    override fun createDoc(files: Array<File>, done: (success: Boolean) -> Unit) {
+        odfFile = files[0]
+        clientSigFile = files[1]
+        employeeSigFile = files[2]
 
         try {
             progressInfo(10, activity.getString(R.string.status_add_pics))
@@ -236,10 +110,9 @@ class OdfGenerator(val activity: Activity, val report: ReportData, val progressB
 
             // Save document
             doc.save(odfFile)
-            progressInfo(100, activity.getString(R.string.status_done))
-            cm.cont.resume(CreateReturn((true)))
+            done(true)
         } catch (e:Exception) {
-            cm.cont.resume(CreateReturn(false, e.message?:activity.getString(R.string.unknown)))
+            done(false)
         }
     }
 
@@ -249,15 +122,17 @@ class OdfGenerator(val activity: Activity, val report: ReportData, val progressB
 
     private fun addImagesToPackage(): OdfPackage {
         val templateFile: InputStream
-        if(configuration().odfTemplateFile != "" && File(configuration().odfTemplateFile).exists())
-            templateFile = FileInputStream(File(configuration().odfTemplateFile))
+        if(configuration().odfTemplateFile != "" && File(activity.filesDir, configuration().odfTemplateFile).exists())
+            templateFile = FileInputStream(File(activity.filesDir, configuration().odfTemplateFile))
         else
             templateFile = activity.assets.open("output_template.ott")
 
         val pkg = OdfPackage.loadPackage(templateFile)
         report.photoContainer.items.forEachIndexed { index, elem ->
-            if(File(elem.file.value).exists()) {
-                pkg.insert(File(elem.file.value).toURI(), "Pictures/photo$index.jpg", "image/jpg")
+            val tmpFile = File(elem.file.value)
+            val file = File(activity.getExternalFilesDir(Environment.DIRECTORY_PICTURES), tmpFile.name)
+            if(file.exists()) {
+                pkg.insert(file.toURI(), "Pictures/photo$index.jpg", "image/jpg")
             }
         }
         val csf = clientSigFile

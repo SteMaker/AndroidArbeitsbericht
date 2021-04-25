@@ -6,12 +6,9 @@ import android.util.Log
 import androidx.lifecycle.Observer
 import androidx.room.Room
 import com.google.gson.Gson
-import com.stemaker.arbeitsbericht.data.ReportData
-import com.stemaker.arbeitsbericht.data.ReportDatabase
-import com.stemaker.arbeitsbericht.data.ReportDb
+import com.stemaker.arbeitsbericht.data.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import java.io.*
 import java.util.concurrent.atomic.AtomicBoolean
 

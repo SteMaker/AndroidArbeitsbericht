@@ -10,16 +10,14 @@ import android.widget.PopupMenu
 import androidx.appcompat.app.AlertDialog
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.stemaker.arbeitsbericht.data.ReportData
+import com.stemaker.arbeitsbericht.data.configuration
 import com.stemaker.arbeitsbericht.databinding.ActivityMainBinding
 import com.stemaker.arbeitsbericht.helpers.ReportListAdapter
 import com.stemaker.arbeitsbericht.helpers.showConfirmationDialog
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
 
 private const val TAG = "MainActivity"
 

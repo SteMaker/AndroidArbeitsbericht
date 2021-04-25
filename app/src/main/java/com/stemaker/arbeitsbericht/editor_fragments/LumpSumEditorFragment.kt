@@ -19,14 +19,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
-class LumpSumEditorFragment : ReportEditorSectionFragment(),
-    ReportEditorSectionFragment.OnExpandChange {
+class LumpSumEditorFragment : ReportEditorSectionFragment() {
     private var listener: OnLumpSumEditorInteractionListener? = null
     lateinit var dataBinding: FragmentLumpSumEditorBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Log.d("Arbeitsbericht","LumpSumEditorFragment.onCreate called")
     }
 
     /* TODO: In case a lump sum has been deleted that is still used here we should
@@ -38,7 +36,6 @@ class LumpSumEditorFragment : ReportEditorSectionFragment(),
         savedInstanceState: Bundle?
     ): View? {
         // Inflate the layout for this fragment
-        Log.d("Arbeitsbericht","LumpSumEditorFragment.onCreateView called")
         val root = super.onCreateView(inflater, container, savedInstanceState)
         dataBinding = FragmentLumpSumEditorBinding.inflate(inflater, container,false)
         root!!.findViewById<LinearLayout>(R.id.section_container).addView(dataBinding.root)
@@ -66,7 +63,7 @@ class LumpSumEditorFragment : ReportEditorSectionFragment(),
     }
 
     override fun onAttach(context: Context) {
-        super.onAttach(context, this)
+        super.onAttach(context)
         if (context is OnLumpSumEditorInteractionListener) {
             listener = context
         } else {
@@ -104,18 +101,15 @@ class LumpSumEditorFragment : ReportEditorSectionFragment(),
                     val answer =
                         showConfirmationDialog(getString(R.string.del_confirmation), btn.context)
                     if (answer == AlertDialog.BUTTON_POSITIVE) {
-                        Log.d("Arbeitsbericht.LumpSumEditorFragment.lump_sum_del_button.onClick", "deleting work item element")
                         container.removeView(lumpSumDataBinding.root)
                         lumpSumContainerData!!.removeLumpSum(ls)
                     } else {
-                        Log.d("Arbeitsbericht.WorkTimeEditorFragment.work_time_del_button.onClick", "cancelled deleting work item element")
                     }
                 }
             }
         })
 
         val pos = container.getChildCount()
-        Log.d("Arbeitsbericht", "Adding work item card $pos to UI")
         container.addView(lumpSumDataBinding.root, pos)
 
         // TODO: Scroll to new element. Should use ListView instead of LinearLayout

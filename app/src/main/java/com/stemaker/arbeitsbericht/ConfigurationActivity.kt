@@ -14,6 +14,7 @@ import androidx.cardview.widget.CardView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.google.firebase.crashlytics.FirebaseCrashlytics
+import com.stemaker.arbeitsbericht.data.configuration
 import com.stemaker.arbeitsbericht.helpers.SftpProvider
 import com.stemaker.arbeitsbericht.helpers.showInfoDialog
 import kotlinx.coroutines.Dispatchers
@@ -60,28 +61,61 @@ class ConfigurationActivity : AppCompatActivity() {
             findViewById<EditText>(R.id.sftp_host).setText(configuration().sFtpHost)
             findViewById<EditText>(R.id.sftp_port).setText(configuration().sFtpPort.toString())
             findViewById<EditText>(R.id.sftp_user).setText(configuration().sFtpUser)
-            if (configuration().useOdfOutput) {
-                findViewById<RadioButton>(R.id.radio_odf_output).toggle()
-                findViewById<CardView>(R.id.odf_config_container).visibility = View.VISIBLE
-                findViewById<CardView>(R.id.pdf_config_container).visibility = View.GONE
-            } else {
-                findViewById<RadioButton>(R.id.radio_pdf_output).toggle()
-                findViewById<CardView>(R.id.odf_config_container).visibility = View.GONE
-                findViewById<CardView>(R.id.pdf_config_container).visibility = View.VISIBLE
+            when {
+                configuration().useOdfOutput -> {
+                    findViewById<RadioButton>(R.id.radio_odf_output).toggle()
+                    findViewById<CardView>(R.id.odf_config_container).visibility = View.VISIBLE
+                    findViewById<CardView>(R.id.pdf_config_container).visibility = View.GONE
+                    findViewById<CardView>(R.id.xlsx_config_container).visibility = View.GONE
+                }
+                configuration().useXlsxOutput -> {
+                    findViewById<RadioButton>(R.id.radio_xlsx_output).toggle()
+                    findViewById<CardView>(R.id.odf_config_container).visibility = View.GONE
+                    findViewById<CardView>(R.id.pdf_config_container).visibility = View.GONE
+                    findViewById<CardView>(R.id.xlsx_config_container).visibility = View.VISIBLE
+                }
+                configuration().selectOutput -> {
+                    findViewById<RadioButton>(R.id.radio_select_output).toggle()
+                    findViewById<CardView>(R.id.odf_config_container).visibility = View.VISIBLE
+                    findViewById<CardView>(R.id.pdf_config_container).visibility = View.VISIBLE
+                    findViewById<CardView>(R.id.xlsx_config_container).visibility = View.VISIBLE
+                }
+                else -> {
+                    findViewById<RadioButton>(R.id.radio_pdf_output).toggle()
+                    findViewById<CardView>(R.id.odf_config_container).visibility = View.GONE
+                    findViewById<CardView>(R.id.pdf_config_container).visibility = View.VISIBLE
+                    findViewById<CardView>(R.id.xlsx_config_container).visibility = View.GONE
+                }
             }
             findViewById<EditText>(R.id.odf_template_ftp_path).setText(configuration().odfTemplateServerPath)
             findViewById<EditText>(R.id.logo_ftp_path).setText(configuration().logoServerPath)
             findViewById<EditText>(R.id.footer_ftp_path).setText(configuration().footerServerPath)
+            findViewById<CheckBox>(R.id.pdf_use_logo).isChecked = configuration().pdfUseLogo
+            findViewById<CheckBox>(R.id.pdf_use_footer).isChecked = configuration().pdfUseFooter
+            findViewById<CheckBox>(R.id.xlsx_use_logo).isChecked = configuration().xlsxUseLogo
+            findViewById<CheckBox>(R.id.xlsx_use_footer).isChecked = configuration().xlsxUseFooter
             val radioGroup = findViewById<RadioGroup>(R.id.output_type_select_radiogroup)
             radioGroup.setOnCheckedChangeListener { _, checkedId ->
                 when (checkedId) {
                     R.id.radio_odf_output -> {
                         findViewById<CardView>(R.id.odf_config_container).visibility = View.VISIBLE
                         findViewById<CardView>(R.id.pdf_config_container).visibility = View.GONE
+                        findViewById<CardView>(R.id.xlsx_config_container).visibility = View.GONE
                     }
                     R.id.radio_pdf_output -> {
                         findViewById<CardView>(R.id.odf_config_container).visibility = View.GONE
                         findViewById<CardView>(R.id.pdf_config_container).visibility = View.VISIBLE
+                        findViewById<CardView>(R.id.xlsx_config_container).visibility = View.GONE
+                    }
+                    R.id.radio_xlsx_output -> {
+                        findViewById<CardView>(R.id.odf_config_container).visibility = View.GONE
+                        findViewById<CardView>(R.id.pdf_config_container).visibility = View.GONE
+                        findViewById<CardView>(R.id.xlsx_config_container).visibility = View.VISIBLE
+                    }
+                    R.id.radio_select_output -> {
+                        findViewById<CardView>(R.id.odf_config_container).visibility = View.VISIBLE
+                        findViewById<CardView>(R.id.pdf_config_container).visibility = View.VISIBLE
+                        findViewById<CardView>(R.id.xlsx_config_container).visibility = View.VISIBLE
                     }
                 }
             }
@@ -95,29 +129,51 @@ class ConfigurationActivity : AppCompatActivity() {
                 override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                     fontst.text = "${getString(R.string.fontsize)}: ${fontsb.progress}"
                 }
-
-                override fun onStartTrackingTouch(seekBar: SeekBar?) {
+                override fun onStartTrackingTouch(seekBar: SeekBar?) { }
+                override fun onStopTrackingTouch(seekBar: SeekBar?) { }
+            })
+            val xlsxLogoWidthSb = findViewById<SeekBar>(R.id.xlsx_logo_width_seekbar)
+            val xlsxLogoWidthSt = findViewById<TextView>(R.id.xlsx_logo_width_text)
+            xlsxLogoWidthSb.progress = configuration().xlsxLogoWidth
+            xlsxLogoWidthSt.text = "${getString(R.string.logowidth)}: ${xlsxLogoWidthSb.progress}"
+            xlsxLogoWidthSb.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+                override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                    xlsxLogoWidthSt.text = "${getString(R.string.logowidth)}: ${xlsxLogoWidthSb.progress}"
                 }
-
-                override fun onStopTrackingTouch(seekBar: SeekBar?) {
+                override fun onStartTrackingTouch(seekBar: SeekBar?) { }
+                override fun onStopTrackingTouch(seekBar: SeekBar?) { }
+            })
+            val xlsxFooterWidthSb = findViewById<SeekBar>(R.id.xlsx_footer_width_seekbar)
+            val xlsxFooterWidthSt = findViewById<TextView>(R.id.xlsx_footer_width_text)
+            xlsxFooterWidthSb.progress = configuration().xlsxFooterWidth
+            xlsxFooterWidthSt.text = "${getString(R.string.footerwidth)}: ${xlsxFooterWidthSb.progress}"
+            xlsxFooterWidthSb.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+                override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                    xlsxFooterWidthSt.text = "${getString(R.string.footerwidth)}: ${xlsxFooterWidthSb.progress}"
                 }
+                override fun onStartTrackingTouch(seekBar: SeekBar?) { }
+                override fun onStopTrackingTouch(seekBar: SeekBar?) { }
             })
         }
     }
 
-    fun showFileInImageView(fileName: String, id: Int) {
+    private fun showFileInImageView(fileName: String, id: Int): Double {
         val imgV = findViewById<ImageView>(id)
+        var ratio = 1.0
         if(fileName == "") {
             imgV.setImageResource(R.drawable.ic_clear_black_24dp)
         } else {
-            val file = File(fileName)
+            val file = File(this@ConfigurationActivity.filesDir, fileName)
             if (file.exists()) {
                 val bitmap = BitmapFactory.decodeFile(file.absolutePath)
+                ratio = bitmap.width.toDouble() / bitmap.height.toDouble()
                 imgV.setImageBitmap(bitmap)
+                return ratio
             } else {
                 imgV.setImageResource(R.drawable.ic_clear_black_24dp)
             }
         }
+        return ratio
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -161,6 +217,8 @@ class ConfigurationActivity : AppCompatActivity() {
         configuration().crashlyticsEnabled = findViewById<Switch>(R.id.crashlog_enable).isChecked
         FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(configuration().crashlyticsEnabled);
         configuration().useOdfOutput = findViewById<RadioButton>(R.id.radio_odf_output).isChecked
+        configuration().useXlsxOutput = findViewById<RadioButton>(R.id.radio_xlsx_output).isChecked
+        configuration().selectOutput = findViewById<RadioButton>(R.id.radio_select_output).isChecked
         configuration().sFtpHost = findViewById<EditText>(R.id.sftp_host).text.toString()
         configuration().sFtpPort = findViewById<EditText>(R.id.sftp_port).text.toString().toInt()
         configuration().sFtpUser = findViewById<EditText>(R.id.sftp_user).text.toString()
@@ -171,6 +229,12 @@ class ConfigurationActivity : AppCompatActivity() {
         configuration().logoServerPath = findViewById<EditText>(R.id.logo_ftp_path).text.toString()
         configuration().footerServerPath = findViewById<EditText>(R.id.footer_ftp_path).text.toString()
         configuration().fontSize = findViewById<SeekBar>(R.id.fontsize_seekbar).progress
+        configuration().pdfUseLogo = findViewById<CheckBox>(R.id.pdf_use_logo).isChecked
+        configuration().pdfUseFooter = findViewById<CheckBox>(R.id.pdf_use_footer).isChecked
+        configuration().xlsxUseLogo = findViewById<CheckBox>(R.id.xlsx_use_logo).isChecked
+        configuration().xlsxLogoWidth = findViewById<SeekBar>(R.id.xlsx_logo_width_seekbar).progress
+        configuration().xlsxUseFooter = findViewById<CheckBox>(R.id.xlsx_use_footer).isChecked
+        configuration().xlsxFooterWidth = findViewById<SeekBar>(R.id.xlsx_footer_width_seekbar).progress
         configuration().save()
 
         findViewById<ProgressBar>(R.id.sftp_progress).visibility = View.GONE
@@ -209,14 +273,16 @@ class ConfigurationActivity : AppCompatActivity() {
         super.onActivityResult(requestCode, resultCode, data);
         if(requestCode == REQUEST_LOAD && resultCode == RESULT_OK) {
             val selectedfile = data?.getData()
+            //TODO: We would need to handle the case the app gets destroyed in between, can be easily
+            //reproduced by enabling don't keep activities in the dev options
             continuation!!.resume(selectedfile)
         }
     }
 
-    private fun copyUriToFile(uri: Uri, filePath: String) {
+    private fun copyUriToFile(uri: Uri, fileName: String) {
         val inStream =  contentResolver.openInputStream(uri);
         if(inStream == null) throw Exception("Could not open input file")
-        val outStream = FileOutputStream(File(filePath));
+        val outStream = FileOutputStream(File(this@ConfigurationActivity.filesDir, fileName));
         val buf = ByteArray(1024)
         var len: Int = inStream.read(buf);
         while(len > 0) {
@@ -242,7 +308,7 @@ class ConfigurationActivity : AppCompatActivity() {
             } else {
                 Log.d(TAG, "Selected ODF template: ${file}")
                 try {
-                    val dst = "${filesDir}/custom_output_template.ott"
+                    val dst = "custom_output_template.ott"
                     copyUriToFile(file, dst)
                     configuration().odfTemplateFile = dst
                 } catch (e: Exception) {
@@ -267,8 +333,8 @@ class ConfigurationActivity : AppCompatActivity() {
                     sftpProvider.connect(user, pwd, host, port)
                     Log.d(TAG, "Connection success")
                     val src = findViewById<AutoCompleteTextView>(R.id.odf_template_ftp_path).text.toString()
-                    val dst = "${filesDir}/custom_output_template.ott"
-                    sftpProvider.copyFile(src, dst)
+                    val dst = "custom_output_template.ott"
+                    sftpProvider.copyFile(src, "${filesDir}/$dst")
                     sftpProvider.disconnect()
                     configuration().odfTemplateFile = dst
                 } catch (e: Exception) {
@@ -297,10 +363,10 @@ class ConfigurationActivity : AppCompatActivity() {
             } else {
                 Log.d(TAG, "Selected logo: ${file}")
                 try {
-                    val dst = "${filesDir}/logo.jpg"
+                    val dst = "logo.jpg"
                     copyUriToFile(file, dst)
                     configuration().logoFile = dst
-                    showFileInImageView(dst, R.id.logo_image)
+                    configuration().logoRatio = showFileInImageView(dst, R.id.logo_image)
                 } catch (e: Exception) {
                     showInfoDialog(getString(R.string.getfile_error), this@ConfigurationActivity, e.message?:getString(R.string.unknown))
                 }
@@ -326,11 +392,11 @@ class ConfigurationActivity : AppCompatActivity() {
                         val sftpProvider = SftpProvider(this@ConfigurationActivity)
                         sftpProvider.connect(user, pwd, host, port)
                         Log.d(TAG, "Connection success")
-                        val dst = "${filesDir}/logo.jpg"
-                        sftpProvider.copyFile(src, dst)
+                        val dst = "logo.jpg"
+                        sftpProvider.copyFile(src, "${filesDir}/$dst")
                         sftpProvider.disconnect()
                         configuration().logoFile = dst
-                        showFileInImageView(dst, R.id.logo_image)
+                        configuration().logoRatio = showFileInImageView(dst, R.id.logo_image)
                     } catch (e: Exception) {
                         showInfoDialog(getString(R.string.getfile_error), this@ConfigurationActivity, e.message ?: getString(R.string.unknown))
                     }
@@ -339,11 +405,6 @@ class ConfigurationActivity : AppCompatActivity() {
                 window.clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
             }
         }
-    }
-
-    fun onClickDelLogo(@Suppress("UNUSED_PARAMETER") btn: View) {
-        configuration().logoFile = ""
-        showFileInImageView("", R.id.logo_image)
     }
 
     fun onClickLoadFooter(@Suppress("UNUSED_PARAMETER") btn: View) {
@@ -363,10 +424,10 @@ class ConfigurationActivity : AppCompatActivity() {
             } else {
                 Log.d(TAG, "Selected footer: ${file}")
                 try {
-                    val dst = "${filesDir}/footer.jpg"
+                    val dst = "footer.jpg"
                     copyUriToFile(file, dst)
                     configuration().footerFile = dst
-                    showFileInImageView(dst, R.id.footer_image)
+                    configuration().footerRatio = showFileInImageView(dst, R.id.footer_image)
                 } catch (e: Exception) {
                     showInfoDialog(getString(R.string.getfile_error), this@ConfigurationActivity, e.message?:getString(R.string.unknown))
                 }
@@ -392,11 +453,11 @@ class ConfigurationActivity : AppCompatActivity() {
                         val sftpProvider = SftpProvider(this@ConfigurationActivity)
                         sftpProvider.connect(user, pwd, host, port)
                         Log.d(TAG, "Connection success")
-                        val dst = "${filesDir}/footer.jpg"
-                        sftpProvider.copyFile(src, dst)
+                        val dst = "footer.jpg"
+                        sftpProvider.copyFile(src, "${filesDir}/$dst")
                         sftpProvider.disconnect()
-                        configuration().footerFile = dst
-                        showFileInImageView(dst, R.id.footer_image)
+                        configuration().footerFile = "footer.jpg"
+                        configuration().footerRatio = showFileInImageView(dst, R.id.footer_image)
                     } catch (e: Exception) {
                         showInfoDialog(getString(R.string.getfile_error), this@ConfigurationActivity, e.message ?: getString(R.string.unknown))
                     }
@@ -405,11 +466,6 @@ class ConfigurationActivity : AppCompatActivity() {
                 window.clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
             }
         }
-    }
-
-    fun onClickDelFooter(@Suppress("UNUSED_PARAMETER") btn: View) {
-        configuration().footerFile = ""
-        showFileInImageView("", R.id.footer_image)
     }
 
     private suspend fun checkAndObtainInternetPermission(): Boolean {

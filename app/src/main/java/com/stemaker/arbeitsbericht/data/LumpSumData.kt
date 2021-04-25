@@ -3,9 +3,6 @@ package com.stemaker.arbeitsbericht.data
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.stemaker.arbeitsbericht.Configuration
-import com.stemaker.arbeitsbericht.configuration
-import com.stemaker.arbeitsbericht.storageHandler
 
 class LumpSumContainerData(): ViewModel() {
     val items = mutableListOf<LumpSumData>()
@@ -13,6 +10,9 @@ class LumpSumContainerData(): ViewModel() {
     private var _list = MutableLiveData<List<String>>().apply { value = configuration().lumpSums }
     val list: LiveData<List<String>>
         get() = _list
+    fun updateLumpSums() {
+        _list.value = configuration().lumpSums
+    }
     val visibility = MutableLiveData<Boolean>().apply { value = false }
 
     fun copyFromSerialized(l: LumpSumContainerDataSerialized) {

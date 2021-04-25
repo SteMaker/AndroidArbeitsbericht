@@ -61,10 +61,10 @@ class SftpProvider(val activity: Activity): UserInfo {
 
     // This class is used to handle messages within the SFTP thread
     private inner class FtpThreadHandler(looper: Looper): Handler(looper) {
-        override fun handleMessage(msg: Message?) {
+        override fun handleMessage(msg: Message) {
             super.handleMessage(msg)
-            Log.d(TAG, "handleMessage ${msg?.what?:-1} in FTP Thread")
-            when(msg?.what) {
+            Log.d(TAG, "handleMessage ${msg.what?:-1} in FTP Thread")
+            when(msg.what) {
                 MSG_CONNECT -> handleConnect(msg)
                 MSG_DISCONNECT -> handleDisconnect(msg)
                 MSG_GET_FILE_CONTENT_AS_STRING -> handleGetFileContentAsString(msg)
@@ -75,10 +75,10 @@ class SftpProvider(val activity: Activity): UserInfo {
 
     // This class is used to handle messages within the UI thread
     private inner class UiThreadHandler(looper: Looper): Handler(looper) {
-        override fun handleMessage(msg: Message?) {
+        override fun handleMessage(msg: Message) {
             super.handleMessage(msg)
-            Log.d(TAG, "handleMessage ${msg?.what?:-1} in UI Thread")
-            when (msg?.what) {
+            Log.d(TAG, "handleMessage ${msg.what?:-1} in UI Thread")
+            when (msg.what) {
                 MSG_SHOW_TOAST -> {
                     val toast = Toast.makeText(activity, msg.obj as String, Toast.LENGTH_LONG)
                     toast.show()

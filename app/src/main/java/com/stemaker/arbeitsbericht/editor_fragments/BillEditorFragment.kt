@@ -15,8 +15,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
-class BillEditorFragment : ReportEditorSectionFragment(),
-    ReportEditorSectionFragment.OnExpandChange {
+class BillEditorFragment : ReportEditorSectionFragment() {
     private var listener: OnBillEditorInteractionListener? = null
     lateinit var dataBinding: FragmentBillEditorBinding
 
@@ -45,7 +44,7 @@ class BillEditorFragment : ReportEditorSectionFragment(),
     }
 
     override fun onAttach(context: Context) {
-        super.onAttach(context, this)
+        super.onAttach(context)
         if (context is OnBillEditorInteractionListener) {
             listener = context
         } else {

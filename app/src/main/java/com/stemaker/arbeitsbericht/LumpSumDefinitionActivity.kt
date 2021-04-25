@@ -13,8 +13,8 @@ import androidx.appcompat.app.AlertDialog
 import androidx.cardview.widget.CardView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.stemaker.arbeitsbericht.data.configuration
 import com.stemaker.arbeitsbericht.databinding.ActivityLumpSumDefinitionBinding
-import com.stemaker.arbeitsbericht.databinding.LumpSumEditLayoutBinding
 import com.stemaker.arbeitsbericht.helpers.SftpProvider
 import com.stemaker.arbeitsbericht.helpers.showConfirmationDialog
 //import kotlinx.android.synthetic.main.activity_lump_sum_definition.*
@@ -109,6 +109,7 @@ class LumpSumDefinitionActivity : AppCompatActivity() {
             configuration().lumpSums = lumpSums
             configuration().lumpSumServerPath = findViewById<EditText>(R.id.lump_sum_ftp_path).text.toString()
             configuration().save()
+            storageHandler().getReport()?.lumpSumContainer?.updateLumpSums()
             configuration().unlock()
             storageHandler().saveConfigurationToFile(getApplicationContext())
             val intent = Intent(this@LumpSumDefinitionActivity, MainActivity::class.java).apply {}

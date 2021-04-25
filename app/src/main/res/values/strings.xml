@@ -81,9 +81,13 @@
     <string name="lump_sum_load">Pauschalen aus entfernter Datei laden</string>
     <string name="only_jpeg_supported">Es werden nur JPEG (.jpg oder .jpeg) Dateien unterstützt</string>
     <string name="fontsize">Schriftgröße</string>
+    <string name="use_logo">Logo verwenden</string>
+    <string name="use_footer">Fusszeile verwenden</string>
+    <string name="logowidth">Logobreite [mm]</string>
+    <string name="footerwidth">Fusszeilenbreite [mm]</string>
 
     <!-- SFTP related -->
-    <string name="sftp_settings">SFTP Einstellungen</string>
+    <string name="sftp_settings">SFTP</string>
     <string name="sftp_host">SFTP server Adresse</string>
     <string name="sftp_port">SFTP server Port</string>
     <string name="sftp_path_odf">Pfad zur ODF Vorlage (.ott Datei) auf dem SFTP server</string>
@@ -91,8 +95,8 @@
     <string name="sftp_path_footer">Pfad zu einer JPEG Fusszeile auf dem SFTP server</string>
     <string name="sftp_user">Benutzername (user name) SFTP server</string>
     <string name="sftp_pwd">Passwort SFTP server</string>
-    <string name="file_load">Auf Gerät öffnen</string>
-    <string name="sftp_file_load">Über SFTP laden</string>
+    <string name="file_load">Vom Gerät</string>
+    <string name="sftp_file_load">Über SFTP</string>
     <string name="sftp_connect_error">Verbindung zum SFTP Server fehlgeschlagen: Fehlermeldung: %1s</string>
     <string name="sftp_connect_done">Verbindung zum SFTP Server war erfolgreich</string>
     <string name="sftp_file_get_error">Datei konnte nicht geladen werden: </string>
@@ -107,13 +111,15 @@
 
     <!-- ODF / PDF generation -->
     <string name="cannot_createdocs_dir">Konnte erforderlichen Ordner für die Berichtsdatei nicht erstellen</string>
-    <string name="report_exists_overwrite">Der Bericht exisitiert bereits als ODF, soll er überschrieben werden?</string>
+    <string name="report_exists_overwrite">Der Bericht exisitiert bereits, soll er überschrieben werden?</string>
     <string name="report_create_fail_perm">Konnte Berichtsdatei wegen fehlender Berechtigungen nicht erstellen</string>
     <string name="report_create_fail">Konnte Berichtsdatei nicht erstellen</string>
     <string name="report_create_fail_unknown">Konnte Berichtsdatei nicht erstellen. Grund unbekannt</string>
     <string name="no_xdf_viewer">Es ist keine App installiert, die das %1$s Dokument anzeigen kann</string>
-    <string name="odf_output">ODF-Ausgabe (unterstützt eigene Vorlagen)</string>
-    <string name="pdf_output">PDF-Ausgabe</string>
+    <string name="odf_output">ODT-Ausgabe (.odt, unterstützt eigene Vorlagen)</string>
+    <string name="pdf_output">PDF-Ausgabe (.pdf)</string>
+    <string name="xlsx_output">Excel-Ausgabe (.xlsx)</string>
+    <string name="select_output">Beim Versenden auswählen</string>
     <string name="status_add_pics">Bilderdateien einfügen</string>
     <string name="status_add_base">Grunddaten einfügen</string>
     <string name="status_add_bill">Rechnungsdaten einfügen</string>
@@ -126,6 +132,14 @@
     <string name="status_add_signature">Unterschriften einfügen</string>
     <string name="status_done">Fertig</string>
     <string name="figure">Abbildung</string>
+
+    <!-- Output selection dialog -->
+    <string name="output_select_dialog_title">Ausgabeformat wählen</string>
+    <string-array name="output_options_array">
+        <item>PDF-Dokument</item>
+        <item>ODT-Dokument (LibreOffice)</item>
+        <item>XLSX-Dokument (MS Excel)</item>
+    </string-array>
 
     <string name="no_mail_client">Es wurde kein E_Mail Programm gefunden</string>
     <string name="report_id_mismatch">Vorsicht! Inkonsistente laufende Nummer</string>

@@ -3,7 +3,6 @@ package com.stemaker.arbeitsbericht.data
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.stemaker.arbeitsbericht.configuration
 import java.lang.Exception
 import java.util.*
 

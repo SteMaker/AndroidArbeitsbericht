@@ -19,14 +19,14 @@ plugins {
 //apply plugin: 'com.google.firebase.crashlytics'
 
 android {
-    compileSdkVersion 29
+    compileSdkVersion 30
     buildToolsVersion "29.0.2"
     defaultConfig {
         applicationId "com.stemaker.arbeitsbericht"
         minSdkVersion 23
-        targetSdkVersion 29
-        versionCode 20
-        versionName "v2.10.0"
+        targetSdkVersion 30
+        versionCode 21
+        versionName "v2.11.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -77,15 +77,17 @@ dependencies {
     // JSCH library for SFTP support
     implementation 'com.jcraft:jsch:0.1.55'
     // ODF Toolkit
-    implementation 'org.apache.odftoolkit:odfdom-java:0.8.11-incubating'
-    implementation 'com.fasterxml.woodstox:woodstox-core:6.0.3'
+    implementation files('../odftoolkit-fat/build/libs/odftoolkit-fat-all.jar')
     // Google Analytics, crashlytics
     implementation 'com.google.firebase:firebase-analytics-ktx:18.0.2'
     implementation 'com.google.firebase:firebase-crashlytics-ktx:17.3.1'
-
     // Support for Room database
     def room_version = "2.2.6"
     implementation "androidx.room:room-runtime:$room_version"
     kapt "androidx.room:room-compiler:$room_version"
     implementation "androidx.room:room-ktx:$room_version"
+
+    // POI Toolkit
+    implementation files('../poi-android-fat/build/libs/poi-android-fat-all.jar')
+
 }

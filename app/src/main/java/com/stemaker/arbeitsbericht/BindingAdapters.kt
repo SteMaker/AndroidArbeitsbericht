@@ -1,6 +1,7 @@
 package com.stemaker.arbeitsbericht
 
 import android.graphics.drawable.PictureDrawable
+import android.os.Environment
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
@@ -12,9 +13,12 @@ import androidx.databinding.InverseBindingListener
 import com.caverock.androidsvg.SVG
 import com.google.android.material.textfield.TextInputEditText
 import com.stemaker.arbeitsbericht.data.ReportData
+import com.stemaker.arbeitsbericht.data.configuration
 import com.stemaker.arbeitsbericht.helpers.LinearLayoutVisListener
 import java.io.File
 import java.text.DecimalFormatSymbols
+
+private const val TAG = "BindingAdapters"
 
 object BindingAdapters {
     /******************************************************************/
@@ -32,7 +36,6 @@ object BindingAdapters {
                 }
 
                 override fun afterTextChanged(editable: Editable) {
-                    Log.d("Arbeitsbericht.BindingAdapters.textInt.setListener","afterTextChanged")
                     listener.onChange()
                 }
             })
@@ -175,9 +178,11 @@ object BindingAdapters {
     /* Binding Adapter to bind a file string to an ImageView */
     /*********************************************************/
     @JvmStatic
-    @BindingAdapter("srcFile")
-    fun setSrcFile(imgView: ImageView, file: String) {
-        if(file != "" && File(file).length() > 0)
+    @BindingAdapter("srcPhotoFile")
+    fun setSrcPhotoFile(imgView: ImageView, fileName: String) {
+        val tmpFile = File(fileName) // because old app version stored the path here as well
+        val file = File(imgView.context.getExternalFilesDir(Environment.DIRECTORY_PICTURES), tmpFile.name)
+        if(file.exists())
             GlideApp.with(imgView.context).load(file).into(imgView)
     }
 

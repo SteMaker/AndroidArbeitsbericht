@@ -36,15 +36,13 @@ import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
-class PhotoEditorFragment : ReportEditorSectionFragment(),
-    ReportEditorSectionFragment.OnExpandChange {
+class PhotoEditorFragment : ReportEditorSectionFragment() {
     private var listener: OnPhotoEditorInteractionListener? = null
     lateinit var dataBinding: FragmentPhotoEditorBinding
     var activePhoto: PhotoData? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Log.d("Arbeitsbericht","PhotoEditorFragment.onCreate called")
     }
 
     override fun onCreateView(
@@ -81,7 +79,7 @@ class PhotoEditorFragment : ReportEditorSectionFragment(),
     }
 
     override fun onAttach(context: Context) {
-        super.onAttach(context, this)
+        super.onAttach(context)
         if (context is OnPhotoEditorInteractionListener) {
             listener = context
         } else {
@@ -120,11 +118,9 @@ class PhotoEditorFragment : ReportEditorSectionFragment(),
                     val answer =
                         showConfirmationDialog(getString(R.string.del_confirmation), btn.context)
                     if (answer == AlertDialog.BUTTON_POSITIVE) {
-                        Log.d("Arbeitsbericht.PhotoEditorFragment.photo_del_button.onClick", "deleting work item element")
                         container.removeView(photoDataBinding.root)
                         photoContainerData!!.removePhoto(p)
                     } else {
-                        Log.d("Arbeitsbericht.WorkTimeEditorFragment.work_time_del_button.onClick", "cancelled deleting work item element")
                     }
                 }
             }
@@ -146,9 +142,8 @@ class PhotoEditorFragment : ReportEditorSectionFragment(),
                         // Continue only if the File was successfully created
                         photoFile?.also {
                             val photoURI: Uri = FileProvider.getUriForFile(activity!!.applicationContext, "com.stemaker.arbeitsbericht.fileprovider", it)
-                            Log.d("Arbeitsbericht.PhotoEditorFragment.onClickTakePhoto", "PhotoURI: ${photoURI}")
                             takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
-                            p.file.value = photoFile.absolutePath
+                            p.file.value = photoFile.name
                             activePhoto = p
                             startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO)
                         }
@@ -159,16 +154,15 @@ class PhotoEditorFragment : ReportEditorSectionFragment(),
 
         photoDataBinding.root.findViewById<ImageView>(R.id.photo_view).setOnClickListener(object : View.OnClickListener {
             override fun onClick(btn: View) {
-                Log.d("Arbeitsbericht.PhotoEditorFragment.photo_view.onClick", "Image clicked")
                 if(p.file.value != "") {
-                    val photoView = ImageViewFragment(p.file.value!!)
+                    val tmpFile = File(p.file.value!!) // because old app version stored the path here as well
+                    val photoView = ImageViewFragment(File(activity!!.getExternalFilesDir(Environment.DIRECTORY_PICTURES), tmpFile.name))
                     photoView.show(activity!!.supportFragmentManager, "PhotoView")
                 }
             }
         })
 
         val pos = container.getChildCount()
-        Log.d("Arbeitsbericht", "Adding work item card $pos to UI")
         container.addView(photoDataBinding.root, pos)
     }
 
@@ -182,14 +176,17 @@ class PhotoEditorFragment : ReportEditorSectionFragment(),
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (requestCode == REQUEST_TAKE_PHOTO && resultCode == RESULT_OK) {
-            // Trigger a redraw
-            activePhoto?.file?.value = activePhoto?.file?.value
-            // calc and store image dimensions
-            val options = BitmapFactory.Options()
-            options.inJustDecodeBounds = true
-            BitmapFactory.decodeFile(activePhoto?.file?.value, options)
-            activePhoto?.imageHeight = options.outHeight
-            activePhoto?.imageWidth = options.outWidth
+            activePhoto?.let { p ->
+                // Trigger a redraw
+                p.file.value = p.file.value
+                // calc and store image dimensions
+                val options = BitmapFactory.Options()
+                options.inJustDecodeBounds = true
+                val file = File(activity!!.getExternalFilesDir(Environment.DIRECTORY_PICTURES), p.file.value)
+                BitmapFactory.decodeFile(file.absolutePath, options)
+                p.imageHeight = options.outHeight
+                p.imageWidth = options.outWidth
+            }
         }
     }
 

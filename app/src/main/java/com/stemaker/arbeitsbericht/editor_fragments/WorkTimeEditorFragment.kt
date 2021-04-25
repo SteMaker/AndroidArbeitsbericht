@@ -24,14 +24,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
-class WorkTimeEditorFragment : ReportEditorSectionFragment(),
-    ReportEditorSectionFragment.OnExpandChange {
+class WorkTimeEditorFragment : ReportEditorSectionFragment() {
     private var listener: OnWorkTimeEditorInteractionListener? = null
     lateinit var dataBinding: FragmentWorkTimeEditorBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Log.d("Arbeitsbericht","WorkTimeEditorFragment.onCreate called")
     }
 
     override fun onCreateView(
@@ -39,7 +37,6 @@ class WorkTimeEditorFragment : ReportEditorSectionFragment(),
         savedInstanceState: Bundle?
     ): View? {
         // Inflate the layout for this fragment
-        Log.d("Arbeitsbericht","WorkTimeEditorFragment.onCreateView called")
         val root = super.onCreateView(inflater, container, savedInstanceState)
         dataBinding = FragmentWorkTimeEditorBinding.inflate(inflater, container,false)
         root!!.findViewById<LinearLayout>(R.id.section_container).addView(dataBinding.root)
@@ -67,7 +64,7 @@ class WorkTimeEditorFragment : ReportEditorSectionFragment(),
     }
 
     override fun onAttach(context: Context) {
-        super.onAttach(context, this)
+        super.onAttach(context)
         if (context is OnWorkTimeEditorInteractionListener) {
             listener = context
         } else {
@@ -151,18 +148,15 @@ class WorkTimeEditorFragment : ReportEditorSectionFragment(),
                     val answer =
                         showConfirmationDialog(getString(R.string.del_confirmation), btn.context)
                     if (answer == AlertDialog.BUTTON_POSITIVE) {
-                        Log.d("Arbeitsbericht.WorkTimeEditorFragment.work_time_del_button.onClick", "deleting work time element")
                         container.removeView(workTimeDataBinding.root)
                         workTimeContainerData.removeWorkTime(wt)
                     } else {
-                        Log.d("Arbeitsbericht.WorkTimeEditorFragment.work_time_del_button.onClick", "cancelled deleting work time element")
                     }
                 }
             }
         })
 
         val pos = container.getChildCount()
-        Log.d("Arbeitsbericht", "Adding work time card $pos to UI")
         container.addView(workTimeDataBinding.root, pos)
     }
 
@@ -179,11 +173,9 @@ class WorkTimeEditorFragment : ReportEditorSectionFragment(),
                     val answer =
                         showConfirmationDialog(getString(R.string.del_confirmation), btn.context)
                     if (answer == AlertDialog.BUTTON_POSITIVE) {
-                        Log.d("Arbeitsbericht.WorkTimeEditorFragment.work_time_del_employee.onClick", "deleting work time employee")
                         container.removeView(employeeDataBinding.root)
                         wt.removeEmployee(empl)
                     } else {
-                        Log.d("Arbeitsbericht.WorkTimeEditorFragment.work_time_del_employee.onClick", "cancelled deleting work time employee")
                     }
                 }
             }

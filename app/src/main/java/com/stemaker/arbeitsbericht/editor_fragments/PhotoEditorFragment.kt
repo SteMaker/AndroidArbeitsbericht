@@ -29,6 +29,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.io.File
+import java.io.FileOutputStream
 import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
@@ -36,10 +37,15 @@ import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
+private const val REQUEST_TAKE_PHOTO = 1
+private const val REQUEST_LOAD_PHOTO = 2
+private const val TAG = "PhotoEditorFrag"
+
 class PhotoEditorFragment : ReportEditorSectionFragment() {
     private var listener: OnPhotoEditorInteractionListener? = null
     lateinit var dataBinding: FragmentPhotoEditorBinding
     var activePhoto: PhotoData? = null
+    private var photoLoadCont: Continuation<Uri?>? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -104,7 +110,6 @@ class PhotoEditorFragment : ReportEditorSectionFragment() {
         suspend fun getPhotoContainerData(): PhotoContainerData
     }
 
-    val REQUEST_TAKE_PHOTO = 1
 
     fun addPhotoView(p: PhotoData, photoContainerData: PhotoContainerData) {
         val inflater = layoutInflater
@@ -119,8 +124,7 @@ class PhotoEditorFragment : ReportEditorSectionFragment() {
                         showConfirmationDialog(getString(R.string.del_confirmation), btn.context)
                     if (answer == AlertDialog.BUTTON_POSITIVE) {
                         container.removeView(photoDataBinding.root)
-                        photoContainerData!!.removePhoto(p)
-                    } else {
+                        photoContainerData.removePhoto(p)
                     }
                 }
             }
@@ -152,6 +156,42 @@ class PhotoEditorFragment : ReportEditorSectionFragment() {
             }
         })
 
+        photoDataBinding.root.findViewById<ImageButton>(R.id.photo_load_button).setOnClickListener(object : View.OnClickListener {
+            override fun onClick(btn: View) {
+                GlobalScope.launch(Dispatchers.Main) {
+                    val mimeTypes = arrayOf("image/jpeg")
+                    val intent = Intent()
+                        .setType("*/*")
+                        .putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes)
+                        .setAction(Intent.ACTION_GET_CONTENT)
+
+                    startActivityForResult(Intent.createChooser(intent, getString(R.string.select_photo)), REQUEST_LOAD_PHOTO)
+                    val file = suspendCoroutine<Uri?> {
+                        photoLoadCont = it
+                    }
+                    if (file == null) {
+                        Log.d(TAG, "No photo file was selected")
+                    } else {
+                        Log.d(TAG, "Selected photo: ${file}")
+                        try {
+                            val photoFile = createImageFile()
+                            copyUriToFile(file, photoFile)
+                            p.file.value = photoFile.name
+                            // calc and store image dimensions
+                            val options = BitmapFactory.Options()
+                            options.inJustDecodeBounds = true
+                            BitmapFactory.decodeFile(photoFile.absolutePath, options)
+                            p.imageHeight = options.outHeight
+                            p.imageWidth = options.outWidth
+                        } catch (ex: Exception) {
+                            val toast = Toast.makeText(activity, "Konnte Datei für Foto nicht erstellen", Toast.LENGTH_LONG)
+                            toast.show()
+                        }
+                    }
+                }
+            }
+        })
+
         photoDataBinding.root.findViewById<ImageView>(R.id.photo_view).setOnClickListener(object : View.OnClickListener {
             override fun onClick(btn: View) {
                 if(p.file.value != "") {
@@ -164,6 +204,20 @@ class PhotoEditorFragment : ReportEditorSectionFragment() {
 
         val pos = container.getChildCount()
         container.addView(photoDataBinding.root, pos)
+    }
+
+    private fun copyUriToFile(uri: Uri, file: File) {
+        val inStream =  activity!!.contentResolver.openInputStream(uri);
+        if(inStream == null) throw Exception("Could not open input file")
+        val outStream = FileOutputStream(file);
+        val buf = ByteArray(1024)
+        var len: Int = inStream.read(buf);
+        while(len > 0) {
+            outStream.write(buf,0,len)
+            len = inStream.read(buf)
+        }
+        outStream.close()
+        inStream.close()
     }
 
     @Throws(IOException::class)
@@ -187,7 +241,11 @@ class PhotoEditorFragment : ReportEditorSectionFragment() {
                 p.imageHeight = options.outHeight
                 p.imageWidth = options.outWidth
             }
+        } else if(requestCode == REQUEST_LOAD_PHOTO && resultCode == RESULT_OK) {
+            val selectedFile = data?.getData()
+            //TODO: We would need to handle the case the app gets destroyed in between, can be easily
+            //reproduced by enabling don't keep activities in the dev options
+            photoLoadCont!!.resume(selectedFile)
         }
     }
-
 }

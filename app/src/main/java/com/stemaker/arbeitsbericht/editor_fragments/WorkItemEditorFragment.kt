@@ -2,11 +2,10 @@ package com.stemaker.arbeitsbericht.editor_fragments
 
 import android.content.Context
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageButton
+import android.widget.Button
 import android.widget.LinearLayout
 import androidx.appcompat.app.AlertDialog
 import com.stemaker.arbeitsbericht.R
@@ -47,7 +46,7 @@ class WorkItemEditorFragment : ReportEditorSectionFragment() {
                 addWorkItemView(wi, workItemContainerData)
             }
 
-            dataBinding.root.findViewById<ImageButton>(R.id.work_item_add_button).setOnClickListener(object : View.OnClickListener {
+            dataBinding.root.findViewById<Button>(R.id.work_item_add_button).setOnClickListener(object : View.OnClickListener {
                 override fun onClick(btn: View) {
                     val wi = workItemContainerData.addWorkItem()
                     addWorkItemView(wi, workItemContainerData)
@@ -91,7 +90,7 @@ class WorkItemEditorFragment : ReportEditorSectionFragment() {
         workItemDataBinding.workItem = wi
         workItemDataBinding.workItemContainer = workItemContainerData
         workItemDataBinding.lifecycleOwner = activity
-        workItemDataBinding.root.findViewById<ImageButton>(R.id.work_item_del_button).setOnClickListener(object: View.OnClickListener {
+        workItemDataBinding.root.findViewById<Button>(R.id.work_item_del_button).setOnClickListener(object: View.OnClickListener {
             override fun onClick(btn: View) {
                 GlobalScope.launch(Dispatchers.Main) {
                     val answer =

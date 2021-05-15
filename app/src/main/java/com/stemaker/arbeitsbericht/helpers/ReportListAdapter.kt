@@ -1,7 +1,6 @@
 package com.stemaker.arbeitsbericht.helpers
 
 import android.content.res.Resources
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -9,9 +8,12 @@ import android.widget.PopupMenu
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.LifecycleOwner
 import androidx.recyclerview.widget.RecyclerView
-import com.stemaker.arbeitsbericht.*
+import com.stemaker.arbeitsbericht.R
+import com.stemaker.arbeitsbericht.ReportCardInterface
+import com.stemaker.arbeitsbericht.ReportListObserver
 import com.stemaker.arbeitsbericht.data.ReportData
 import com.stemaker.arbeitsbericht.databinding.ReportCardLayoutBinding
+import com.stemaker.arbeitsbericht.storageHandler
 
 private const val TAG = "ReportListAdapter"
 

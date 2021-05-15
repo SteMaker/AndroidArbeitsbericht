@@ -1,9 +1,8 @@
 package com.stemaker.arbeitsbericht.helpers
 
 import android.util.Base64
-import android.util.Log
-import com.stemaker.arbeitsbericht.data.configuration
 import com.stemaker.arbeitsbericht.data.ReportData
+import com.stemaker.arbeitsbericht.data.configuration
 import java.io.File
 import java.io.FileInputStream
 import java.io.IOException

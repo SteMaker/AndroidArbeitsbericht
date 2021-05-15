@@ -15,12 +15,14 @@
         android:background="@color/cardview_light_background"
         android:orientation="vertical"
         app:visibility="@={lump_sum_container_data.visibility}">
-        <ImageButton
+        <Button
             android:id="@+id/lump_sum_add_button"
-            android:layout_width="50dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:paddingRight="20dp"
-            android:src="@drawable/ic_add_circle_black_24dp"
+            android:text="@string/add"
+            style="@style/ArbeitsberichtAppTheme.IconTextButtons"
+            app:icon="@drawable/ic_add_circle_black_24dp"
         />
     </com.stemaker.arbeitsbericht.helpers.LinearLayoutVisListener> <!-- End of lump_sum_content_container-->
 </layout>

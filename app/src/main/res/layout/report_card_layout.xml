@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout
-        xmlns:app="http://schemas.android.com/apk/res-auto"
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:card_view="http://schemas.android.com/apk/res-auto">
+<layout xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:android="http://schemas.android.com/apk/res/android">
     <data>
         <variable name="report_data" type="com.stemaker.arbeitsbericht.data.ReportData"/>
     </data>
@@ -12,16 +10,10 @@
             android:layout_height="wrap_content"
             android:clickable="true"
             android:focusable="true"
-            card_view:cardCornerRadius="4dp"
-            card_view:cardElevation="4dp"
-            app:contentPadding="0dp"
-            app:contentPaddingBottom="0dp"
-            app:cardPreventCornerOverlap="true"
-            app:cardUseCompatPadding="true">
-    <androidx.constraintlayout.widget.ConstraintLayout
+            style="@style/ArbeitsberichtAppTheme.CardLevel1">
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="16dp">
+            android:layout_height="wrap_content">
         <TextView
                 android:id="@+id/report_card_client"
                 android:layout_width="wrap_content"
@@ -68,14 +60,16 @@
                 app:doneFlag="@{report_data.state}"
                 android:elevation="10dp"
                 />
-        <ImageButton
+        <Button
                 android:id="@+id/report_card_menu_button"
-                android:layout_width="50dp"
-                android:layout_height="wrap_content"
+                android:layout_width="60dp"
+                android:layout_height="0dp"
                 app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintBottom_toBottomOf="parent"
                 android:background="#00000000"
-                android:src="@drawable/ic_baseline_more_vert_24"
+                style="@style/ArbeitsberichtAppTheme.IconButtons"
+                app:icon="@drawable/ic_baseline_more_vert_24"
                 />
     </androidx.constraintlayout.widget.ConstraintLayout>
 

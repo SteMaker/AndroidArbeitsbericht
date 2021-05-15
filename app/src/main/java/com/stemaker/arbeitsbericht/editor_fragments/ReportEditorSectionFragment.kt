@@ -2,14 +2,13 @@ package com.stemaker.arbeitsbericht.editor_fragments
 
 import android.content.res.Configuration
 import android.os.Bundle
-import android.util.Log
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.fragment.app.Fragment
 import com.stemaker.arbeitsbericht.R
 
 private const val TAG = "ReportEditSectFragment"

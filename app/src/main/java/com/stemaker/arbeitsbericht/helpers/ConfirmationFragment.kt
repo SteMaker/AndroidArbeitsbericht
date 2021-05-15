@@ -1,8 +1,6 @@
 package com.stemaker.arbeitsbericht.helpers
 
 import android.content.Context
-import android.content.DialogInterface
-import android.util.Log
 import androidx.appcompat.app.AlertDialog
 import com.stemaker.arbeitsbericht.R
 import kotlin.coroutines.Continuation

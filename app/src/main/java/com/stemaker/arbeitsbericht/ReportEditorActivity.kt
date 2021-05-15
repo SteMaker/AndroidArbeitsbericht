@@ -1,10 +1,11 @@
 package com.stemaker.arbeitsbericht
 
-import androidx.appcompat.app.AppCompatActivity
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
-import android.content.Intent
-import android.view.*
+import android.view.View
+import android.view.WindowManager
+import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import com.stemaker.arbeitsbericht.data.*
 import com.stemaker.arbeitsbericht.databinding.ActivityReportEditorBinding
@@ -32,10 +33,6 @@ class ReportEditorActivity : AppCompatActivity(),
         storageInitJob = storageHandler().initialize()
         topBinding = DataBindingUtil.setContentView(this, R.layout.activity_report_editor)
 
-        setSupportActionBar(findViewById(R.id.report_editor_activity_toolbar))
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        supportActionBar?.setTitle(R.string.editor)
-
         window.setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
 
         GlobalScope.launch(Dispatchers.Main) {
@@ -52,16 +49,23 @@ class ReportEditorActivity : AppCompatActivity(),
 
             window.clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
         }
-    }
 
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        val inflater: MenuInflater = menuInflater
-        inflater.inflate(R.menu.editor_menu, menu)
-        return true
-    }
-
-    override fun onStart() {
-        super.onStart()
+        topBinding.reportEditorActivityToolbar.setOnMenuItemClickListener { item ->
+            when(item.itemId) {
+                R.id.goto_summary -> {
+                    val intent = Intent(this, SummaryActivity::class.java).apply {}
+                    GlobalScope.launch(Dispatchers.Main) {
+                        storageHandler().saveActiveReport()
+                        startActivity(intent)
+                    }
+                    true
+                }
+                else -> super.onOptionsItemSelected(item)
+            }
+        }
+        topBinding.reportEditorActivityToolbar.setNavigationOnClickListener {
+            onBackPressed()
+        }
     }
 
     override fun onPause() {
@@ -80,24 +84,6 @@ class ReportEditorActivity : AppCompatActivity(),
     override fun onDestroy() {
         Log.d(TAG, "onDestroy")
         super.onDestroy()
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when (item.itemId) {
-            R.id.goto_summary -> {
-                val intent = Intent(this, SummaryActivity::class.java).apply {}
-                GlobalScope.launch(Dispatchers.Main) {
-                    storageHandler().saveActiveReport()
-                    startActivity(intent)
-                }
-                true
-            }
-            android.R.id.home -> {
-                onBackPressed()
-                true
-            }
-            else -> super.onOptionsItemSelected(item)
-        }
     }
 
     private suspend fun waitForStorageHandler() {

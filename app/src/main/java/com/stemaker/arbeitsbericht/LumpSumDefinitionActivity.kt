@@ -1,15 +1,16 @@
 package com.stemaker.arbeitsbericht
 
+//import kotlinx.android.synthetic.main.activity_lump_sum_definition.*
 import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.*
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -17,11 +18,9 @@ import com.stemaker.arbeitsbericht.data.configuration
 import com.stemaker.arbeitsbericht.databinding.ActivityLumpSumDefinitionBinding
 import com.stemaker.arbeitsbericht.helpers.SftpProvider
 import com.stemaker.arbeitsbericht.helpers.showConfirmationDialog
-//import kotlinx.android.synthetic.main.activity_lump_sum_definition.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import java.lang.Exception
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.suspendCoroutine
 
@@ -37,10 +36,6 @@ class LumpSumDefinitionActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityLumpSumDefinitionBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
-        setSupportActionBar(findViewById(R.id.lump_sum_configuration_activity_toolbar))
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        supportActionBar?.setTitle(R.string.lump_sum_define)
 
         val storageInitJob = storageHandler().initialize()
 
@@ -58,21 +53,14 @@ class LumpSumDefinitionActivity : AppCompatActivity() {
                 addLumpSumView(ls)
             }
         }
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        val inflater: MenuInflater = menuInflater
-        inflater.inflate(R.menu.lump_sum_configuration_menu, menu)
-        return true
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when (item.itemId) {
-            R.id.config_save_button -> {
-                save()
-                true
+        binding.lumpSumConfigurationActivityToolbar.setOnMenuItemClickListener { item ->
+            when (item.itemId) {
+                R.id.config_save_button -> {
+                    save()
+                    true
+                }
+                else -> super.onOptionsItemSelected(item)
             }
-            else -> super.onOptionsItemSelected(item)
         }
     }
 
@@ -87,7 +75,7 @@ class LumpSumDefinitionActivity : AppCompatActivity() {
         val cV = inflater.inflate(R.layout.lump_sum_layout, null) as CardView
         cV.findViewById<TextView>(R.id.lump_sum_text).setText(ls)
 
-        val btnDel = cV.findViewById<ImageButton>(R.id.lump_sum_del_button)
+        val btnDel = cV.findViewById<Button>(R.id.lump_sum_del_button)
         btnDel.setTag(R.id.TAG_CARDVIEW, cV)
 
         val pos = binding.lumpSumsContainer.childCount
@@ -109,7 +97,7 @@ class LumpSumDefinitionActivity : AppCompatActivity() {
             configuration().lumpSums = lumpSums
             configuration().lumpSumServerPath = findViewById<EditText>(R.id.lump_sum_ftp_path).text.toString()
             configuration().save()
-            storageHandler().getReport()?.lumpSumContainer?.updateLumpSums()
+            storageHandler().updateLumpSums()
             configuration().unlock()
             storageHandler().saveConfigurationToFile(getApplicationContext())
             val intent = Intent(this@LumpSumDefinitionActivity, MainActivity::class.java).apply {}
@@ -137,7 +125,7 @@ class LumpSumDefinitionActivity : AppCompatActivity() {
                 val port = configuration().sFtpPort
                 val user = configuration().sFtpUser
                 val pwd = configuration().sFtpEncryptedPassword
-                val path = findViewById<AutoCompleteTextView>(R.id.lump_sum_ftp_path).text.toString()
+                val path = findViewById<EditText>(R.id.lump_sum_ftp_path).text.toString()
                 try {
                     val sftpProvider = SftpProvider(this@LumpSumDefinitionActivity)
                     sftpProvider.connect(user, pwd, host, port)

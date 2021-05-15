@@ -1,13 +1,13 @@
 package com.stemaker.arbeitsbericht
 
+//import kotlinx.android.synthetic.main.activity_main.*
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
-//import kotlinx.android.synthetic.main.activity_main.*
 import android.view.*
 import android.widget.PopupMenu
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.stemaker.arbeitsbericht.data.ReportData
@@ -76,9 +76,6 @@ class MainActivity : AppCompatActivity(), ReportCardInterface {
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
         binding.lifecycleOwner = this
 
-        setSupportActionBar(findViewById(R.id.main_activity_toolbar))
-        supportActionBar?.setTitle(R.string.saved_reports)
-
         val layoutManager = LinearLayoutManager(this)
         adapter = ReportListAdapter(this, this)
         val recyclerView = binding.reportListRv
@@ -101,13 +98,39 @@ class MainActivity : AppCompatActivity(), ReportCardInterface {
                 versionDialog.show(supportFragmentManager, "VersionDialog")
             }
         }
-    }
-
-
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        val inflater: MenuInflater = menuInflater
-        inflater.inflate(R.menu.main_options, menu)
-        return true
+        binding.mainActivityToolbar.setOnMenuItemClickListener { item ->
+            when (item.itemId) {
+                R.id.main_menu_settings -> {
+                    val intent = Intent(this, ConfigurationActivity::class.java).apply {}
+                    startActivity(intent)
+                    true
+                }
+                R.id.main_menu_lump_sums -> {
+                    val intent = Intent(this, LumpSumDefinitionActivity::class.java).apply {}
+                    startActivity(intent)
+                    true
+                }
+                R.id.main_menu_new_report -> {
+                    createNewReport()
+                    true
+                }
+                R.id.main_menu_about -> {
+                    val aboutDialog = AboutDialogFragment()
+                    aboutDialog.show(supportFragmentManager, "AboutDialog")
+                    true
+                }
+                R.id.main_menu_versions -> {
+                    val versionDialog = VersionDialogFragment()
+                    versionDialog.show(supportFragmentManager, "VersionDialog")
+                    true
+                }
+                R.id.main_menu_filter -> {
+                    showFilterPopup()
+                    true
+                }
+                else -> super.onOptionsItemSelected(item)
+            }
+        }
     }
 
     private fun createNewReport() {
@@ -157,41 +180,6 @@ class MainActivity : AppCompatActivity(), ReportCardInterface {
         report.state.value = state
         GlobalScope.launch(Dispatchers.Main) {
             storageHandler().saveReport(report, true)
-        }
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        // Handle item selection
-        return when (item.itemId) {
-            R.id.main_menu_settings -> {
-                val intent = Intent(this, ConfigurationActivity::class.java).apply {}
-                startActivity(intent)
-                true
-            }
-            R.id.main_menu_lump_sums -> {
-                val intent = Intent(this, LumpSumDefinitionActivity::class.java).apply {}
-                startActivity(intent)
-                true
-            }
-            R.id.main_menu_new_report -> {
-                createNewReport()
-                true
-            }
-            R.id.main_menu_about -> {
-                val aboutDialog = AboutDialogFragment()
-                aboutDialog.show(supportFragmentManager, "AboutDialog")
-                true
-            }
-            R.id.main_menu_versions -> {
-                val versionDialog = VersionDialogFragment()
-                versionDialog.show(supportFragmentManager, "VersionDialog")
-                true
-            }
-            R.id.main_menu_filter -> {
-                showFilterPopup()
-                true
-            }
-            else -> super.onOptionsItemSelected(item)
         }
     }
 

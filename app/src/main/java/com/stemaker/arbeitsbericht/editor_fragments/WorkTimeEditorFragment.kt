@@ -2,23 +2,22 @@ package com.stemaker.arbeitsbericht.editor_fragments
 
 import android.content.Context
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageButton
+import android.widget.Button
 import android.widget.LinearLayout
 import androidx.appcompat.app.AlertDialog
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.lifecycle.MutableLiveData
-import com.stemaker.arbeitsbericht.helpers.DatePickerFragment
 import com.stemaker.arbeitsbericht.R
-import com.stemaker.arbeitsbericht.helpers.TimePickerFragment
 import com.stemaker.arbeitsbericht.data.WorkTimeContainerData
 import com.stemaker.arbeitsbericht.data.WorkTimeData
 import com.stemaker.arbeitsbericht.databinding.EmployeeEntryLayoutBinding
 import com.stemaker.arbeitsbericht.databinding.FragmentWorkTimeEditorBinding
 import com.stemaker.arbeitsbericht.databinding.WorkTimeLayoutBinding
+import com.stemaker.arbeitsbericht.helpers.DatePickerFragment
+import com.stemaker.arbeitsbericht.helpers.TimePickerFragment
 import com.stemaker.arbeitsbericht.helpers.showConfirmationDialog
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -52,7 +51,7 @@ class WorkTimeEditorFragment : ReportEditorSectionFragment() {
                 addWorkTimeView(wt, workTimeContainerData)
             }
 
-            dataBinding.root.findViewById<ImageButton>(R.id.work_time_add_button).setOnClickListener(object : View.OnClickListener {
+            dataBinding.root.findViewById<Button>(R.id.work_time_add_button).setOnClickListener(object : View.OnClickListener {
                 override fun onClick(btn: View) {
                     val wt = workTimeContainerData.addWorkTime()
                     addWorkTimeView(wt, workTimeContainerData)
@@ -130,19 +129,19 @@ class WorkTimeEditorFragment : ReportEditorSectionFragment() {
                 newFragment.show(fragmentManager!!, "timePicker")
             }
         })
-        workTimeDataBinding.root.findViewById<ImageButton>(R.id.work_time_add_employee).setOnClickListener(object: View.OnClickListener {
+        workTimeDataBinding.root.findViewById<Button>(R.id.work_time_add_employee).setOnClickListener(object: View.OnClickListener {
             override fun onClick(btn: View) {
                 val empl = wt.addEmployee()
                 addEmployeeView(workTimeDataBinding.root, wt, empl)
             }
         })
-        workTimeDataBinding.root.findViewById<ImageButton>(R.id.work_time_copy_button).setOnClickListener(object: View.OnClickListener {
+        workTimeDataBinding.root.findViewById<Button>(R.id.work_time_copy_button).setOnClickListener(object: View.OnClickListener {
             override fun onClick(btn: View) {
                 val wt2 = workTimeContainerData.addWorkTime(wt)
                 addWorkTimeView(wt2, workTimeContainerData)
             }
         })
-        workTimeDataBinding.root.findViewById<ImageButton>(R.id.work_time_del_button).setOnClickListener(object: View.OnClickListener {
+        workTimeDataBinding.root.findViewById<Button>(R.id.work_time_del_button).setOnClickListener(object: View.OnClickListener {
             override fun onClick(btn: View) {
                 GlobalScope.launch(Dispatchers.Main) {
                     val answer =
@@ -167,7 +166,7 @@ class WorkTimeEditorFragment : ReportEditorSectionFragment() {
         employeeDataBinding.lifecycleOwner = activity
         val container = root.findViewById<LinearLayout>(R.id.work_time_container)
 
-        employeeDataBinding.root.findViewById<ImageButton>(R.id.work_time_del_employee).setOnClickListener(object: View.OnClickListener {
+        employeeDataBinding.root.findViewById<Button>(R.id.work_time_del_employee).setOnClickListener(object: View.OnClickListener {
             override fun onClick(btn: View) {
                 GlobalScope.launch(Dispatchers.Main) {
                     val answer =

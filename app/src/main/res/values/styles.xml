@@ -1,11 +1,47 @@
 <resources>
 
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
-        <!-- Customize your theme here. -->
-        <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
-        <item name="colorAccent">@color/colorAccent</item>
+    <style name="ArbeitsberichtAppTheme" parent="Theme.MaterialComponents.Light.NoActionBar">
+        <item name="backgroundTint">@color/editBackground</item>
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorSecondary">@color/secondary</item>
+        <item name="colorSurface">@color/surface</item>
+        <item name="colorOnSurface">@color/onSurface</item>
+        <!--<item name="colorOnSecondary">@color/primary</item>-->
+        <item name="colorOnPrimary">@color/textOnPrimary</item>
+        <item name="colorOnSecondary">@color/textOnPrimary</item>
+        <item name="android:colorForeground">@color/foreground</item>
     </style>
 
+    <style name="ArbeitsberichtAppTheme.ActionBar" parent="Theme.MaterialComponents.Light">
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorSurface">@color/primary</item>
+        <item name="colorControlNormal">@color/actionBarFont</item>
+        <item name="android:colorForeground">@color/actionBarFont</item>
+        <item name="android:elevation">4dp</item>
+    </style>
+    <style name="ArbeitsberichtAppTheme.CardLevel1" parent="Theme.MaterialComponents.Light.NoActionBar">
+        <item name="cardBackgroundColor">@color/cardViewBackgroundLevel1</item>
+        <item name="cardElevation">4dp</item>
+        <item name="cardCornerRadius">4dp</item>
+        <item name="cardPreventCornerOverlap">true</item>
+        <item name="cardUseCompatPadding">true</item>
+        <item name="contentPadding">10dp</item>
+        <item name="contentPaddingBottom">10dp</item>
+    </style>
+    <style name="ArbeitsberichtAppTheme.FloatButtons" parent="Theme.MaterialComponents.Light">
+        <item name="colorSecondary">@color/primary</item>
+        <item name="colorControlNormal">@color/actionBarFont</item>
+        <item name="colorOnSecondary">@color/actionBarFont</item>
+        <item name="elevation">10dp</item>
+    </style>
+    <style name="ArbeitsberichtAppTheme.IconButtons" parent="Widget.MaterialComponents.Button.OutlinedButton">
+        <item name="android:layout_margin">5dp</item>
+        <item name="colorControlNormal">@color/primary</item>
+    </style>
+    <style name="ArbeitsberichtAppTheme.IconTextButtons" parent="Widget.MaterialComponents.Button.OutlinedButton">
+    </style>
+    <style name="ArbeitsberichtAppTheme.TextButtons" parent="Widget.MaterialComponents.Button">
+        <item name="android:layout_margin">5dp</item>
+    </style>
 </resources>

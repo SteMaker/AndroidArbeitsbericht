@@ -26,6 +26,7 @@
         android:layout_height="wrap_content"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintRight_toRightOf="parent"
+            style="@style/ArbeitsberichtAppTheme.TextButtons"
         android:text="@string/ok"
     />
 </androidx.constraintlayout.widget.ConstraintLayout>

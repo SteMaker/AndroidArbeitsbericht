@@ -74,6 +74,9 @@
     <string name="archive">Archivieren</string>
     <string name="db_loading">Berichte werden geladen</string>
     <string name="select_photo">Foto auswählen</string>
+    <string name="scale_photo">Fotos skalieren (reduziert Dateigröße des Berichts)</string>
+    <string name="add">Hinzufügen</string>
+    <string name="add_employee">Mitarbeiter hinzufügen</string>
 
     <!-- Configuration -->
     <string name="reportid_change_conf">Die laufende Nummer wurde geändert</string>
@@ -109,6 +112,8 @@
     <string name="odf_file_choose">ODF Vorlage auswählen</string>
     <string name="logo_file_choose">Logo auswählen</string>
     <string name="footer_file_choose">Fusszeile auswählen</string>
+    <string name="num_pixel">Anzahl Pixel kürzere Seite</string>
+    <string name="width_mm">Breite [mm]</string>
 
     <!-- ODF / PDF generation -->
     <string name="cannot_createdocs_dir">Konnte erforderlichen Ordner für die Berichtsdatei nicht erstellen</string>

@@ -1,49 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:card_view="http://schemas.android.com/apk/res-auto">
+<layout xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:android="http://schemas.android.com/apk/res/android">
     <data>
         <variable name="work_item" type="com.stemaker.arbeitsbericht.data.WorkItemData"/>
         <variable name="work_item_container" type="com.stemaker.arbeitsbericht.data.WorkItemContainerData"/>
     </data>
 
-<androidx.cardview.widget.CardView
-    android:id="@+id/work_item_card_top"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    card_view:cardCornerRadius="4dp"
-    card_view:cardElevation="4dp"
-    app:contentPadding="10dp"
-    app:contentPaddingBottom="0dp"
-    app:cardPreventCornerOverlap="true"
-    app:cardUseCompatPadding="true"
-    android:clickable="false">
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
-        <com.google.android.material.textfield.TextInputLayout
+    <androidx.cardview.widget.CardView
+            android:id="@+id/work_item_card_top"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-            <AutoCompleteTextView
-                android:id="@+id/work_item_item"
+            android:layout_height="wrap_content"
+            style="@style/ArbeitsberichtAppTheme.CardLevel1"
+            android:clickable="false">
+        <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="textCapSentences"
-                app:dictionary="@{work_item_container.dictionary}"
-                android:text="@={work_item.item}"
-                android:hint="@string/work_item"
-            />
-        </com.google.android.material.textfield.TextInputLayout>
-        <ImageButton
-            android:id="@+id/work_item_del_button"
-            android:layout_width="50dp"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_delete_black_24dp"
-            android:layout_gravity="right"
-        />
-    </LinearLayout>
+                android:orientation="vertical">
+            <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+                <AutoCompleteTextView
+                        android:id="@+id/work_item_item"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textCapSentences"
+                        app:dictionary="@{work_item_container.dictionary}"
+                        android:text="@={work_item.item}"
+                        android:hint="@string/work_item"
+                        />
+            </com.google.android.material.textfield.TextInputLayout>
+            <Button
+                    android:id="@+id/work_item_del_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    style="@style/ArbeitsberichtAppTheme.IconButtons"
+                    app:icon="@drawable/ic_delete_black_24dp"
+                    android:layout_gravity="right"
+                    />
+        </LinearLayout>
 
-</androidx.cardview.widget.CardView>
+    </androidx.cardview.widget.CardView>
 </layout>

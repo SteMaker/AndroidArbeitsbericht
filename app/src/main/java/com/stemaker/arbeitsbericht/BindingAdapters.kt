@@ -4,7 +4,6 @@ import android.graphics.drawable.PictureDrawable
 import android.os.Environment
 import android.text.Editable
 import android.text.TextWatcher
-import android.util.Log
 import android.view.View
 import android.widget.*
 import androidx.databinding.BindingAdapter

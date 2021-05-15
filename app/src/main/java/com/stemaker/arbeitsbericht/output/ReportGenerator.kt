@@ -1,7 +1,10 @@
 package com.stemaker.arbeitsbericht.output
 
 import android.app.Activity
-import android.os.*
+import android.os.Handler
+import android.os.HandlerThread
+import android.os.Looper
+import android.os.Message
 import android.util.Log
 import android.widget.ProgressBar
 import android.widget.TextView

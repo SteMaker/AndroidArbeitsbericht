@@ -1,6 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#008577</color>
-    <color name="colorPrimaryDark">#00574B</color>
-    <color name="colorAccent">#D81B60</color>
+    <color name="cardViewBackgroundLevel1">#F8F8F8</color>
+    <color name="editBackground">#FFFFFFFF</color>
+    <color name="primary">#F01E2E46</color>
+    <color name="secondary">#F02E3E66</color>
+    <color name="surface">#FFFFFFFF</color>
+    <color name="onSurface">#FF101010</color>
+    <color name="actionBarFont">#FFFFFFFF</color>
+    <color name="foreground">#FF000000</color>
+    <color name="textOnPrimary">#FFFFFFFF</color>
+    <color name="iconFillColor">#F01E2E46</color>
+    <color name="iconFillColorDisabled">#FFFF0000</color>
 </resources>

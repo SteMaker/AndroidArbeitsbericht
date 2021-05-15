@@ -7,11 +7,11 @@ import androidx.lifecycle.ViewModel
 class LumpSumContainerData(): ViewModel() {
     val items = mutableListOf<LumpSumData>()
     /* The list below won't go into the json / serialized data */
-    private var _list = MutableLiveData<List<String>>().apply { value = configuration().lumpSums }
-    val list: LiveData<List<String>>
+    private var _list = MutableLiveData<Set<String>>().apply { value = configuration().lumpSums.toSet() }
+    val list: LiveData<Set<String>>
         get() = _list
     fun updateLumpSums() {
-        _list.value = configuration().lumpSums
+        _list.value = configuration().lumpSums.toSet()
     }
     val visibility = MutableLiveData<Boolean>().apply { value = false }
 

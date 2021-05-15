@@ -347,5 +347,10 @@ object StorageHandler {
             workItemDictionaryChanged = true
         }
     }
+
+    fun updateLumpSums() {
+        for(r in reports)
+            r.value.lumpSumContainer.updateLumpSums()
+    }
 }
 

@@ -2,8 +2,10 @@ package com.stemaker.arbeitsbericht.data
 
 import androidx.lifecycle.MutableLiveData
 import androidx.room.*
-import kotlinx.serialization.*
-import kotlinx.serialization.cbor.*
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.cbor.Cbor
+import kotlinx.serialization.decodeFromByteArray
+import kotlinx.serialization.encodeToByteArray
 
 @Dao
 interface ReportDao {

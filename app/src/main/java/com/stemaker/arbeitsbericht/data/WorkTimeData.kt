@@ -3,7 +3,6 @@ package com.stemaker.arbeitsbericht.data
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import java.lang.Exception
 import java.util.*
 
 class WorkTimeContainerData(): ViewModel() {

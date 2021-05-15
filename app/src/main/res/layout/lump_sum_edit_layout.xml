@@ -1,65 +1,73 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:card_view="http://schemas.android.com/apk/res-auto">
+<layout xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:android="http://schemas.android.com/apk/res/android">
 
     <data>
         <variable name="lump_sum" type="com.stemaker.arbeitsbericht.data.LumpSumData"/>
         <variable name="lump_sum_container" type="com.stemaker.arbeitsbericht.data.LumpSumContainerData"/>
     </data>
 
-<androidx.cardview.widget.CardView
-    android:id="@+id/lump_sum_edit_card_top"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    card_view:cardCornerRadius="4dp"
-    card_view:cardElevation="4dp"
-    app:contentPadding="10dp"
-    app:contentPaddingBottom="0dp"
-    app:cardPreventCornerOverlap="true"
-    app:cardUseCompatPadding="true"
-    android:clickable="false">
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
-        <LinearLayout
+    <androidx.cardview.widget.CardView
+            android:id="@+id/lump_sum_edit_card_top"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
-            <Spinner
-                android:id="@+id/lump_sum_item"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="2"
-                app:selectionList="@{lump_sum_container.list}"
-                app:selectedItem="@={lump_sum.item}">
-            </Spinner>
-            <com.google.android.material.textfield.TextInputLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1">
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/lump_sum_amount"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:inputType="numberDecimal"
-                    android:selectAllOnFocus="true"
-                    app:textInt="@={lump_sum.amount}"
-                    android:hint="@string/amount"
-                />
-            </com.google.android.material.textfield.TextInputLayout>
-        </LinearLayout>
-        <LinearLayout
+            style="@style/ArbeitsberichtAppTheme.CardLevel1"
+            android:clickable="false">
+        <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
+                android:layout_height="wrap_content">
             <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/lump_sum_item_layout"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1">
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintRight_toLeftOf="@id/lump_sum_amount_layout"
+                    app:layout_constraintHorizontal_chainStyle="spread"
+                    app:layout_constraintHorizontal_weight="2"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
                 <AutoCompleteTextView
+                        android:id="@+id/lump_sum_item"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:focusable="false"
+                        android:focusableInTouchMode="false"
+                        android:inputType="none|textNoSuggestions"
+                        android:cursorVisible="false"
+                        app:dictionary="@{lump_sum_container.list}"
+                        android:text="@={lump_sum.item}"
+                        android:hint="@string/lump_sum"
+                        />
+            </com.google.android.material.textfield.TextInputLayout>
+            <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/lump_sum_amount_layout"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintBottom_toBottomOf="@id/lump_sum_item_layout"
+                    app:layout_constraintLeft_toRightOf="@id/lump_sum_item_layout"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintHorizontal_weight="1"
+                    app:layout_constraintHorizontal_chainStyle="spread">
+                <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/lump_sum_amount"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="numberDecimal"
+                        android:selectAllOnFocus="true"
+                        app:textInt="@={lump_sum.amount}"
+                        android:hint="@string/amount"
+                        />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/lump_sum_comment_layout"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    app:layout_constraintTop_toBottomOf="@id/lump_sum_item_layout"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintRight_toLeftOf="@id/lump_sum_del_button">
+                <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/lump_sum_comment"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -67,14 +75,18 @@
                         android:hint="@string/comment"
                         />
             </com.google.android.material.textfield.TextInputLayout>
-        <ImageButton
-                android:id="@+id/lump_sum_del_button"
-                android:layout_width="50dp"
-                android:layout_height="wrap_content"
-                android:src="@drawable/ic_delete_black_24dp"
-                android:layout_gravity="right"
-                />
-    </LinearLayout>
-</LinearLayout>
-</androidx.cardview.widget.CardView>
+            <Button
+                    android:id="@+id/lump_sum_del_button"
+                    android:layout_width="60dp"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintTop_toTopOf="@id/lump_sum_comment_layout"
+                    app:layout_constraintBottom_toBottomOf="@id/lump_sum_comment_layout"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintLeft_toRightOf="@id/lump_sum_comment_layout"
+                    style="@style/ArbeitsberichtAppTheme.IconButtons"
+                    app:icon="@drawable/ic_delete_black_24dp"
+                    android:layout_gravity="right"
+                    />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.cardview.widget.CardView>
 </layout>

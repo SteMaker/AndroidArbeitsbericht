@@ -9,7 +9,7 @@ import com.stemaker.arbeitsbericht.ArbeitsberichtApp
 import com.stemaker.arbeitsbericht.StorageHandler
 import com.stemaker.arbeitsbericht.storageHandler
 import kotlinx.coroutines.sync.Mutex
-import kotlinx.serialization.*
+import kotlinx.serialization.Serializable
 import java.security.KeyStore
 import java.security.UnrecoverableKeyException
 import javax.crypto.Cipher
@@ -57,6 +57,8 @@ class ConfigurationStore {
     var xlsxLogoWidth: Int = 135 // mm
     var xlsxUseFooter: Boolean = false
     var xlsxFooterWidth: Int = 135 // mm
+    var scalePhotos: Boolean = false
+    var photoResolution: Int = 1024
 }
 
 fun configuration(): Configuration {
@@ -307,6 +309,16 @@ object Configuration {
         get(): Int = store.xlsxFooterWidth
         set(value) {
             store.xlsxFooterWidth = value }
+
+    var scalePhotos: Boolean
+        get(): Boolean = store.scalePhotos
+        set(value) {
+            store.scalePhotos = value }
+
+    var photoResolution: Int
+        get(): Int = store.photoResolution
+        set(value) {
+            store.photoResolution = value }
 
     private fun encryptPassword(pwd: String): String {
         /* Now we try to store the password in an encrypted way. First we retrieve a key

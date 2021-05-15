@@ -1,7 +1,6 @@
 package android.print
 
 import android.app.Activity
-import android.content.Context
 import android.os.CancellationSignal
 import android.os.ParcelFileDescriptor
 import android.util.Log
@@ -13,14 +12,7 @@ import android.widget.TextView
 import com.stemaker.arbeitsbericht.data.ReportData
 import com.stemaker.arbeitsbericht.helpers.HtmlReport
 import com.stemaker.arbeitsbericht.output.ReportGenerator
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import java.io.File
-import kotlin.coroutines.Continuation
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
 private const val TAG = "PdfPrint"
 

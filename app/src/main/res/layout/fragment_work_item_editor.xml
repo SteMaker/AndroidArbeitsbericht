@@ -14,12 +14,14 @@
         android:background="@color/cardview_light_background"
         android:orientation="vertical"
         app:visibility="@={work_item_container_data.visibility}">
-        <ImageButton
+        <Button
             android:id="@+id/work_item_add_button"
-            android:layout_width="50dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:paddingRight="20dp"
-            android:src="@drawable/ic_add_circle_black_24dp"
+            android:text="@string/add"
+            style="@style/ArbeitsberichtAppTheme.IconTextButtons"
+            app:icon="@drawable/ic_add_circle_black_24dp"
         />
     </com.stemaker.arbeitsbericht.helpers.LinearLayoutVisListener> <!-- End of work_item_content_container-->
 </layout>

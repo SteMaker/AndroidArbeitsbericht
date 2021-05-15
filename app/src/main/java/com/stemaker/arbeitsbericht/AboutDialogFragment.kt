@@ -5,9 +5,9 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.webkit.WebView
 import android.widget.Button
 import androidx.fragment.app.DialogFragment
-import android.webkit.WebView
 
 private const val TAG = "AboutDialogFragment"
 

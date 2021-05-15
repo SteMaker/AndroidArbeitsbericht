@@ -7,7 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.AutoCompleteTextView
-import android.widget.ImageButton
+import android.widget.Button
 import android.widget.LinearLayout
 import androidx.appcompat.app.AlertDialog
 import com.stemaker.arbeitsbericht.R
@@ -50,7 +50,7 @@ class MaterialEditorFragment : ReportEditorSectionFragment() {
                 addMaterialView(wt, materialContainerData)
             }
 
-            dataBinding.root.findViewById<ImageButton>(R.id.material_add_button).setOnClickListener(object : View.OnClickListener {
+            dataBinding.root.findViewById<Button>(R.id.material_add_button).setOnClickListener(object : View.OnClickListener {
                 override fun onClick(btn: View) {
                     val wi = materialContainerData.addMaterial()
                     addMaterialView(wi, materialContainerData)
@@ -94,7 +94,7 @@ class MaterialEditorFragment : ReportEditorSectionFragment() {
         materialDataBinding.material = wi
         materialDataBinding.materialContainer = materialContainerData
         materialDataBinding.lifecycleOwner = activity
-        materialDataBinding.root.findViewById<ImageButton>(R.id.material_del_button).setOnClickListener(object: View.OnClickListener {
+        materialDataBinding.root.findViewById<Button>(R.id.material_del_button).setOnClickListener(object: View.OnClickListener {
             override fun onClick(btn: View) {
                 GlobalScope.launch(Dispatchers.Main) {
                     val answer =

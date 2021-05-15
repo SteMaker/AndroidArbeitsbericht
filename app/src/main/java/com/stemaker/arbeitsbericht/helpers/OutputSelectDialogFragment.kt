@@ -7,7 +7,6 @@ import android.os.Bundle
 import androidx.fragment.app.DialogFragment
 import com.stemaker.arbeitsbericht.R
 import kotlin.coroutines.Continuation
-import kotlin.coroutines.resume
 
 class OutputSelectDialogFragment: DialogFragment() {
 

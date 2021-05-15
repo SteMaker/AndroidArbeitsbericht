@@ -2,11 +2,10 @@ package com.stemaker.arbeitsbericht.editor_fragments
 
 import android.content.Context
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageButton
+import android.widget.Button
 import android.widget.LinearLayout
 import androidx.appcompat.app.AlertDialog
 import com.stemaker.arbeitsbericht.R
@@ -51,7 +50,7 @@ class LumpSumEditorFragment : ReportEditorSectionFragment() {
                 addLumpSumView(ls, lumpSumContainerData)
             }
 
-            dataBinding.root.findViewById<ImageButton>(R.id.lump_sum_add_button).setOnClickListener(object : View.OnClickListener {
+            dataBinding.root.findViewById<Button>(R.id.lump_sum_add_button).setOnClickListener(object : View.OnClickListener {
                 override fun onClick(btn: View) {
                     val ls = lumpSumContainerData.addLumpSum()
                     addLumpSumView(ls, lumpSumContainerData)
@@ -95,7 +94,7 @@ class LumpSumEditorFragment : ReportEditorSectionFragment() {
         lumpSumDataBinding.lumpSum = ls
         lumpSumDataBinding.lumpSumContainer = lumpSumContainerData
         lumpSumDataBinding.lifecycleOwner = activity
-        lumpSumDataBinding.root.findViewById<ImageButton>(R.id.lump_sum_del_button).setOnClickListener(object: View.OnClickListener {
+        lumpSumDataBinding.root.findViewById<Button>(R.id.lump_sum_del_button).setOnClickListener(object: View.OnClickListener {
             override fun onClick(btn: View) {
                 GlobalScope.launch(Dispatchers.Main) {
                     val answer =

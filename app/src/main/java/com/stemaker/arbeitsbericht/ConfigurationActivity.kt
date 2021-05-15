@@ -5,14 +5,19 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.BitmapFactory
 import android.net.Uri
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.Log
 import android.view.*
 import android.widget.*
+import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.google.android.material.appbar.MaterialToolbar
+import com.google.android.material.slider.Slider
+import com.google.android.material.switchmaterial.SwitchMaterial
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.stemaker.arbeitsbericht.data.configuration
 import com.stemaker.arbeitsbericht.helpers.SftpProvider
@@ -22,7 +27,6 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
-import kotlin.Exception
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
@@ -38,10 +42,6 @@ class ConfigurationActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_configuration)
 
-        setSupportActionBar(findViewById(R.id.configuration_activity_toolbar))
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        supportActionBar?.setTitle(R.string.settings)
-
         val storageInitJob = storageHandler().initialize()
 
         GlobalScope.launch(Dispatchers.Main) {
@@ -56,8 +56,8 @@ class ConfigurationActivity : AppCompatActivity() {
             findViewById<EditText>(R.id.config_device_name).setText(configuration().deviceName)
             findViewById<EditText>(R.id.config_report_id_pattern).setText(configuration().reportIdPattern)
             findViewById<EditText>(R.id.config_mail_receiver).setText(configuration().recvMail)
-            findViewById<Switch>(R.id.crashlog_enable).isChecked = configuration().crashlyticsEnabled
-            FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(configuration().crashlyticsEnabled);
+            findViewById<SwitchMaterial>(R.id.crashlog_enable).isChecked = configuration().crashlyticsEnabled
+            FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(configuration().crashlyticsEnabled)
             findViewById<EditText>(R.id.sftp_host).setText(configuration().sFtpHost)
             findViewById<EditText>(R.id.sftp_port).setText(configuration().sFtpPort.toString())
             findViewById<EditText>(R.id.sftp_user).setText(configuration().sFtpUser)
@@ -90,10 +90,10 @@ class ConfigurationActivity : AppCompatActivity() {
             findViewById<EditText>(R.id.odf_template_ftp_path).setText(configuration().odfTemplateServerPath)
             findViewById<EditText>(R.id.logo_ftp_path).setText(configuration().logoServerPath)
             findViewById<EditText>(R.id.footer_ftp_path).setText(configuration().footerServerPath)
-            findViewById<CheckBox>(R.id.pdf_use_logo).isChecked = configuration().pdfUseLogo
-            findViewById<CheckBox>(R.id.pdf_use_footer).isChecked = configuration().pdfUseFooter
-            findViewById<CheckBox>(R.id.xlsx_use_logo).isChecked = configuration().xlsxUseLogo
-            findViewById<CheckBox>(R.id.xlsx_use_footer).isChecked = configuration().xlsxUseFooter
+            findViewById<SwitchMaterial>(R.id.pdf_use_logo).isChecked = configuration().pdfUseLogo
+            findViewById<SwitchMaterial>(R.id.pdf_use_footer).isChecked = configuration().pdfUseFooter
+            findViewById<SwitchMaterial>(R.id.xlsx_use_logo).isChecked = configuration().xlsxUseLogo
+            findViewById<SwitchMaterial>(R.id.xlsx_use_footer).isChecked = configuration().xlsxUseFooter
             val radioGroup = findViewById<RadioGroup>(R.id.output_type_select_radiogroup)
             radioGroup.setOnCheckedChangeListener { _, checkedId ->
                 when (checkedId) {
@@ -121,39 +121,136 @@ class ConfigurationActivity : AppCompatActivity() {
             }
             showFileInImageView(configuration().footerFile, R.id.footer_image)
             showFileInImageView(configuration().logoFile, R.id.logo_image)
-            val fontsb = findViewById<SeekBar>(R.id.fontsize_seekbar)
-            val fontst = findViewById<TextView>(R.id.fontsize_text)
-            fontsb.progress = configuration().fontSize
-            fontst.text = "${getString(R.string.fontsize)}: ${fontsb.progress}"
-            fontsb.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-                override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                    fontst.text = "${getString(R.string.fontsize)}: ${fontsb.progress}"
+
+            // TODO: move the combination of edit text and slider into a custom view
+            // PDF font size
+            val fontSizeSlider = findViewById<Slider>(R.id.fontsize_slider)
+            val fontSizeEdit = findViewById<EditText>(R.id.fontsize_text)
+            fontSizeSlider.value = configuration().fontSize.toFloat()
+            fontSizeEdit.text.replace(0, 0, configuration().fontSize.toString())
+            fontSizeSlider.addOnChangeListener { _, value, _ ->
+                fontSizeEdit.text.replace(0, fontSizeEdit.text.length, value.toInt().toString())
+            }
+            fontSizeEdit.addTextChangedListener(object : TextWatcher {
+                override fun afterTextChanged(text: Editable?) {
+                    Log.d(TAG, "${text}")
+                    try {
+                        val f = text?.toString()?.toFloat()
+                        f?.let {
+                            when {
+                                f == 0.0f && fontSizeSlider.valueFrom > 0.0f -> return
+                                f < fontSizeSlider.valueFrom -> fontSizeSlider.value = fontSizeSlider.valueFrom
+                                f > fontSizeSlider.valueTo ->  fontSizeSlider.value = fontSizeSlider.valueTo
+                                else -> fontSizeSlider.value = f
+                            }
+                        }
+                    } catch (e:NumberFormatException) {
+                        fontSizeSlider.value = fontSizeSlider.valueFrom
+                    }
                 }
-                override fun onStartTrackingTouch(seekBar: SeekBar?) { }
-                override fun onStopTrackingTouch(seekBar: SeekBar?) { }
+                override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) { }
+                override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) { }
             })
-            val xlsxLogoWidthSb = findViewById<SeekBar>(R.id.xlsx_logo_width_seekbar)
-            val xlsxLogoWidthSt = findViewById<TextView>(R.id.xlsx_logo_width_text)
-            xlsxLogoWidthSb.progress = configuration().xlsxLogoWidth
-            xlsxLogoWidthSt.text = "${getString(R.string.logowidth)}: ${xlsxLogoWidthSb.progress}"
-            xlsxLogoWidthSb.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-                override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                    xlsxLogoWidthSt.text = "${getString(R.string.logowidth)}: ${xlsxLogoWidthSb.progress}"
+
+            // XLSX logo width
+            val xlsxLogoWidthSlider = findViewById<Slider>(R.id.xlsx_logo_width_slider)
+            val xlsxLogoWidthEdit = findViewById<EditText>(R.id.xlsx_logo_width_text)
+            xlsxLogoWidthSlider.value = configuration().xlsxLogoWidth.toFloat()
+            xlsxLogoWidthEdit.text.replace(0, 0, configuration().xlsxLogoWidth.toString())
+            xlsxLogoWidthSlider.addOnChangeListener { _, value, _ ->
+                xlsxLogoWidthEdit.text.replace(0, xlsxLogoWidthEdit.text.length, value.toInt().toString())
+            }
+            xlsxLogoWidthEdit.addTextChangedListener(object : TextWatcher {
+                override fun afterTextChanged(text: Editable?) {
+                    try {
+                        val f = text?.toString()?.toFloat()
+                        f?.let {
+                            when {
+                                f == 0.0f && xlsxLogoWidthSlider.valueFrom > 0.0f -> return
+                                f < xlsxLogoWidthSlider.valueFrom -> xlsxLogoWidthSlider.value = xlsxLogoWidthSlider.valueFrom
+                                f > xlsxLogoWidthSlider.valueTo ->  xlsxLogoWidthSlider.value = xlsxLogoWidthSlider.valueTo
+                                else -> xlsxLogoWidthSlider.value = f
+                            }
+                        }
+                    } catch (e:NumberFormatException) {
+                        xlsxLogoWidthSlider.value = xlsxLogoWidthSlider.valueFrom
+                    }
                 }
-                override fun onStartTrackingTouch(seekBar: SeekBar?) { }
-                override fun onStopTrackingTouch(seekBar: SeekBar?) { }
+                override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) { }
+                override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) { }
             })
-            val xlsxFooterWidthSb = findViewById<SeekBar>(R.id.xlsx_footer_width_seekbar)
-            val xlsxFooterWidthSt = findViewById<TextView>(R.id.xlsx_footer_width_text)
-            xlsxFooterWidthSb.progress = configuration().xlsxFooterWidth
-            xlsxFooterWidthSt.text = "${getString(R.string.footerwidth)}: ${xlsxFooterWidthSb.progress}"
-            xlsxFooterWidthSb.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-                override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                    xlsxFooterWidthSt.text = "${getString(R.string.footerwidth)}: ${xlsxFooterWidthSb.progress}"
+            // XLSX footer width
+            val xlsxFooterWidthSlider = findViewById<Slider>(R.id.xlsx_footer_width_slider)
+            val xlsxFooterWidthEdit = findViewById<EditText>(R.id.xlsx_footer_width_text)
+            xlsxFooterWidthSlider.value = configuration().xlsxFooterWidth.toFloat()
+            xlsxFooterWidthEdit.text.replace(0, 0, configuration().xlsxFooterWidth.toString())
+            xlsxFooterWidthSlider.addOnChangeListener { _, value, _ ->
+                xlsxFooterWidthEdit.text.replace(0, xlsxFooterWidthEdit.text.length, value.toInt().toString())
+            }
+            xlsxFooterWidthEdit.addTextChangedListener(object : TextWatcher {
+                override fun afterTextChanged(text: Editable?) {
+                    try {
+                        val f = text?.toString()?.toFloat()
+                        f?.let {
+                            when {
+                                f == 0.0f && xlsxFooterWidthSlider.valueFrom > 0.0f -> return
+                                f < xlsxFooterWidthSlider.valueFrom -> xlsxFooterWidthSlider.value = xlsxFooterWidthSlider.valueFrom
+                                f > xlsxFooterWidthSlider.valueTo ->  xlsxFooterWidthSlider.value = xlsxFooterWidthSlider.valueTo
+                                else -> xlsxFooterWidthSlider.value = f
+                            }
+                        }
+                    } catch (e:NumberFormatException) {
+                        xlsxFooterWidthSlider.value = xlsxFooterWidthSlider.valueFrom
+                    }
                 }
-                override fun onStartTrackingTouch(seekBar: SeekBar?) { }
-                override fun onStopTrackingTouch(seekBar: SeekBar?) { }
+                override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) { }
+                override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) { }
             })
+            // Photo width
+            val scalePhotosSlider = findViewById<Slider>(R.id.scale_photos_slider)
+            val scalePhotosEdit = findViewById<EditText>(R.id.scale_photos_value)
+            scalePhotosSlider.value = configuration().photoResolution.toFloat()
+            scalePhotosEdit.text.replace(0, 0, configuration().photoResolution.toString())
+            scalePhotosSlider.addOnChangeListener { _, value, _ ->
+                scalePhotosEdit.text.replace(0, scalePhotosEdit.text.length, value.toInt().toString())
+            }
+            scalePhotosEdit.addTextChangedListener(object : TextWatcher {
+                override fun afterTextChanged(text: Editable?) {
+                    try {
+                        val f = text?.toString()?.toFloat()
+                        f?.let {
+                            when {
+                                f == 0.0f && scalePhotosSlider.valueFrom > 0.0f -> return
+                                f < scalePhotosSlider.valueFrom -> scalePhotosSlider.value = scalePhotosSlider.valueFrom
+                                f > scalePhotosSlider.valueTo ->  scalePhotosSlider.value = scalePhotosSlider.valueTo
+                                else -> scalePhotosSlider.value = f
+                            }
+                        }
+                    } catch (e:NumberFormatException) {
+                        scalePhotosSlider.value = scalePhotosSlider.valueFrom
+                    }
+                }
+                override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) { }
+                override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) { }
+            })
+            val scalePhotosSwitch = findViewById<SwitchMaterial>(R.id.scale_photos)
+            scalePhotosSwitch.isChecked = configuration().scalePhotos
+            scalePhotosSwitch.setOnCheckedChangeListener { button, b ->
+                scalePhotosSlider.isEnabled = b
+                scalePhotosEdit.isEnabled = b
+            }
+            if(!configuration().scalePhotos) {
+                scalePhotosSlider.isEnabled = false
+            }
+        }
+        findViewById<MaterialToolbar>(R.id.configuration_activity_toolbar).setOnMenuItemClickListener { item ->
+            when (item.itemId) {
+                R.id.config_save_button -> {
+                    save()
+                    true
+                }
+                else -> super.onOptionsItemSelected(item)
+            }
         }
     }
 
@@ -174,22 +271,6 @@ class ConfigurationActivity : AppCompatActivity() {
             }
         }
         return ratio
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        val inflater: MenuInflater = menuInflater
-        inflater.inflate(R.menu.configuration_menu, menu)
-        return true
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when (item.itemId) {
-            R.id.config_save_button -> {
-                save()
-                true
-            }
-            else -> super.onOptionsItemSelected(item)
-        }
     }
 
     fun checkForIdChange(): Boolean {
@@ -214,8 +295,8 @@ class ConfigurationActivity : AppCompatActivity() {
         configuration().reportIdPattern = findViewById<EditText>(R.id.config_report_id_pattern).getText().toString()
 
         configuration().recvMail = findViewById<EditText>(R.id.config_mail_receiver).getText().toString()
-        configuration().crashlyticsEnabled = findViewById<Switch>(R.id.crashlog_enable).isChecked
-        FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(configuration().crashlyticsEnabled);
+        configuration().crashlyticsEnabled = findViewById<SwitchMaterial>(R.id.crashlog_enable).isChecked
+        FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(configuration().crashlyticsEnabled)
         configuration().useOdfOutput = findViewById<RadioButton>(R.id.radio_odf_output).isChecked
         configuration().useXlsxOutput = findViewById<RadioButton>(R.id.radio_xlsx_output).isChecked
         configuration().selectOutput = findViewById<RadioButton>(R.id.radio_select_output).isChecked
@@ -228,13 +309,15 @@ class ConfigurationActivity : AppCompatActivity() {
         configuration().odfTemplateServerPath = findViewById<EditText>(R.id.odf_template_ftp_path).text.toString()
         configuration().logoServerPath = findViewById<EditText>(R.id.logo_ftp_path).text.toString()
         configuration().footerServerPath = findViewById<EditText>(R.id.footer_ftp_path).text.toString()
-        configuration().fontSize = findViewById<SeekBar>(R.id.fontsize_seekbar).progress
-        configuration().pdfUseLogo = findViewById<CheckBox>(R.id.pdf_use_logo).isChecked
-        configuration().pdfUseFooter = findViewById<CheckBox>(R.id.pdf_use_footer).isChecked
-        configuration().xlsxUseLogo = findViewById<CheckBox>(R.id.xlsx_use_logo).isChecked
-        configuration().xlsxLogoWidth = findViewById<SeekBar>(R.id.xlsx_logo_width_seekbar).progress
-        configuration().xlsxUseFooter = findViewById<CheckBox>(R.id.xlsx_use_footer).isChecked
-        configuration().xlsxFooterWidth = findViewById<SeekBar>(R.id.xlsx_footer_width_seekbar).progress
+        configuration().fontSize = findViewById<Slider>(R.id.fontsize_slider).value.toInt()
+        configuration().pdfUseLogo = findViewById<SwitchMaterial>(R.id.pdf_use_logo).isChecked
+        configuration().pdfUseFooter = findViewById<SwitchMaterial>(R.id.pdf_use_footer).isChecked
+        configuration().xlsxUseLogo = findViewById<SwitchMaterial>(R.id.xlsx_use_logo).isChecked
+        configuration().xlsxUseFooter = findViewById<SwitchMaterial>(R.id.xlsx_use_footer).isChecked
+        configuration().xlsxLogoWidth = findViewById<Slider>(R.id.xlsx_logo_width_slider).value.toInt()
+        configuration().xlsxFooterWidth = findViewById<Slider>(R.id.xlsx_footer_width_slider).value.toInt()
+        configuration().photoResolution = findViewById<Slider>(R.id.scale_photos_slider).value.toInt()
+        configuration().scalePhotos = findViewById<SwitchMaterial>(R.id.scale_photos).isChecked
         configuration().save()
 
         findViewById<ProgressBar>(R.id.sftp_progress).visibility = View.GONE
@@ -248,10 +331,10 @@ class ConfigurationActivity : AppCompatActivity() {
             if(checkAndObtainInternetPermission()) {
                 getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
                 findViewById<ProgressBar>(R.id.sftp_progress).visibility = View.VISIBLE
-                val host = findViewById<AutoCompleteTextView>(R.id.sftp_host).text.toString()
-                val port = findViewById<AutoCompleteTextView>(R.id.sftp_port).text.toString().toInt()
-                val user = findViewById<AutoCompleteTextView>(R.id.sftp_user).text.toString()
-                var pwd = findViewById<AutoCompleteTextView>(R.id.sftp_pwd).text.toString()
+                val host = findViewById<EditText>(R.id.sftp_host).text.toString()
+                val port = findViewById<EditText>(R.id.sftp_port).text.toString().toInt()
+                val user = findViewById<EditText>(R.id.sftp_user).text.toString()
+                var pwd = findViewById<EditText>(R.id.sftp_pwd).text.toString()
                 if (pwd == "") pwd = configuration().sFtpEncryptedPassword
                 try {
                     val sftpProvider = SftpProvider(this@ConfigurationActivity)
@@ -270,7 +353,7 @@ class ConfigurationActivity : AppCompatActivity() {
 
     private var continuation: Continuation<Uri?>? = null
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data);
+        super.onActivityResult(requestCode, resultCode, data)
         if(requestCode == REQUEST_LOAD && resultCode == RESULT_OK) {
             val selectedfile = data?.getData()
             //TODO: We would need to handle the case the app gets destroyed in between, can be easily
@@ -280,11 +363,11 @@ class ConfigurationActivity : AppCompatActivity() {
     }
 
     private fun copyUriToFile(uri: Uri, fileName: String) {
-        val inStream =  contentResolver.openInputStream(uri);
+        val inStream =  contentResolver.openInputStream(uri)
         if(inStream == null) throw Exception("Could not open input file")
-        val outStream = FileOutputStream(File(this@ConfigurationActivity.filesDir, fileName));
+        val outStream = FileOutputStream(File(this@ConfigurationActivity.filesDir, fileName))
         val buf = ByteArray(1024)
-        var len: Int = inStream.read(buf);
+        var len: Int = inStream.read(buf)
         while(len > 0) {
             outStream.write(buf,0,len)
             len = inStream.read(buf)
@@ -323,16 +406,16 @@ class ConfigurationActivity : AppCompatActivity() {
             if(checkAndObtainInternetPermission()) {
                 window.setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
                 findViewById<ProgressBar>(R.id.sftp_progress).visibility = View.VISIBLE
-                val host = findViewById<AutoCompleteTextView>(R.id.sftp_host).text.toString()
-                val port = findViewById<AutoCompleteTextView>(R.id.sftp_port).text.toString().toInt()
-                val user = findViewById<AutoCompleteTextView>(R.id.sftp_user).text.toString()
-                var pwd = findViewById<AutoCompleteTextView>(R.id.sftp_pwd).text.toString()
+                val host = findViewById<EditText>(R.id.sftp_host).text.toString()
+                val port = findViewById<EditText>(R.id.sftp_port).text.toString().toInt()
+                val user = findViewById<EditText>(R.id.sftp_user).text.toString()
+                var pwd = findViewById<EditText>(R.id.sftp_pwd).text.toString()
                 try {
                     if (pwd == "") pwd = configuration().sFtpEncryptedPassword
                     val sftpProvider = SftpProvider(this@ConfigurationActivity)
                     sftpProvider.connect(user, pwd, host, port)
                     Log.d(TAG, "Connection success")
-                    val src = findViewById<AutoCompleteTextView>(R.id.odf_template_ftp_path).text.toString()
+                    val src = findViewById<EditText>(R.id.odf_template_ftp_path).text.toString()
                     val dst = "custom_output_template.ott"
                     sftpProvider.copyFile(src, "${filesDir}/$dst")
                     sftpProvider.disconnect()
@@ -379,11 +462,11 @@ class ConfigurationActivity : AppCompatActivity() {
             if(checkAndObtainInternetPermission()) {
                 window.setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
                 findViewById<ProgressBar>(R.id.sftp_progress).visibility = View.VISIBLE
-                val host = findViewById<AutoCompleteTextView>(R.id.sftp_host).text.toString()
-                val port = findViewById<AutoCompleteTextView>(R.id.sftp_port).text.toString().toInt()
-                val user = findViewById<AutoCompleteTextView>(R.id.sftp_user).text.toString()
-                var pwd = findViewById<AutoCompleteTextView>(R.id.sftp_pwd).text.toString()
-                val src = findViewById<AutoCompleteTextView>(R.id.logo_ftp_path).text.toString()
+                val host = findViewById<EditText>(R.id.sftp_host).text.toString()
+                val port = findViewById<EditText>(R.id.sftp_port).text.toString().toInt()
+                val user = findViewById<EditText>(R.id.sftp_user).text.toString()
+                var pwd = findViewById<EditText>(R.id.sftp_pwd).text.toString()
+                val src = findViewById<EditText>(R.id.logo_ftp_path).text.toString()
                 if (!src.endsWith(".jpg", true) && !src.endsWith(".jpeg", true)) {
                     showInfoDialog(getString(R.string.only_jpeg_supported), this@ConfigurationActivity)
                 } else {
@@ -440,11 +523,11 @@ class ConfigurationActivity : AppCompatActivity() {
             if(checkAndObtainInternetPermission()) {
                 window.setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
                 findViewById<ProgressBar>(R.id.sftp_progress).visibility = View.VISIBLE
-                val host = findViewById<AutoCompleteTextView>(R.id.sftp_host).text.toString()
-                val port = findViewById<AutoCompleteTextView>(R.id.sftp_port).text.toString().toInt()
-                val user = findViewById<AutoCompleteTextView>(R.id.sftp_user).text.toString()
-                var pwd = findViewById<AutoCompleteTextView>(R.id.sftp_pwd).text.toString()
-                val src = findViewById<AutoCompleteTextView>(R.id.footer_ftp_path).text.toString()
+                val host = findViewById<EditText>(R.id.sftp_host).text.toString()
+                val port = findViewById<EditText>(R.id.sftp_port).text.toString().toInt()
+                val user = findViewById<EditText>(R.id.sftp_user).text.toString()
+                var pwd = findViewById<EditText>(R.id.sftp_pwd).text.toString()
+                val src = findViewById<EditText>(R.id.footer_ftp_path).text.toString()
                 if(!src.endsWith(".jpg", true) && !src.endsWith(".jpeg", true)) {
                     showInfoDialog(getString(R.string.only_jpeg_supported), this@ConfigurationActivity)
                 } else {

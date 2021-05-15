@@ -1,16 +1,13 @@
 package com.stemaker.arbeitsbericht.output
 
 import android.app.Activity
-import android.os.*
+import android.os.Environment
 import android.util.Log
 import android.widget.ProgressBar
 import android.widget.TextView
-import androidx.appcompat.app.AlertDialog
 import com.stemaker.arbeitsbericht.R
 import com.stemaker.arbeitsbericht.data.ReportData
 import com.stemaker.arbeitsbericht.data.configuration
-import com.stemaker.arbeitsbericht.helpers.*
-import com.stemaker.arbeitsbericht.output.ReportGenerator
 import org.odftoolkit.odfdom.doc.OdfTextDocument
 import org.odftoolkit.odfdom.doc.table.OdfTable
 import org.odftoolkit.odfdom.dom.OdfContentDom
@@ -29,13 +26,9 @@ import org.odftoolkit.odfdom.type.Color
 import org.w3c.dom.Node
 import java.io.File
 import java.io.FileInputStream
-import java.io.IOException
 import java.io.InputStream
 import javax.xml.xpath.XPathConstants
 import javax.xml.xpath.XPathExpressionException
-import kotlin.coroutines.Continuation
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
 private const val TAG = "OdfGenerator"
 

@@ -10,17 +10,23 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical">
-        <androidx.appcompat.widget.Toolbar
-                android:id="@+id/report_editor_activity_toolbar"
+        <com.google.android.material.appbar.AppBarLayout
+                android:id="@+id/report_editor_activity_toolbar_container"
                 android:layout_width="match_parent"
-                android:layout_height="?attr/actionBarSize"
+                android:layout_height="wrap_content"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintRight_toRightOf="parent"
-                android:background="?attr/colorPrimary"
-                android:elevation="4dp"
-                android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
-                app:popupTheme="@style/ThemeOverlay.AppCompat.Light"/>
+                app:layout_constraintRight_toRightOf="parent">
+            <com.google.android.material.appbar.MaterialToolbar
+                    android:id="@+id/report_editor_activity_toolbar"
+                    android:layout_width="match_parent"
+                    android:layout_height="?attr/actionBarSize"
+                    app:title="Bearbeiten"
+                    app:menu="@menu/editor_menu"
+                    app:navigationIcon="@drawable/ic_baseline_arrow_back_24"
+                    app:theme="@style/ArbeitsberichtAppTheme.ActionBar"
+                    app:popupTheme="@style/ArbeitsberichtAppTheme.ActionBar"/>
+        </com.google.android.material.appbar.AppBarLayout>
         <ProgressBar
                 android:id="@+id/progressBar"
                 android:layout_width="wrap_content"
@@ -47,7 +53,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"
-                app:layout_constraintTop_toBottomOf="@id/report_editor_activity_toolbar"
+                app:layout_constraintTop_toBottomOf="@id/report_editor_activity_toolbar_container"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"

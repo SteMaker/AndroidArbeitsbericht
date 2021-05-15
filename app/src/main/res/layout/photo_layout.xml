@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout
-        xmlns:app="http://schemas.android.com/apk/res-auto"
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:card_view="http://schemas.android.com/apk/res-auto">
+<layout xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:android="http://schemas.android.com/apk/res/android">
 
     <data>
         <variable name="photo" type="com.stemaker.arbeitsbericht.data.PhotoData"/>
@@ -12,44 +10,42 @@
             android:id="@+id/photo_card_top"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            card_view:cardCornerRadius="4dp"
-            card_view:cardElevation="4dp"
-            app:contentPadding="10dp"
-            app:contentPaddingBottom="0dp"
-            app:cardPreventCornerOverlap="true"
-            app:cardUseCompatPadding="true"
+            style="@style/ArbeitsberichtAppTheme.CardLevel1"
             android:clickable="false">
 
         <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
-            <ImageButton
+            <Button
                     android:id="@+id/photo_take_button"
-                    android:layout_width="50dp"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     app:layout_constraintLeft_toLeftOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintBottom_toTopOf="@id/photo_del_button"
-                    android:src="@drawable/ic_photo_camera_black_24dp"
+                    style="@style/ArbeitsberichtAppTheme.IconButtons"
+                    app:icon="@drawable/ic_photo_camera_black_24dp"
                     />
-            <ImageButton
+            <Button
                     android:id="@+id/photo_del_button"
-                    android:layout_width="50dp"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     app:layout_constraintLeft_toLeftOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/photo_take_button"
                     app:layout_constraintBottom_toTopOf="@id/barrier"
-                    android:src="@drawable/ic_delete_black_24dp"
+                    style="@style/ArbeitsberichtAppTheme.IconButtons"
+                    app:icon="@drawable/ic_delete_black_24dp"
                     />
-            <ImageButton
+            <Button
                     android:id="@+id/photo_load_button"
-                    android:layout_width="50dp"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     app:layout_constraintLeft_toRightOf="@id/photo_take_button"
                     app:layout_constraintTop_toTopOf="@id/photo_take_button"
                     app:layout_constraintBottom_toBottomOf="@id/photo_take_button"
-                    android:src="@drawable/ic_baseline_insert_photo_24"
+                    style="@style/ArbeitsberichtAppTheme.IconButtons"
+                    app:icon="@drawable/ic_baseline_insert_drive_file_24"
                     />
             <ImageView
                     android:id="@+id/photo_view"
@@ -73,7 +69,7 @@
                     app:layout_constraintLeft_toLeftOf="parent"
                     app:layout_constraintRight_toRightOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/barrier">
-                <AutoCompleteTextView
+                <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/photo_description"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"

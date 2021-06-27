@@ -19,7 +19,7 @@ private const val TAG = "PdfPrint"
 class PdfGenerator(activity: Activity, report: ReportData, progressBar: ProgressBar?, textView: TextView?) :
     ReportGenerator(activity, report, progressBar, textView, true){
 
-    val jobName = "pdf_print_" + report.id
+    val jobName = "pdf_print_" + report.id.value
     var webView: WebView? = null
     var html: String? = null
     val attributes = PrintAttributes.Builder()

@@ -51,10 +51,10 @@ abstract class ReportGenerator(val activity: Activity, val report: ReportData, p
 
         val docFiles = mutableListOf<File>()
         for (postfixExt in filePostFixExt)
-            docFiles.add(File(privatePath, "report_${report.id}${postfixExt.first}.${postfixExt.second}"))
+            docFiles.add(File(privatePath, "report_${report.id.value}${postfixExt.first}.${postfixExt.second}"))
 
-        val clientSigFile = File(privatePath, "report_client_sig_${report.id}.png")
-        val employeeSigFile = File(privatePath, "report_employee_sig_${report.id}.png")
+        val clientSigFile = File(privatePath, "report_client_sig_${report.id.value}.png")
+        val employeeSigFile = File(privatePath, "report_employee_sig_${report.id.value}.png")
 
         try {
             // Document files

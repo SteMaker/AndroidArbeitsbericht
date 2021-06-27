@@ -1,6 +1,8 @@
 package com.stemaker.arbeitsbericht.data
 
+import android.util.Log
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.stemaker.arbeitsbericht.R
@@ -11,36 +13,40 @@ private const val TAG="ReportData"
 
 class ReportData private constructor(var cnt: Int = 0): ViewModel() {
     private var _id = MutableLiveData<String>()
-    val idLive: LiveData<String>
-        get() { return MutableLiveData<String>().apply { value = id } }
 
-    val id: String
-        get() {
-            // TODO: Check how often this is executed, performance impact?
-            var string = configuration().reportIdPattern
-            // Replace %<n>c -> running counter
-            val regex = """(%c|%[0-9]c)""".toRegex()
-            string = regex.replace(string) { m ->
-                when (m.value) {
-                    "%c" -> cnt.toString()
-                    else -> {
-                        val length = m.value.substring(1,2).toInt()
-                        cnt.toString().padStart(length, '0')
-                    }
+    private fun buildId(): String {
+        var string = configuration().reportIdPattern.value?:""
+        // Replace %<n>c -> running counter
+        val regex = """(%c|%[0-9]c)""".toRegex()
+        string = regex.replace(string) { m ->
+            when (m.value) {
+                "%c" -> cnt.toString()
+                else -> {
+                    val length = m.value.substring(1,2).toInt()
+                    cnt.toString().padStart(length, '0')
                 }
             }
-
-            // Replace %y, %m, %d -> Date
-            string = string.replace("%y", create_date.value!!.substring(6, 10))
-            string = string.replace("%m", create_date.value!!.substring(3, 5))
-            string = string.replace("%d", create_date.value!!.substring(0, 2))
-
-            // Replace others
-            string = string.replace("%e", configuration().employeeName)
-            string = string.replace("%p", configuration().deviceName)
-
-            return string
         }
+
+        // Replace %y, %m, %d -> Date
+        string = string.replace("%y", create_date.value!!.substring(6, 10))
+        string = string.replace("%m", create_date.value!!.substring(3, 5))
+        string = string.replace("%d", create_date.value!!.substring(0, 2))
+
+        // Replace others
+        string = string.replace("%e", configuration().employeeName)
+        string = string.replace("%p", configuration().deviceName)
+        project.name.value?.let { string = string.replace("%k", it) }
+        project.extra1.value?.let { string = string.replace("%z", it) }
+
+        // Remove spaces and other problematic chars
+        val regex2 = "[^a-zA-Z0-9öÖäÄüÜ\\-_]".toRegex()
+        string = regex2.replace(string) { m ->
+            "_"
+        }
+
+        return string
+    }
 
     private val _create_date = MutableLiveData<String>()
     val create_date: LiveData<String>
@@ -74,9 +80,23 @@ class ReportData private constructor(var cnt: Int = 0): ViewModel() {
     val lumpSumContainer = LumpSumContainerData()
     val photoContainer = PhotoContainerData()
     val signatureData = SignatureData()
+    val id = MediatorLiveData<String> ()
 
     init {
         _create_date.value = getCurrentDate()
+
+        id.addSource(create_date) {
+            id.value = buildId()
+        }
+        id.addSource(project.name) {
+            id.value = buildId()
+        }
+        id.addSource(project.extra1) {
+            id.value = buildId()
+        }
+        id.addSource(configuration().reportIdPattern) {
+            id.value = buildId()
+        }
     }
 
     private fun copyFromSerialized(r: ReportDataSerialized) {

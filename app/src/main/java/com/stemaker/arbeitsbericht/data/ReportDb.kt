@@ -2,6 +2,7 @@ package com.stemaker.arbeitsbericht.data
 
 import androidx.lifecycle.MutableLiveData
 import androidx.room.*
+import com.stemaker.arbeitsbericht.helpers.ReportFilter
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.cbor.Cbor
 import kotlinx.serialization.decodeFromByteArray
@@ -19,7 +20,11 @@ interface ReportDao {
     suspend fun getReportCnts(): List<Int>
 
     @Query("SELECT cnt FROM ReportDb WHERE state IN (:stateFilter) ORDER BY cnt DESC")
-    suspend fun getStateFilteredReportIds(stateFilter: Set<Int>): List<Int>
+    suspend fun getFilteredReportIdsString(stateFilter: Set<Int>): List<Int>
+
+    suspend fun getFilteredReportIds(filter: ReportFilter): List<Int> {
+        return getFilteredReportIdsString(filter.remainingStates)
+    }
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(reportDb: ReportDb)

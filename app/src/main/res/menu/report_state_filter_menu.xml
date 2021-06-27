@@ -14,5 +14,4 @@
               android:icon="@drawable/ic_baseline_done_24"
               android:title="@string/archived" />
     </group>
-
 </menu>

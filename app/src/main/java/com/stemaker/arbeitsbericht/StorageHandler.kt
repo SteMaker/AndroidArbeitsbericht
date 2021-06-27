@@ -10,6 +10,7 @@ import com.stemaker.arbeitsbericht.data.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Mutex
 import java.io.*
+import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
 
 private const val TAG = "StorageHandler"
@@ -53,11 +54,6 @@ object StorageHandler {
 
     var reportListObservers = mutableListOf<ReportListObserver>()
 
-    // TODO: Store the filter in the configuration
-    private val stateFilter = mutableSetOf<Int>(ReportData.ReportState.toInt(ReportData.ReportState.IN_WORK),
-        ReportData.ReportState.toInt(ReportData.ReportState.ON_HOLD),
-        ReportData.ReportState.toInt(ReportData.ReportState.DONE))
-
     fun initialize(): Job? {
         if (inited.compareAndSet(false, true)) {
             initJob = GlobalScope.launch(Dispatchers.Main) {
@@ -78,7 +74,7 @@ object StorageHandler {
                 }
 
                 val cnts = withContext(Dispatchers.IO) {
-                    db.reportDao().getStateFilteredReportIds(stateFilter)
+                    db.reportDao().getFilteredReportIds(configuration().reportFilter)
                 }
                 visReportCnts.addAll(cnts)
 
@@ -90,6 +86,11 @@ object StorageHandler {
                         configuration().activeReportId = -1
                     }
                 }
+                configuration().reportFilter.addOnPropertyChangedCallback(object : androidx.databinding.Observable.OnPropertyChangedCallback() {
+                    override fun onPropertyChanged(sender: androidx.databinding.Observable?, propertyId: Int) {
+                        updateFilter()
+                    }
+                })
             }
         }
         // Activities need to wait for this initJob before they are allowed to access the storageHandler()
@@ -97,11 +98,9 @@ object StorageHandler {
     }
 
     private fun fetchAllCntsFromDb() {
-        val localStateFilter = mutableSetOf<Int>()
-        localStateFilter.addAll(stateFilter)
         GlobalScope.launch(Dispatchers.Main) {
             val cnts = withContext(Dispatchers.IO) {
-                db.reportDao().getStateFilteredReportIds(localStateFilter)
+                db.reportDao().getFilteredReportIds(configuration().reportFilter)
             }
             synchronized(visReportCnts) {
                 visReportCnts.clear()
@@ -148,8 +147,13 @@ object StorageHandler {
 
     private fun addReportToCache(r: ReportData) {
         reports[r.cnt] = r
-        val observer = Observer<ReportData.ReportState> { _ -> reportStateChanged(r)}
-        r.state.observeForever(observer)
+    }
+
+    private fun observeReport(r: ReportData) {
+        val stateObserver = Observer<ReportData.ReportState> { _ -> reportChanged(r)}
+        val projectNameObserver = Observer<String> { _ -> reportChanged(r)}
+        r.state.observeForever(stateObserver)
+        r.project.name.observeForever(projectNameObserver)
     }
 
     private fun removeReportFromCache(cnt: Int) {
@@ -162,17 +166,13 @@ object StorageHandler {
         reports.clear()
     }
 
-    fun setStateFilter(f: Set<Int>) {
-        if(f != stateFilter) {
-            stateFilter.clear()
-            stateFilter.addAll(f)
-            fetchAllCntsFromDb()
-        }
+    fun updateFilter() {
+        fetchAllCntsFromDb()
     }
 
-    private fun reportStateChanged(r: ReportData) {
+    private fun reportChanged(r: ReportData) {
         // If the new state is set to invisible and it is currently visible
-        if (!stateFilter.contains(ReportData.ReportState.toInt(r.state.value!!)) && visReportCnts.contains(r.cnt)) {
+        if (configuration().reportFilter.isFiltered(r) && visReportCnts.contains(r.cnt)) {
             synchronized(visReportCnts) {
                 visReportCnts.remove(r.cnt)
             }
@@ -195,6 +195,7 @@ object StorageHandler {
                     db.reportDao().getReportByCnt(cnt)
                 }
                 ReportData.getReportFromDb(rDb, report)
+                observeReport(report)
                 onLoaded(report)
             }
             return report
@@ -216,6 +217,7 @@ object StorageHandler {
         activeReport = r
         addReportToCache(r)
         saveActiveReport()
+        observeReport(r)
         for (o in reportListObservers)
             o.notifyReportAdded(r.cnt)
         return r
@@ -320,6 +322,9 @@ object StorageHandler {
             val fIn = c.openFileInput("configuration.json")
             val isr = InputStreamReader(fIn)
             Configuration.store = gson.fromJson(isr, ConfigurationStore::class.java)
+            // Only temp until I rework the configuration data handling to copy to/from json/db similar as for reports
+            Configuration.reportIdPattern.value = Configuration.store.reportIdPattern
+            // TODO: Load filter from configuration
         }
         catch (e: FileNotFoundException){
             Configuration.store = ConfigurationStore()
@@ -330,6 +335,7 @@ object StorageHandler {
     fun saveConfigurationToFile(c: Context) {
         configuration().materialDictionary = materialDictionary
         configuration().workItemDictionary = workItemDictionary
+        // TODO: Save filter to configuration
         val fOut = c.openFileOutput("configuration.json", MODE_PRIVATE)
         val osw = OutputStreamWriter(fOut)
         gson.toJson(Configuration.store, osw)

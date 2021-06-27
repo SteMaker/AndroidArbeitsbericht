@@ -30,7 +30,7 @@
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/report_card_client"
                 app:layout_constraintBottom_toTopOf="@id/report_card_create_date"
-                android:text="@{@string/reportid(report_data.idLive)}"
+                android:text="@{@string/reportid(report_data.id)}"
                 android:textSize="12sp"
                 />
         <TextView

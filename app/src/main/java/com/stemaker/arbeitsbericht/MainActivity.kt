@@ -5,14 +5,17 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.*
+import android.widget.CheckBox
 import android.widget.PopupMenu
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.material.button.MaterialButton
 import com.stemaker.arbeitsbericht.data.ReportData
 import com.stemaker.arbeitsbericht.data.configuration
 import com.stemaker.arbeitsbericht.databinding.ActivityMainBinding
+import com.stemaker.arbeitsbericht.helpers.ReportFilter
 import com.stemaker.arbeitsbericht.helpers.ReportListAdapter
 import com.stemaker.arbeitsbericht.helpers.showConfirmationDialog
 import kotlinx.coroutines.Dispatchers
@@ -30,41 +33,9 @@ interface ReportCardInterface {
 }
 fun Boolean.toInt() = if (this) 1 else 0
 
-class ReportStateVisibility {
-    var visibility = mutableSetOf<Int>(
-        ReportData.ReportState.toInt(ReportData.ReportState.IN_WORK),
-        ReportData.ReportState.toInt(ReportData.ReportState.ON_HOLD),
-        ReportData.ReportState.toInt(ReportData.ReportState.DONE)
-    )
-    var inWork
-        get() = visibility.contains(ReportData.ReportState.toInt(ReportData.ReportState.IN_WORK))
-        set(v: Boolean) {
-            if (v) visibility.add(ReportData.ReportState.toInt(ReportData.ReportState.IN_WORK))
-            else visibility.remove(ReportData.ReportState.toInt(ReportData.ReportState.IN_WORK))
-        }
-    var onHold
-        get() = visibility.contains(ReportData.ReportState.toInt(ReportData.ReportState.ON_HOLD))
-        set(v: Boolean) {
-            if (v) visibility.add(ReportData.ReportState.toInt(ReportData.ReportState.ON_HOLD))
-            else visibility.remove(ReportData.ReportState.toInt(ReportData.ReportState.ON_HOLD))
-        }
-    var done
-        get() = visibility.contains(ReportData.ReportState.toInt(ReportData.ReportState.DONE))
-        set(v: Boolean) {
-            if (v) visibility.add(ReportData.ReportState.toInt(ReportData.ReportState.DONE))
-            else visibility.remove(ReportData.ReportState.toInt(ReportData.ReportState.DONE))
-        }
-    var archived
-        get() = visibility.contains(ReportData.ReportState.toInt(ReportData.ReportState.ARCHIVED))
-        set(v: Boolean) {
-            if (v) visibility.add(ReportData.ReportState.toInt(ReportData.ReportState.ARCHIVED))
-            else visibility.remove(ReportData.ReportState.toInt(ReportData.ReportState.ARCHIVED))
-        }
-}
 
 class MainActivity : AppCompatActivity(), ReportCardInterface {
     lateinit var binding: ActivityMainBinding
-    var reportStateVisibility = ReportStateVisibility()
     lateinit var adapter: ReportListAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -125,7 +96,7 @@ class MainActivity : AppCompatActivity(), ReportCardInterface {
                     true
                 }
                 R.id.main_menu_filter -> {
-                    showFilterPopup()
+                    showFilterDialog()
                     true
                 }
                 else -> super.onOptionsItemSelected(item)
@@ -135,8 +106,9 @@ class MainActivity : AppCompatActivity(), ReportCardInterface {
 
     private fun createNewReport() {
         // On creating a new report, we should make in work reports visible
-        reportStateVisibility.inWork = true
-        storageHandler().setStateFilter(reportStateVisibility.visibility)
+        configuration().reportFilter.inWork = true
+        configuration().reportFilter.updateDone()
+        //storageHandler().updateFilter(reportStateVisibility.visibility)
         storageHandler().createNewReportAndSelect()
         val intent = Intent(this@MainActivity, ReportEditorActivity::class.java).apply {}
         startActivity(intent)
@@ -183,52 +155,31 @@ class MainActivity : AppCompatActivity(), ReportCardInterface {
         }
     }
 
-    private fun showFilterPopup() {
-        val view = binding.mainActivityToolbar.findViewById<View>(R.id.main_menu_filter)
-        PopupMenu(this@MainActivity, view).apply {
-            setOnMenuItemClickListener { item ->
-                when (item?.itemId) {
-                    R.id.in_work -> {
-                        reportStateVisibility.inWork = !item.isChecked
-                        item.isChecked = !item.isChecked
-                        GlobalScope.launch(Dispatchers.Main) {
-                            storageHandler().setStateFilter(reportStateVisibility.visibility)
-                        }
-                        true
-                    }
-                    R.id.on_hold -> {
-                        reportStateVisibility.onHold = !item.isChecked
-                        item.isChecked = !item.isChecked
-                        GlobalScope.launch(Dispatchers.Main) {
-                            storageHandler().setStateFilter(reportStateVisibility.visibility)
-                        }
-                        true
-                    }
-                    R.id.done -> {
-                        reportStateVisibility.done = !item.isChecked
-                        item.isChecked = !item.isChecked
-                        GlobalScope.launch(Dispatchers.Main) {
-                            storageHandler().setStateFilter(reportStateVisibility.visibility)
-                        }
-                        true
-                    }
-                    R.id.archived -> {
-                        reportStateVisibility.archived = !item.isChecked
-                        item.isChecked = !item.isChecked
-                        GlobalScope.launch(Dispatchers.Main) {
-                            storageHandler().setStateFilter(reportStateVisibility.visibility)
-                        }
-                        true
-                    }
-                    else -> false
-                }
+    private fun showFilterDialog() {
+        AlertDialog.Builder(this).apply {
+            val view = layoutInflater.inflate(R.layout.filter_project_layout, null)
+            setView(view)
+            val dialog = create()
+            dialog.show()
+            val viewInWork = view.findViewById<CheckBox>(R.id.in_work)
+            viewInWork.isChecked = configuration().reportFilter.inWork
+            val viewOnHold = view.findViewById<CheckBox>(R.id.on_hold)
+            viewOnHold.isChecked = configuration().reportFilter.onHold
+            val viewDone = view.findViewById<CheckBox>(R.id.done)
+            viewDone.isChecked = configuration().reportFilter.done
+            val viewArchived = view.findViewById<CheckBox>(R.id.archived)
+            viewArchived.isChecked = configuration().reportFilter.archived
+            view.findViewById<MaterialButton>(R.id.apply_button).setOnClickListener {
+                configuration().reportFilter.inWork = viewInWork.isChecked
+                configuration().reportFilter.onHold = viewOnHold.isChecked
+                configuration().reportFilter.done = viewDone.isChecked
+                configuration().reportFilter.archived = viewArchived.isChecked
+                configuration().reportFilter.updateDone()
+                dialog.dismiss()
             }
-            inflate(R.menu.report_state_filter_menu)
-            menu.findItem(R.id.in_work).isChecked = reportStateVisibility.inWork
-            menu.findItem(R.id.on_hold).isChecked = reportStateVisibility.onHold
-            menu.findItem(R.id.done).isChecked = reportStateVisibility.done
-            menu.findItem(R.id.archived).isChecked = reportStateVisibility.archived
-            show()
+            view.findViewById<MaterialButton>(R.id.cancel_button).setOnClickListener {
+                dialog.dismiss()
+            }
         }
     }
 

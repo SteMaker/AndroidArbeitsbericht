@@ -1,0 +1,5 @@
+<resources>
+    <declare-styleable name="InfoButton">
+        <attr name="infoUrl" format="string" />
+    </declare-styleable>
+</resources>

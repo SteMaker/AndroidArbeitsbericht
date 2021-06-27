@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+<h1>Allgemeine Einstellungen</h1>
+<h2>Name der Mitarbeiters</h2>
+<p>Der Name wird standardmäßig beim Erstellen neuer Arbeitszeiten eingetragen, wird beim Versenden im Betreff verwendet und kann auch Teil der Berichtsnummer
+    sein.</p>
+<h2>Name des Gerätes</h2>
+<p>Der Gerätename kann als Teil der Berichtsnummer eingebunden werden.</p>
+<h2>Berichtsnummer</h2>
+<p>Für die Berichtsnummer kann man mit Hilfe von Platzhaltern ein Muster definieren, so dass nicht nur eine laufende Nummer verwendet wird,
+    sondern z.B. auch eine Jahresnummer beinhaltet sein kann. Die Standardeinstellung (%p-%y-%c) führt zu einer Berichtsnummer: 'Gerätename'-'Jahr der
+    Erstellung'-'laufende Nummer'. Folgende Platzhalter gibt es (achten Sie auf Groß-/Kleinschreibung!):</p>
+<ul>
+    <li>%c -> laufende Nummer</li>
+    <li>%y -> Jahr der Erstellung</li>
+    <li>%m -> Monat der Erstellung</li>
+    <li>%d -> Tag der Erstellung</li>
+    <li>%e -> Name des Mitarbeits</li>
+    <li>%p -> Name des (Android-) Gerätes</li>
+    <li>%k -> Name des Kunden / Projekts</li>
+    <li>%z -> Projektzusatz</li>
+</ul>
+<p>Beachten Sie bitte, dass sich ein Ändern dieser Vorlage auf alle vorhandenen Berichte auswirkt. Dadurch werden sich also die Nummern aller vorhandenen
+    Berichte ändern.</p>
+</body>

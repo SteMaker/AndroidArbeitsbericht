@@ -54,7 +54,7 @@ class ConfigurationActivity : AppCompatActivity() {
             } ?: run { Log.e(TAG, "storageHandler job was null :(") }
             findViewById<EditText>(R.id.config_employee_name).setText(configuration().employeeName)
             findViewById<EditText>(R.id.config_device_name).setText(configuration().deviceName)
-            findViewById<EditText>(R.id.config_report_id_pattern).setText(configuration().reportIdPattern)
+            findViewById<EditText>(R.id.config_report_id_pattern).setText(configuration().reportIdPattern.value)
             findViewById<EditText>(R.id.config_mail_receiver).setText(configuration().recvMail)
             findViewById<SwitchMaterial>(R.id.crashlog_enable).isChecked = configuration().crashlyticsEnabled
             FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(configuration().crashlyticsEnabled)
@@ -273,26 +273,13 @@ class ConfigurationActivity : AppCompatActivity() {
         return ratio
     }
 
-    fun checkForIdChange(): Boolean {
-        val pat = findViewById<EditText>(R.id.config_report_id_pattern).getText().toString()
-        val en = findViewById<EditText>(R.id.config_employee_name).getText().toString()
-        val dn = findViewById<EditText>(R.id.config_device_name).getText().toString()
-        if(pat != configuration().reportIdPattern ||
-            en != configuration().employeeName ||
-            dn != configuration().deviceName) {
-            return true
-        }
-        return false
-    }
-
     private fun save() {
         window.setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
         findViewById<ProgressBar>(R.id.sftp_progress).visibility = View.VISIBLE
 
-        //val rename = checkForIdChange()
         configuration().employeeName = findViewById<EditText>(R.id.config_employee_name).getText().toString()
         configuration().deviceName = findViewById<EditText>(R.id.config_device_name).getText().toString()
-        configuration().reportIdPattern = findViewById<EditText>(R.id.config_report_id_pattern).getText().toString()
+        configuration().reportIdPattern.value = findViewById<EditText>(R.id.config_report_id_pattern).getText().toString()
 
         configuration().recvMail = findViewById<EditText>(R.id.config_mail_receiver).getText().toString()
         configuration().crashlyticsEnabled = findViewById<SwitchMaterial>(R.id.crashlog_enable).isChecked

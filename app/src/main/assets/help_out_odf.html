@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+<h1>Ausgabe als ODF</h1>
+<p>Dies erlaubt die Verwendung einer beliebigen Vorlage, die per sftp oder direkt vom Gerät geladen werden kann.</p>
+<p>Eine vorgefertigte Vorlage liegt im github repository (https://github.com/SteMaker/AndroidArbeitsbericht/tree/master/app/src/main/assets) mit dem Namen
+    output_template.ott. Die Vorlage kann z.B. mit LibreOffice editiert werden (MS Word sollte theoretisch auch gehen, habe ich aber nicht probiert). An den
+    Stellen, an denen die Berichtselemente einzufügen sind müssen Feldbefehle eingebunden sein. Es werden zwei Arten von Feldbefehlen benutzt. Einer für
+    einzelne Elemente, wie z.B. der Rechnungsname, und einer für komplexere Teile, wie Tabellen und Fotos. Einen Feldbefehl für komplexere Elemente kann man mit
+    LibreOffice wie folgt anlegen:</p>
+<p>Den cursor an die entsprechende Stelle setzen, sicherstellen, dass ein neuer Absatz angefangen wurde (am Ende der vorherige Zeile return drücken)
+    Einfügen -> Feldbefehl -> Weitere Feldbefehle -> Tab Variablen auswählen -> Typ: Benutzerfeld auswählen. Das entsprechende Feld (siehe Liste unten) unter
+    Auswählen markieren und Einfügen clicken. Mit Return einen neuen Absatz beginnen. Das Feld muss also seinen eigenen Absatz besitzen.</p>
+<p>Folgende Daten verwenden Feldbefehle für komplexere Daten und dürfen nur ein mal im template verwendet werden:
+    <ul>
+        <li>worktimetag -> Arbeits-/ und Fahrzeiten</li>
+        <li>workitemtag -> Durchgeführte Arbeiten</li>
+        <li>lumpsumtag -> Pauschalen</li>
+        <li>materialtag -> Verwendete Materialien</li>
+        <li>phototag -> Fotos</li>
+        <li>signatureemployeetag -> Unterschrift des Mitarbeiters</li>
+        <li>signatureclienttag -> Unterschrift des Auftraggebers</li>
+    </ul>
+</p>
+<p>Einfache Elemente können wie folgt eingebunden werden (ein extra Absatz ist hier nicht nötig):</p>
+<p>Den cursor an die entsprechende Stelle setzen, Einfügen -> Feldbefehl -> Weitere Feldbefehle -> Tab Dokumentinfo auswählen -> Typ: Benutzerfeld
+    aufklappen. Das entsprechende Feld (siehe Liste unten) unter Auswählen markieren und Einfügen clicken.</p>
+<p>Folgende Daten verwenden Feldbefehle für einfache Daten und können beliebig oft in der Vorlage verwendet werden:
+    <ul>
+        <li>report_id -> ID des Berichts (Berichtsnummer)</li>
+        <li>create_date -> Erstellungsdatum</li>
+        <li>bill_name -> Rechnungsname</li>
+        <li>bill_street -> Rechnungsstrasse</li>
+        <li>bill_zip -> Rechnungspostleitzahl</li>
+        <li>bill_city -> Rechnungsort</li>
+        <li>project_name -> Projektname</li>
+        <li>project_extra1 -> Projektzusatz</li>
+    </ul>
+</p>
+
+</body>

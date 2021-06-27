@@ -46,7 +46,7 @@ object HtmlReport {
             val logo = Base64.encodeToString(logoFileContent, Base64.DEFAULT)
             html += "<img src=\"data:image/jpg;base64,${logo}\" style=\"height: 100%; width: 100%; object-fit: contain\"/>"
         }
-        html +=     "<h1>Arbeitsbericht Nr. ${rep.id}</h1>" +
+        html +=     "<h1>Arbeitsbericht Nr. ${rep.id.value}</h1>" +
                     "<table style=\"border: 2px solid black;border-collapse: collapse;\">" +
                     "<tr>" +
                         "<th style=\"padding: 15px;$fs;text-align:left;border: 2px solid black;border-collapse: collapse;\">Kunde / Projekt</th>" +

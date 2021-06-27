@@ -405,7 +405,7 @@ class SummaryActivity : AppCompatActivity() {
                 return
             }
         }
-        val subj = "Arbeitsbericht von ${configuration().employeeName}: Kunde: ${report.project.name.value}, Berichtsnr: ${report.id}"
+        val subj = "Arbeitsbericht von ${configuration().employeeName}: Kunde: ${report.project.name.value}, Berichtsnr: ${report.id.value}"
         val emailIntent = Intent(Intent.ACTION_SENDTO).apply {
             data = Uri.parse("mailto:" + configuration().recvMail)
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
@@ -442,7 +442,7 @@ class SummaryActivity : AppCompatActivity() {
             return
         }
 
-        val subj = "Arbeitsbericht von ${configuration().employeeName}: Kunde: ${report.project.name.value}, Berichtsnr: ${report.id}"
+        val subj = "Arbeitsbericht von ${configuration().employeeName}: Kunde: ${report.project.name.value}, Berichtsnr: ${report.id.value}"
         val shareIntent = Intent(Intent.ACTION_SEND).apply {
             type = when(configuration().useOdfOutput) {
                 true -> "application/vnd.oasis.opendocument.text"

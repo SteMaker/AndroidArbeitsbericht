@@ -144,7 +144,7 @@ class OdfGenerator(activity: Activity, report: ReportData, progressBar: Progress
 
     private fun setBaseData(metaDom: OdfMetaDom, contentDom: OdfContentDom) {
         // Report ID
-        val repId = report.id
+        val repId = report.id.value?:""
         val node = metaDom.xPath.evaluate("//office:document-meta/office:meta/meta:user-defined[@meta:name='report_id']", metaDom, XPathConstants.NODE) as Node
         val reportIdNode = MetaUserDefinedElement(metaDom).apply {
             metaNameAttribute = "report_id"

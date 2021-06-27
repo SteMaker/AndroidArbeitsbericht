@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android">
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        >
     <data>
         <variable name="cfg" type="com.stemaker.arbeitsbericht.data.Configuration"/>
     </data>
@@ -8,19 +10,33 @@
             android:layout_height="wrap_content"
             style="@style/ArbeitsberichtAppTheme.CardLevel1"
             android:clickable="false">
-        <LinearLayout
+        <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
             <TextView
+                    android:id="@+id/general_setting_text"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintLeft_toLeftOf="parent"
                     android:text="Allgemein"
                     android:textSize="24sp"
                     />
+            <com.stemaker.arbeitsbericht.helpers.InfoButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintRight_toRightOf="parent"
+                    android:src="@drawable/ic_outline_info_24"
+                    app:infoUrl="file:///android_asset/help_out_general.html"
+                    />
             <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/config_employee_name_layout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    app:layout_constraintTop_toBottomOf="@id/general_setting_text"
+                    app:layout_constraintLeft_toLeftOf="parent"
                     android:visibility="visible">
                 <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/config_employee_name"
@@ -30,8 +46,11 @@
                         />
             </com.google.android.material.textfield.TextInputLayout>
             <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/config_device_name_layout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    app:layout_constraintTop_toBottomOf="@id/config_employee_name_layout"
+                    app:layout_constraintLeft_toLeftOf="parent"
                     android:visibility="visible">
                 <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/config_device_name"
@@ -41,8 +60,11 @@
                         />
             </com.google.android.material.textfield.TextInputLayout>
             <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/config_report_id_pattern_layout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    app:layout_constraintTop_toBottomOf="@id/config_device_name_layout"
+                    app:layout_constraintLeft_toLeftOf="parent"
                     android:visibility="visible">
                 <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/config_report_id_pattern"
@@ -52,8 +74,11 @@
                         />
             </com.google.android.material.textfield.TextInputLayout>
             <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/config_mail_receiver_layout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    app:layout_constraintTop_toBottomOf="@id/config_report_id_pattern_layout"
+                    app:layout_constraintLeft_toLeftOf="parent"
                     android:visibility="visible">
                 <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/config_mail_receiver"
@@ -67,10 +92,12 @@
                     android:id="@+id/crashlog_enable"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    app:layout_constraintTop_toBottomOf="@id/config_mail_receiver_layout"
+                    app:layout_constraintLeft_toLeftOf="parent"
                     android:layout_marginTop="20dp"
                     android:layout_marginBottom="20dp"
                     android:text="@string/crashlog_enable"/>
-        </LinearLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.cardview.widget.CardView>
 </layout>
 

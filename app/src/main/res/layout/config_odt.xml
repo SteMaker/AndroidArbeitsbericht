@@ -21,6 +21,14 @@
                 android:text="ODT"
                 android:textSize="24sp"
                 />
+        <com.stemaker.arbeitsbericht.helpers.InfoButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                android:src="@drawable/ic_outline_info_24"
+                app:infoUrl="file:///android_asset/help_out_odf.html"
+                />
         <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/odf_template_ftp_path_til"
                 android:layout_width="match_parent"

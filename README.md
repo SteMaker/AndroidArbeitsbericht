@@ -40,6 +40,8 @@ Folgende Platzhalter gibt es (achten Sie auf Groß-/Kleinschreibung!):
   - %d -> Tag der Erstellung
   - %e -> Name des Mitarbeits
   - %p -> Name des (Android-) Gerätes
+  - %k -> Name des Kunden / Projekts
+  - %z -> Projektzusatz
 
 **Pauschalen**
 Pauschalen können auf dem Gerät direkt erstellt und gelöscht werden. Es besteht aber auch die Möglichkeit eine Textdatei per SFTP zu laden, in der die 

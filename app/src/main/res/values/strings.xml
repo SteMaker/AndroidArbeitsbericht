@@ -77,6 +77,8 @@
     <string name="scale_photo">Fotos skalieren (reduziert Dateigröße des Berichts)</string>
     <string name="add">Hinzufügen</string>
     <string name="add_employee">Mitarbeiter hinzufügen</string>
+    <string name="filter_reports">Berichtsfilter einstellen</string>
+    <string name="apply">Anwenden</string>
 
     <!-- Configuration -->
     <string name="reportid_change_conf">Die laufende Nummer wurde geändert</string>

@@ -20,6 +20,7 @@
         <item name="android:colorForeground">@color/actionBarFont</item>
         <item name="android:elevation">4dp</item>
     </style>
+
     <style name="ArbeitsberichtAppTheme.CardLevel1" parent="Theme.MaterialComponents.Light.NoActionBar">
         <item name="cardBackgroundColor">@color/cardViewBackgroundLevel1</item>
         <item name="cardElevation">4dp</item>
@@ -29,19 +30,42 @@
         <item name="contentPadding">10dp</item>
         <item name="contentPaddingBottom">10dp</item>
     </style>
+
     <style name="ArbeitsberichtAppTheme.FloatButtons" parent="Theme.MaterialComponents.Light">
         <item name="colorSecondary">@color/primary</item>
         <item name="colorControlNormal">@color/actionBarFont</item>
         <item name="colorOnSecondary">@color/actionBarFont</item>
         <item name="elevation">10dp</item>
     </style>
+
     <style name="ArbeitsberichtAppTheme.IconButtons" parent="Widget.MaterialComponents.Button.OutlinedButton">
         <item name="android:layout_margin">5dp</item>
         <item name="colorControlNormal">@color/primary</item>
     </style>
-    <style name="ArbeitsberichtAppTheme.IconTextButtons" parent="Widget.MaterialComponents.Button.OutlinedButton">
+
+    <style name="ArbeitsberichtAppTheme.HelperButtons" parent="Widget.MaterialComponents.Button.OutlinedButton">
+        <item name="android:layout_margin">5dp</item>
+        <item name="colorControlNormal">@color/primary</item>
+        <item name="iconPadding">0dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="android:paddingTop">0dp</item>
+        <item name="android:paddingBottom">0dp</item>
+        <item name="android:paddingLeft">6dp</item>
+        <item name="android:paddingRight">6dp</item>
+        <item name="android:minWidth">30dp</item>
+        <item name="android:minHeight">26dp</item>
     </style>
+
+    <style name="ArbeitsberichtAppTheme.IconTextButtons" parent="Widget.MaterialComponents.Button.OutlinedButton"></style>
+
     <style name="ArbeitsberichtAppTheme.TextButtons" parent="Widget.MaterialComponents.Button">
         <item name="android:layout_margin">5dp</item>
+    </style>
+
+    <style name="ArbeitsberichtAppTheme.DialogButton" parent="Widget.MaterialComponents.Button.TextButton"></style>
+
+    <style name="Widget.ArbeitsberichtAppTheme.MyView" parent="">
+        <item name="android:background">@color/gray_400</item>
     </style>
 </resources>

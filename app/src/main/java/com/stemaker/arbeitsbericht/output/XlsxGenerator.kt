@@ -359,7 +359,7 @@ class XlsxGenerator(activity: Activity, report: ReportData, progressBar: Progres
         val row = sheet.createRow(rown)
         row.createCell(0).also {
             it.setCellStyle(styles[StyleTypes.HEAD1])
-            it.setCellValue("Arbeitsbericht ${report.id} vom ${report.create_date.value}")
+            it.setCellValue("Arbeitsbericht ${report.id.value} vom ${report.create_date.value}")
         }
         return 1
     }
@@ -399,7 +399,7 @@ class XlsxGenerator(activity: Activity, report: ReportData, progressBar: Progres
         }
         row.createCell(1).also {
             it.setCellStyle(styles[StyleTypes.NORMAL])
-            it.setCellValue(report.id)
+            it.setCellValue(report.id.value)
         }
         // Erstellungsdatum
         row = sheet.createRow(rown+4)

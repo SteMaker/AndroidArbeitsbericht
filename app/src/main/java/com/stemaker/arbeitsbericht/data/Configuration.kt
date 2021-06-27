@@ -5,8 +5,10 @@ import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import android.util.Base64
 import android.util.Log
+import androidx.lifecycle.MutableLiveData
 import com.stemaker.arbeitsbericht.ArbeitsberichtApp
 import com.stemaker.arbeitsbericht.StorageHandler
+import com.stemaker.arbeitsbericht.helpers.ReportFilter
 import com.stemaker.arbeitsbericht.storageHandler
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.serialization.Serializable
@@ -88,6 +90,8 @@ object Configuration {
     suspend fun lock() = mutex.lock()
     suspend fun unlock() = mutex.unlock()
 
+    val reportFilter = ReportFilter()
+
     fun initialize() {
         if(!inited) {
             inited = true
@@ -151,10 +155,9 @@ object Configuration {
         set(value) {
             store.deviceName = value}
 
-    var reportIdPattern: String
-        get(): String = store.reportIdPattern
-        set(value) {
-            store.reportIdPattern = value}
+    // see loadConfigurationFromFile() !!!!!
+    // see save() !!!!!
+    var reportIdPattern = MutableLiveData<String>().apply { value = store.reportIdPattern }
 
     var recvMail: String
         get(): String = store.recvMail
@@ -397,6 +400,8 @@ object Configuration {
 
     fun save() {
         store.vers = ArbeitsberichtApp.getVersionCode() +100
+        // Only temp until I rework the configuration data handling to copy to/from json/db similar as for reports
+        store.reportIdPattern = reportIdPattern.value?:""
         StorageHandler.saveConfigurationToFile(ArbeitsberichtApp.appContext)
     }
 }

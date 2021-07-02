@@ -92,6 +92,11 @@ class ReportEditorActivity : AppCompatActivity(),
         }
     }
 
+    override suspend fun getReportData(): ReportData {
+        waitForStorageHandler()
+        return storageHandler().getReport()!!
+    }
+
     override suspend fun getProjectData(): ProjectData {
         waitForStorageHandler()
         return storageHandler().getReport()!!.project

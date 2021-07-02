@@ -10,6 +10,7 @@ import android.widget.LinearLayout
 import androidx.databinding.DataBindingUtil
 import com.stemaker.arbeitsbericht.R
 import com.stemaker.arbeitsbericht.data.ProjectData
+import com.stemaker.arbeitsbericht.data.ReportData
 import com.stemaker.arbeitsbericht.databinding.FragmentProjectEditorBinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -41,6 +42,7 @@ class ProjectEditorFragment : ReportEditorSectionFragment() {
 
         GlobalScope.launch(Dispatchers.Main) {
             dataBinding.projectData = listener!!.getProjectData()
+            dataBinding.reportData = listener!!.getReportData()
         }
         return root
     }
@@ -69,6 +71,7 @@ class ProjectEditorFragment : ReportEditorSectionFragment() {
 
     interface OnProjectEditorInteractionListener {
         suspend fun getProjectData(): ProjectData
+        suspend fun getReportData(): ReportData
     }
 
 }

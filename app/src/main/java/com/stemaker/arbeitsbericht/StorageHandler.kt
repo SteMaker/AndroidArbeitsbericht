@@ -152,8 +152,10 @@ object StorageHandler {
     private fun observeReport(r: ReportData) {
         val stateObserver = Observer<ReportData.ReportState> { _ -> reportChanged(r)}
         val projectNameObserver = Observer<String> { _ -> reportChanged(r)}
+        val projectExtraObserver = Observer<String> { _ -> reportChanged(r)}
         r.state.observeForever(stateObserver)
         r.project.name.observeForever(projectNameObserver)
+        r.project.extra1.observeForever(projectExtraObserver)
     }
 
     private fun removeReportFromCache(cnt: Int) {

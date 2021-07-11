@@ -1,5 +1,6 @@
 package com.stemaker.arbeitsbericht.data
 
+import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.room.*
 import com.stemaker.arbeitsbericht.helpers.ReportFilter
@@ -19,11 +20,12 @@ interface ReportDao {
     @Query("SELECT cnt FROM ReportDb ORDER BY cnt DESC")
     suspend fun getReportCnts(): List<Int>
 
-    @Query("SELECT cnt FROM ReportDb WHERE state IN (:stateFilter) ORDER BY cnt DESC")
-    suspend fun getFilteredReportIdsString(stateFilter: Set<Int>): List<Int>
+    @Query("SELECT cnt FROM ReportDb WHERE state IN (:stateFilter) AND UPPER(projectName) LIKE (:proj) AND UPPER(extra1) LIKE (:extra) ORDER BY cnt DESC")
+    suspend fun getFilteredReportIdsString(stateFilter: Set<Int>, proj: String, extra: String): List<Int>
 
     suspend fun getFilteredReportIds(filter: ReportFilter): List<Int> {
-        return getFilteredReportIdsString(filter.remainingStates)
+        return getFilteredReportIdsString(filter.remainingStates, "%${filter.projectName.toUpperCase()}%",
+            "%${filter.projectExtra.toUpperCase()}%")
     }
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)

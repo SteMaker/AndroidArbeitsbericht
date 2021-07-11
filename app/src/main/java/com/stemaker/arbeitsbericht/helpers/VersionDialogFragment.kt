@@ -1,4 +1,4 @@
-package com.stemaker.arbeitsbericht
+package com.stemaker.arbeitsbericht.helpers
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import android.webkit.WebView
 import android.widget.Button
 import androidx.fragment.app.DialogFragment
+import com.stemaker.arbeitsbericht.R
 
 class VersionDialogFragment : DialogFragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {

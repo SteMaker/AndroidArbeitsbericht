@@ -5,18 +5,16 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.*
-import android.widget.CheckBox
-import android.widget.PopupMenu
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.google.android.material.button.MaterialButton
 import com.stemaker.arbeitsbericht.data.ReportData
 import com.stemaker.arbeitsbericht.data.configuration
 import com.stemaker.arbeitsbericht.databinding.ActivityMainBinding
-import com.stemaker.arbeitsbericht.helpers.ReportFilter
+import com.stemaker.arbeitsbericht.helpers.ReportFilterDialog
 import com.stemaker.arbeitsbericht.helpers.ReportListAdapter
+import com.stemaker.arbeitsbericht.helpers.VersionDialogFragment
 import com.stemaker.arbeitsbericht.helpers.showConfirmationDialog
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -107,7 +105,7 @@ class MainActivity : AppCompatActivity(), ReportCardInterface {
     private fun createNewReport() {
         // On creating a new report, we should make in work reports visible
         configuration().reportFilter.inWork = true
-        configuration().reportFilter.updateDone()
+        configuration().reportFilter.update()
         //storageHandler().updateFilter(reportStateVisibility.visibility)
         storageHandler().createNewReportAndSelect()
         val intent = Intent(this@MainActivity, ReportEditorActivity::class.java).apply {}
@@ -156,31 +154,8 @@ class MainActivity : AppCompatActivity(), ReportCardInterface {
     }
 
     private fun showFilterDialog() {
-        AlertDialog.Builder(this).apply {
-            val view = layoutInflater.inflate(R.layout.filter_project_layout, null)
-            setView(view)
-            val dialog = create()
-            dialog.show()
-            val viewInWork = view.findViewById<CheckBox>(R.id.in_work)
-            viewInWork.isChecked = configuration().reportFilter.inWork
-            val viewOnHold = view.findViewById<CheckBox>(R.id.on_hold)
-            viewOnHold.isChecked = configuration().reportFilter.onHold
-            val viewDone = view.findViewById<CheckBox>(R.id.done)
-            viewDone.isChecked = configuration().reportFilter.done
-            val viewArchived = view.findViewById<CheckBox>(R.id.archived)
-            viewArchived.isChecked = configuration().reportFilter.archived
-            view.findViewById<MaterialButton>(R.id.apply_button).setOnClickListener {
-                configuration().reportFilter.inWork = viewInWork.isChecked
-                configuration().reportFilter.onHold = viewOnHold.isChecked
-                configuration().reportFilter.done = viewDone.isChecked
-                configuration().reportFilter.archived = viewArchived.isChecked
-                configuration().reportFilter.updateDone()
-                dialog.dismiss()
-            }
-            view.findViewById<MaterialButton>(R.id.cancel_button).setOnClickListener {
-                dialog.dismiss()
-            }
-        }
+        val dialog = ReportFilterDialog()
+        dialog.show(supportFragmentManager, "Filter")
     }
 
     companion object {

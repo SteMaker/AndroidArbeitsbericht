@@ -46,7 +46,7 @@ object StorageHandler {
     private val db = Room.databaseBuilder(
         ArbeitsberichtApp.appContext,
         ReportDatabase::class.java, "Arbeitsbericht-Reports"
-    ).fallbackToDestructiveMigration().build()
+    ).fallbackToDestructiveMigration().addMigrations(ReportDatabase.migr_2_3).build()
 
     private val inited = AtomicBoolean(false)
     var initJob: Job? = null

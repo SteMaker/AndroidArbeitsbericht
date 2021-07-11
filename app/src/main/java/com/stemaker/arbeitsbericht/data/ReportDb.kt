@@ -1,8 +1,11 @@
 package com.stemaker.arbeitsbericht.data
 
 import android.util.Log
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.room.*
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import com.stemaker.arbeitsbericht.helpers.ReportFilter
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.cbor.Cbor
@@ -288,8 +291,51 @@ data class PhotoContainerDb(
     }
 }
 
-@Database(entities = [ReportDb::class], version = 2)
+@Dao
+interface ClientDao {
+    @Query("SELECT * FROM ClientDb")
+    fun getClients(): LiveData<List<ClientDb>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insert(clientDb: ClientDb)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun update(clientDb: ClientDb)
+
+    @Query("DELETE FROM ClientDb")
+    fun deleteTable()
+}
+
+@Entity
+data class ClientDb(
+    @PrimaryKey(autoGenerate = true) val id: Int,
+    val projectName: String,
+    val extra1: String,
+    val useExtra1: Boolean,
+    val billName: String,
+    val street: String,
+    val zip: String,
+    val city: String,
+    val distance: Int,
+    val useDistance: Boolean,
+    val driveTime: String,
+    val useDriveTime: Boolean
+) {}
+
+@Database(entities = [ReportDb::class, ClientDb::class], version = 3)
 @TypeConverters(Converters::class)
 abstract class ReportDatabase : RoomDatabase() {
     abstract fun reportDao(): ReportDao
+    abstract fun clientDao(): ClientDao
+    companion object {
+        val migr_2_3 = object: Migration(2, 3) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                // V2 -V3 added ClientDb table
+                database.execSQL("CREATE TABLE IF NOT EXISTS `ClientDb` (`id` INTEGER NOT NULL, `projectName` TEXT NOT NULL, " +
+                        "`extra1` TEXT NOT NULL, `useExtra1` INTEGER NOT NULL, `billName` TEXT NOT NULL, `street` TEXT NOT NULL, `zip` TEXT NOT NULL, " +
+                        "`city` TEXT NOT NULL, `distance` INTEGER NOT NULL, `useDistance` INTEGER NOT NULL, `driveTime` TEXT NOT NULL, `useDriveTime` INTEGER NOT NULL, " +
+                        "PRIMARY KEY(`id`))")
+            }
+        }
+    }
 }

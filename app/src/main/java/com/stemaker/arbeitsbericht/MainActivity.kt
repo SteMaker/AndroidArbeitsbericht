@@ -74,6 +74,11 @@ class MainActivity : AppCompatActivity(), ReportCardInterface {
                     startActivity(intent)
                     true
                 }
+                R.id.main_menu_clients -> {
+                    val intent = Intent(this, ClientListActivity::class.java).apply {}
+                    startActivity(intent)
+                    true
+                }
                 R.id.main_menu_lump_sums -> {
                     val intent = Intent(this, LumpSumDefinitionActivity::class.java).apply {}
                     startActivity(intent)

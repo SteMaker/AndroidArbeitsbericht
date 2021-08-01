@@ -61,6 +61,7 @@ class ConfigurationStore {
     var xlsxFooterWidth: Int = 135 // mm
     var scalePhotos: Boolean = false
     var photoResolution: Int = 1024
+    var currentClientId: Int = 1
 }
 
 fun configuration(): Configuration {
@@ -322,6 +323,11 @@ object Configuration {
         get(): Int = store.photoResolution
         set(value) {
             store.photoResolution = value }
+
+    var currentClientId: Int
+        get(): Int = store.currentClientId
+        set(value) {
+            store.currentClientId = value}
 
     private fun encryptPassword(pwd: String): String {
         /* Now we try to store the password in an encrypted way. First we retrieve a key

@@ -6,6 +6,11 @@
         android:title="@string/settings">
     </item>
     <item
+            android:id="@+id/main_menu_clients"
+            android:icon="@drawable/ic_bookmark_black_24dp"
+            android:title="@string/client_manage">
+    </item>
+    <item
         android:id="@+id/main_menu_lump_sums"
         android:icon="@drawable/ic_bookmark_black_24dp"
         android:title="@string/lump_sum_define">

@@ -13,8 +13,10 @@
     <string name="street">Strasse / Hausnummer</string>
     <string name="zip">PLZ</string>
     <string name="city">Ort</string>
+    <string name="notes">Notizen</string>
     <string name="saved_reports">Arbeitsberichte</string>
     <string name="create_new_report">Neuer Bericht</string>
+    <string name="create_new_client">Neuer Kunde</string>
     <string name="unknown">Unbekannt</string>
     <string name="send">Senden</string>
     <string name="_new">Neu</string>
@@ -54,6 +56,7 @@
     <string name="summary">Zusammenfassung</string>
     <string name="about">Über</string>
     <string name="lump_sum_define">Pauschalen definieren</string>
+    <string name="client_manage">Kunden verwalten</string>
     <string name="lump_sum">Pauschale</string>
     <string name="no_lump_sum_defined">Keine Pauschalen bisher definiert. Bitte erst im Menü Einträge anlegen</string>
     <string name="photo">Fotos</string>
@@ -79,6 +82,7 @@
     <string name="add_employee">Mitarbeiter hinzufügen</string>
     <string name="filter_reports">Berichtsfilter einstellen</string>
     <string name="apply">Anwenden</string>
+    <string name="auto_use">Automatisch übernehmen</string>
 
     <!-- Configuration -->
     <string name="reportid_change_conf">Die laufende Nummer wurde geändert</string>

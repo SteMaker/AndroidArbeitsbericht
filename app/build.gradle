@@ -74,6 +74,7 @@ dependencies {
     kapt 'com.github.bumptech.glide:compiler:4.9.0'
 //    implementation 'org.apache.directory.studio:org.apache.commons.io:2.4'
     implementation 'androidx.lifecycle:lifecycle-extensions:2.2.0'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.2.0'
     // JSCH library for SFTP support
     implementation 'com.jcraft:jsch:0.1.55'
     // ODF Toolkit

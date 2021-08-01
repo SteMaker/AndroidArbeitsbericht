@@ -43,6 +43,7 @@ class ReportListAdapter(val reportCardInterface: ReportCardInterface, val activi
         super.onAttachedToRecyclerView(recyclerView)
         this.recyclerView = recyclerView
     }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ReportViewHolder {
         val layoutInflater = LayoutInflater.from(parent.context);
         val itemBinding = ReportCardLayoutBinding.inflate(layoutInflater, parent, false);

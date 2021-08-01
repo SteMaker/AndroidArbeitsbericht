@@ -1,6 +1,5 @@
 package com.stemaker.arbeitsbericht.data
 
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.room.*
@@ -293,8 +292,8 @@ data class PhotoContainerDb(
 
 @Dao
 interface ClientDao {
-    @Query("SELECT * FROM ClientDb")
-    fun getClients(): LiveData<List<ClientDb>>
+    @Query("SELECT * FROM ClientDb ORDER BY name ASC")
+    suspend fun getClients(): List<ClientDb>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(clientDb: ClientDb)
@@ -304,23 +303,25 @@ interface ClientDao {
 
     @Query("DELETE FROM ClientDb")
     fun deleteTable()
+
+    @Query("DELETE FROM ClientDb WHERE id = :id")
+    suspend fun deleteById(id: Int)
 }
 
 @Entity
 data class ClientDb(
-    @PrimaryKey(autoGenerate = true) val id: Int,
-    val projectName: String,
-    val extra1: String,
-    val useExtra1: Boolean,
-    val billName: String,
-    val street: String,
-    val zip: String,
-    val city: String,
-    val distance: Int,
-    val useDistance: Boolean,
-    val driveTime: String,
-    val useDriveTime: Boolean
-) {}
+    @PrimaryKey val id: Int,
+    var name: String = "",
+    var street: String = "",
+    var zip: String = "",
+    var city: String = "",
+    var distance: Int = 0,
+    var useDistance: Boolean = false,
+    var driveTime: String = "00:00",
+    var useDriveTime: Boolean = false,
+    var notes: String = ""
+) {
+}
 
 @Database(entities = [ReportDb::class, ClientDb::class], version = 3)
 @TypeConverters(Converters::class)
@@ -331,10 +332,9 @@ abstract class ReportDatabase : RoomDatabase() {
         val migr_2_3 = object: Migration(2, 3) {
             override fun migrate(database: SupportSQLiteDatabase) {
                 // V2 -V3 added ClientDb table
-                database.execSQL("CREATE TABLE IF NOT EXISTS `ClientDb` (`id` INTEGER NOT NULL, `projectName` TEXT NOT NULL, " +
-                        "`extra1` TEXT NOT NULL, `useExtra1` INTEGER NOT NULL, `billName` TEXT NOT NULL, `street` TEXT NOT NULL, `zip` TEXT NOT NULL, " +
-                        "`city` TEXT NOT NULL, `distance` INTEGER NOT NULL, `useDistance` INTEGER NOT NULL, `driveTime` TEXT NOT NULL, `useDriveTime` INTEGER NOT NULL, " +
-                        "PRIMARY KEY(`id`))")
+                database.execSQL("CREATE TABLE IF NOT EXISTS `ClientDb` (`id` INTEGER NOT NULL, `name` TEXT NOT NULL, `street` TEXT NOT NULL, `zip` TEXT NOT NULL, " +
+                        "`city` TEXT NOT NULL, `distance` INTEGER NOT NULL, `useDistance` INTEGER NOT NULL, `driveTime` TEXT NOT NULL, + " +
+                        "`useDriveTime` INTEGER NOT NULL, `notes` TEXT NOT NULL, PRIMARY KEY(`id`))")
             }
         }
     }

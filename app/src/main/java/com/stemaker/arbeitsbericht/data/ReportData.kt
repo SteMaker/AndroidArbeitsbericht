@@ -80,6 +80,7 @@ class ReportData private constructor(var cnt: Int = 0): ViewModel() {
     val lumpSumContainer = LumpSumContainerData()
     val photoContainer = PhotoContainerData()
     val signatureData = SignatureData()
+    val defaultValues = DefaultValues()
     val id = MediatorLiveData<String> ()
 
     init {
@@ -125,7 +126,7 @@ class ReportData private constructor(var cnt: Int = 0): ViewModel() {
         lumpSumContainer.copyFromDb(r.lumpSumContainer)
         photoContainer.copyFromDb(r.photoContainer)
         signatureData.copyFromDb(r.signatures)
-
+        defaultValues.copyFromDb(r.defaultValues)
     }
 
     private fun getCurrentDate(): String {

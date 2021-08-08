@@ -8,6 +8,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import androidx.databinding.DataBindingUtil
+import com.stemaker.arbeitsbericht.AboutDialogFragment
+import com.stemaker.arbeitsbericht.ClientSelectDialog
 import com.stemaker.arbeitsbericht.R
 import com.stemaker.arbeitsbericht.data.BillData
 import com.stemaker.arbeitsbericht.databinding.FragmentBillEditorBinding
@@ -33,6 +35,16 @@ class BillEditorFragment : ReportEditorSectionFragment() {
         val root = super.onCreateView(inflater, container, savedInstanceState)
         dataBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_bill_editor, null, false)
         root!!.findViewById<LinearLayout>(R.id.section_container).addView(dataBinding.root)
+        dataBinding.clientSelectButton.setOnClickListener {
+            val clientSelectDialog = ClientSelectDialog()
+            clientSelectDialog.setOnSelectListener { client ->
+                dataBinding.billData?.name?.value = client.name.value
+                dataBinding.billData?.street?.value = client.street.value
+                dataBinding.billData?.zip?.value = client.zip.value
+                dataBinding.billData?.city?.value = client.city.value
+            }
+            clientSelectDialog.show(childFragmentManager, "ClientSelectDialog")
+        }
 
         setHeadline("Rechnungsadresse")
 
@@ -68,5 +80,4 @@ class BillEditorFragment : ReportEditorSectionFragment() {
     interface OnBillEditorInteractionListener {
         suspend fun getBillData(): BillData
     }
-
 }

@@ -83,6 +83,7 @@
     <string name="filter_reports">Berichtsfilter einstellen</string>
     <string name="apply">Anwenden</string>
     <string name="auto_use">Automatisch übernehmen</string>
+    <string name="client_list">Kundenliste</string>
 
     <!-- Configuration -->
     <string name="reportid_change_conf">Die laufende Nummer wurde geändert</string>

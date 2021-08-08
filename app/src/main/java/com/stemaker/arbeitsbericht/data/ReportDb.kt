@@ -100,6 +100,7 @@ data class ReportDb(
     val materialContainer: MaterialContainerDb,
     val lumpSumContainer: LumpSumContainerDb,
     val photoContainer: PhotoContainerDb,
+    @Embedded val defaultValues: DefaultValuesDb
 ) {
 
     companion object {
@@ -107,7 +108,7 @@ data class ReportDb(
             "", ProjectDb.fromReport(r.project), BillDb.fromReport(r.bill), SignatureDb.fromReport(r.signatureData),
             WorkTimeContainerDb.fromReport(r.workTimeContainer), WorkItemContainerDb.fromReport(r.workItemContainer),
             MaterialContainerDb.fromReport(r.materialContainer), LumpSumContainerDb.fromReport(r.lumpSumContainer),
-            PhotoContainerDb.fromReport(r.photoContainer) )
+            PhotoContainerDb.fromReport(r.photoContainer), DefaultValuesDb.fromReport(r.defaultValues) )
     }
 }
 
@@ -290,6 +291,17 @@ data class PhotoContainerDb(
     }
 }
 
+data class DefaultValuesDb(
+    val defaultDriveTime: String,
+    val useDefaultDriveTime: Boolean,
+    val defaultDistance: Int,
+    val useDefaultDistance: Boolean
+) {
+
+    companion object {
+        fun fromReport(d: DefaultValues) = DefaultValuesDb(d.defaultDriveTime, d.useDefaultDriveTime, d.defaultDistance, d.useDefaultDistance)
+    }
+}
 @Dao
 interface ClientDao {
     @Query("SELECT * FROM ClientDb ORDER BY name ASC")
@@ -331,10 +343,15 @@ abstract class ReportDatabase : RoomDatabase() {
     companion object {
         val migr_2_3 = object: Migration(2, 3) {
             override fun migrate(database: SupportSQLiteDatabase) {
-                // V2 -V3 added ClientDb table
+                // V2 -V3 added ClientDb table and add default values to ReportDb
                 database.execSQL("CREATE TABLE IF NOT EXISTS `ClientDb` (`id` INTEGER NOT NULL, `name` TEXT NOT NULL, `street` TEXT NOT NULL, `zip` TEXT NOT NULL, " +
                         "`city` TEXT NOT NULL, `distance` INTEGER NOT NULL, `useDistance` INTEGER NOT NULL, `driveTime` TEXT NOT NULL, + " +
                         "`useDriveTime` INTEGER NOT NULL, `notes` TEXT NOT NULL, PRIMARY KEY(`id`))")
+                database.execSQL("ALTER TABLE ReportDb ADD" +
+                        "`defaultDriveTime` TEXT NOT NULL DEFAULT `00:00`," +
+                        "`useDefaultDriveTime` INTEGER NOT NULL DEFAULT 0, " +
+                        "`defaultDistance` TEXT NOT NULL DEFAULT 0," +
+                        "`useDefaultDistance` INTEGER NOT NULL DEFAULT 0")
             }
         }
     }

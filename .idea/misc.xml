@@ -5,6 +5,8 @@
       <map>
         <entry key="app/src/main/res/layout/client_select_dialog.xml" value="0.2774774774774775" />
         <entry key="app/src/main/res/layout/client_select_layout.xml" value="0.2774774774774775" />
+        <entry key="app/src/main/res/layout/fragment_bill_editor.xml" value="0.30180180180180183" />
+        <entry key="app/src/main/res/layout/fragment_work_time_editor.xml" value="0.30180180180180183" />
         <entry key="app/src/main/res/layout/report_filter_layout.xml" value="0.2774774774774775" />
       </map>
     </option>

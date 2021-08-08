@@ -7,11 +7,13 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
+import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import com.stemaker.arbeitsbericht.AboutDialogFragment
 import com.stemaker.arbeitsbericht.ClientSelectDialog
 import com.stemaker.arbeitsbericht.R
 import com.stemaker.arbeitsbericht.data.BillData
+import com.stemaker.arbeitsbericht.data.ReportData
 import com.stemaker.arbeitsbericht.databinding.FragmentBillEditorBinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -20,6 +22,7 @@ import kotlinx.coroutines.launch
 class BillEditorFragment : ReportEditorSectionFragment() {
     private var listener: OnBillEditorInteractionListener? = null
     lateinit var dataBinding: FragmentBillEditorBinding
+    lateinit var report: ReportData
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,6 +45,16 @@ class BillEditorFragment : ReportEditorSectionFragment() {
                 dataBinding.billData?.street?.value = client.street.value
                 dataBinding.billData?.zip?.value = client.zip.value
                 dataBinding.billData?.city?.value = client.city.value
+                report.defaultValues.useDefaultDistance = client.useDistance.value?:false
+                report.defaultValues.useDefaultDriveTime = client.useDriveTime.value?:false
+                report.defaultValues.defaultDriveTime = client.driveTime.value?:"00:00"
+                report.defaultValues.defaultDistance = client.distance.value?:0
+                if(client.useDriveTime.value == true || client.useDistance.value == true) {
+                    val toast = Toast.makeText(root.context, R.string.presets_active_notification, Toast.LENGTH_LONG)
+                    toast.show()
+                }
+                if(report.project.name.value == "") report.project.name.value = client.name.value
+
             }
             clientSelectDialog.show(childFragmentManager, "ClientSelectDialog")
         }
@@ -51,6 +64,7 @@ class BillEditorFragment : ReportEditorSectionFragment() {
         dataBinding.lifecycleOwner = this
         GlobalScope.launch(Dispatchers.Main) {
             dataBinding.billData = listener!!.getBillData()
+            report = listener!!.getReport()
         }
         return root
     }
@@ -79,5 +93,6 @@ class BillEditorFragment : ReportEditorSectionFragment() {
 
     interface OnBillEditorInteractionListener {
         suspend fun getBillData(): BillData
+        suspend fun getReport(): ReportData
     }
 }

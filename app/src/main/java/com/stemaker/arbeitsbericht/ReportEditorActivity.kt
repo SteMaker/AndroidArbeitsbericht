@@ -107,6 +107,11 @@ class ReportEditorActivity : AppCompatActivity(),
         return storageHandler().getReport()!!.bill
     }
 
+    override suspend fun getReport(): ReportData {
+        waitForStorageHandler()
+        return storageHandler().getReport()!!
+    }
+
     override suspend fun getWorkTimeContainerData(): WorkTimeContainerData {
         waitForStorageHandler()
         return storageHandler().getReport()!!.workTimeContainer

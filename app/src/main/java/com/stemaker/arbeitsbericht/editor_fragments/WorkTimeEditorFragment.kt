@@ -7,10 +7,12 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.LinearLayout
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.lifecycle.MutableLiveData
 import com.stemaker.arbeitsbericht.R
+import com.stemaker.arbeitsbericht.data.ReportData
 import com.stemaker.arbeitsbericht.data.WorkTimeContainerData
 import com.stemaker.arbeitsbericht.data.WorkTimeData
 import com.stemaker.arbeitsbericht.databinding.EmployeeEntryLayoutBinding
@@ -26,6 +28,7 @@ import kotlinx.coroutines.launch
 class WorkTimeEditorFragment : ReportEditorSectionFragment() {
     private var listener: OnWorkTimeEditorInteractionListener? = null
     lateinit var dataBinding: FragmentWorkTimeEditorBinding
+    lateinit var report: ReportData
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,6 +48,7 @@ class WorkTimeEditorFragment : ReportEditorSectionFragment() {
         dataBinding.lifecycleOwner = this
         GlobalScope.launch(Dispatchers.Main) {
             val workTimeContainerData = listener!!.getWorkTimeContainerData()
+            report = listener!!.getReport()
             dataBinding.workTimeContainerData = workTimeContainerData
 
             for (wt in workTimeContainerData.items) {
@@ -53,10 +57,24 @@ class WorkTimeEditorFragment : ReportEditorSectionFragment() {
 
             dataBinding.root.findViewById<Button>(R.id.work_time_add_button).setOnClickListener(object : View.OnClickListener {
                 override fun onClick(btn: View) {
-                    val wt = workTimeContainerData.addWorkTime()
+                    val wt = workTimeContainerData.addWorkTime(report.defaultValues)
+                    val text = when {
+                        report.defaultValues.useDefaultDriveTime && report.defaultValues.useDefaultDistance ->
+                            "Vorgabe für Fahrzeit (${report.defaultValues.defaultDriveTime}) und Entfernung (${report.defaultValues.defaultDistance}km) von Kundendaten übernommen"
+                        report.defaultValues.useDefaultDriveTime ->
+                            "Vorgabe für Fahrzeit (${report.defaultValues.defaultDriveTime}) von Kundendaten übernommen"
+                        report.defaultValues.useDefaultDistance ->
+                            "Vorgabe für Entfernung (${report.defaultValues.defaultDistance}km) von Kundendaten übernommen"
+                        else -> ""
+                    }
+                    if(text != "") {
+                        val toast = Toast.makeText(root.context, text, Toast.LENGTH_LONG)
+                        toast.show()
+                    }
                     addWorkTimeView(wt, workTimeContainerData)
                 }
             })
+
         }
 
         return root
@@ -86,6 +104,7 @@ class WorkTimeEditorFragment : ReportEditorSectionFragment() {
 
     interface OnWorkTimeEditorInteractionListener {
         suspend fun getWorkTimeContainerData(): WorkTimeContainerData
+        suspend fun getReport(): ReportData
     }
 
     fun addWorkTimeView(wt: WorkTimeData, workTimeContainerData: WorkTimeContainerData) {

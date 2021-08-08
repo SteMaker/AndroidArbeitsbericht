@@ -14,13 +14,13 @@
         android:orientation="vertical"
         app:visibility="@={work_time_container_data.visibility}">
         <Button
-            android:id="@+id/work_time_add_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:paddingRight="20dp"
-            android:text="@string/add"
-            style="@style/ArbeitsberichtAppTheme.IconTextButtons"
-            app:icon="@drawable/ic_add_circle_black_24dp"
-        />
+                android:id="@+id/work_time_add_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingRight="20dp"
+                android:text="@string/add"
+                style="@style/ArbeitsberichtAppTheme.IconTextButtons"
+                app:icon="@drawable/ic_add_circle_black_24dp"
+                />
     </com.stemaker.arbeitsbericht.helpers.LinearLayoutVisListener> <!-- End of worktimes_content_container-->
 </layout>

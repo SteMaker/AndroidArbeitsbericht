@@ -38,6 +38,14 @@ class WorkTimeContainerData(): ViewModel() {
         return wt
     }
 
+    fun addWorkTime(def: DefaultValues): WorkTimeData {
+        val wt = WorkTimeData()
+        if(def.useDefaultDistance) wt.distance.value = def.defaultDistance
+        if(def.useDefaultDriveTime) wt.driveTime.value = def.defaultDriveTime
+        items.add(wt)
+        return wt
+    }
+
     fun removeWorkTime(wt: WorkTimeData) {
         items.remove(wt)
     }

@@ -1,10 +1,13 @@
 package com.stemaker.arbeitsbericht
 
+import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import com.stemaker.arbeitsbericht.data.ClientDb
 import com.stemaker.arbeitsbericht.data.configuration
 import com.stemaker.arbeitsbericht.helpers.ListObserver
 import kotlinx.coroutines.*
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 class Client(val id: Int, __name: String = "", __street: String = "", __zip: String = "", __city: String = "", __distance: Int = 0, __useDistance: Boolean = false,
              __driveTime: String = "00:00", __useDriveTime: Boolean = false, __notes: String = "") {
@@ -18,6 +21,7 @@ class Client(val id: Int, __name: String = "", __street: String = "", __zip: Str
     var useDriveTime = MutableLiveData<Boolean>(__useDriveTime)
     var notes = MutableLiveData<String>(__notes)
     var touched = false
+    var visible = false
 
     fun createClientDb(): ClientDb = ClientDb(id, name.value?:"", street.value?:"", zip.value?:"", city.value?:"",
             distance.value?:0, useDistance.value?:false, driveTime.value?:"00:00",
@@ -54,6 +58,7 @@ object ClientRepository {
     fun addClient() {
         if (initJob.isCompleted) {
             val c = Client(configuration().currentClientId)
+            c.visible = true
             configuration().currentClientId += 1
             configuration().save()
             clients.add(c)
@@ -74,19 +79,23 @@ object ClientRepository {
         }
     }
 
+    private val mutex = Mutex()
     suspend fun store() {
         initJob.join()
-        for (added in addedClients) {
-            dao.insert(added.createClientDb())
+
+        mutex.withLock {
+            for (added in addedClients) {
+                dao.insert(added.createClientDb())
+            }
+            addedClients.clear()
+            for (modified in clients) {
+                if (modified.touched)
+                    dao.update(modified.createClientDb())
+            }
+            for (removed in removedClients) {
+                dao.deleteById(removed.id)
+            }
+            removedClients.clear()
         }
-        addedClients.clear()
-        for (modified in clients) {
-            if (modified.touched)
-                dao.update(modified.createClientDb())
-        }
-        for (removed in removedClients) {
-            dao.deleteById(removed.id)
-        }
-        removedClients.clear()
     }
 }

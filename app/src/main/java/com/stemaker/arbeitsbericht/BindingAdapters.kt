@@ -242,4 +242,16 @@ object BindingAdapters {
             ReportData.ReportState.ARCHIVED -> imgView.setImageResource(ArbeitsberichtApp.getArchivedIconDrawable())
         }
     }
+
+    /**********************************************************************************/
+    /* Binding Adapters to bind a TextView with a String, replaced by <leer> if empty */
+    /**********************************************************************************/
+    @JvmStatic
+    @BindingAdapter("stringOrEmpty")
+    fun setstringOrEmpty(textView: TextView, str: String) {
+        textView.text = when(str) {
+            "" -> "<leer>"
+            else -> str
+        }
+    }
 }

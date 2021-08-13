@@ -79,6 +79,7 @@
     <string name="select_photo">Foto auswählen</string>
     <string name="scale_photo">Fotos skalieren (reduziert Dateigröße des Berichts)</string>
     <string name="add">Hinzufügen</string>
+    <string name="sort">Sortieren</string>
     <string name="add_employee">Mitarbeiter hinzufügen</string>
     <string name="filter_reports">Berichtsfilter einstellen</string>
     <string name="apply">Anwenden</string>

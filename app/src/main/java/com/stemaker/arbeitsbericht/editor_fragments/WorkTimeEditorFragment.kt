@@ -55,25 +55,40 @@ class WorkTimeEditorFragment : ReportEditorSectionFragment() {
                 addWorkTimeView(wt, workTimeContainerData)
             }
 
-            dataBinding.root.findViewById<Button>(R.id.work_time_add_button).setOnClickListener(object : View.OnClickListener {
-                override fun onClick(btn: View) {
-                    val wt = workTimeContainerData.addWorkTime(report.defaultValues)
-                    val text = when {
-                        report.defaultValues.useDefaultDriveTime && report.defaultValues.useDefaultDistance ->
-                            "Vorgabe für Fahrzeit (${report.defaultValues.defaultDriveTime}) und Entfernung (${report.defaultValues.defaultDistance}km) von Kundendaten übernommen"
-                        report.defaultValues.useDefaultDriveTime ->
-                            "Vorgabe für Fahrzeit (${report.defaultValues.defaultDriveTime}) von Kundendaten übernommen"
-                        report.defaultValues.useDefaultDistance ->
-                            "Vorgabe für Entfernung (${report.defaultValues.defaultDistance}km) von Kundendaten übernommen"
-                        else -> ""
-                    }
-                    if(text != "") {
-                        val toast = Toast.makeText(root.context, text, Toast.LENGTH_LONG)
-                        toast.show()
-                    }
-                    addWorkTimeView(wt, workTimeContainerData)
+            dataBinding.workTimeAddButton.setOnClickListener {
+                val wt = workTimeContainerData.addWorkTime(report.defaultValues)
+                val text = when {
+                    report.defaultValues.useDefaultDriveTime && report.defaultValues.useDefaultDistance ->
+                        "Vorgabe für Fahrzeit (${report.defaultValues.defaultDriveTime}) und Entfernung (${report.defaultValues.defaultDistance}km) von Kundendaten übernommen"
+                    report.defaultValues.useDefaultDriveTime ->
+                        "Vorgabe für Fahrzeit (${report.defaultValues.defaultDriveTime}) von Kundendaten übernommen"
+                    report.defaultValues.useDefaultDistance ->
+                        "Vorgabe für Entfernung (${report.defaultValues.defaultDistance}km) von Kundendaten übernommen"
+                    else -> ""
                 }
-            })
+                if (text != "") {
+                    val toast = Toast.makeText(root.context, text, Toast.LENGTH_LONG)
+                    toast.show()
+                }
+                addWorkTimeView(wt, workTimeContainerData)
+            }
+
+            dataBinding.workTimeSortButton.setOnClickListener {
+                /*
+                val comparator = Comparator { a: WorkTimeData, b: WorkTimeData ->
+                    when {
+                        a.date.value.substring(6, 10) < b.date.value.substring(6, 10) -> -1
+                        a.date.value.substring(6, 10) > b.date.value.substring(6, 10) -> 1
+                        a.date.value.substring(3, 5) < b.date.value.substring(3, 5) -> -1
+                        a.date.value.substring(3, 5) > b.date.value.substring(3, 5) -> 1
+                        a.date.value.substring(0, 2) < b.date.value.substring(0, 2) -> -1
+                        a.date.value.substring(0, 2) > b.date.value.substring(0, 2) -> 1
+                        else -> 0
+                    }
+                }
+                workTimeContainerData.items.sortedWith(comparator)
+                 */
+            }
 
         }
 

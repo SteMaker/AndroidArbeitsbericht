@@ -52,7 +52,7 @@ class WorkTimeContainerData(): ViewModel() {
 }
 
 class WorkTimeData: ViewModel() {
-    val date = MutableLiveData<String>().apply { value =  getCurrentDate()}
+    val date = MutableLiveData<Calendar>().apply { value =  Calendar.getInstance() }
 
     val employees = mutableListOf<MutableLiveData<String>>().apply { add(MutableLiveData<String>().apply { value = configuration().employeeName } ) }
 
@@ -106,15 +106,6 @@ class WorkTimeData: ViewModel() {
 
     var distance = MutableLiveData<Int>().apply { value = 0 }
 
-    private fun getCurrentDate(): String {
-        val d = Date()
-        val cal = Calendar.getInstance()
-        cal.time = d
-        return cal.get(Calendar.DAY_OF_MONTH).toString().padStart(2,'0') + "." +
-                (cal.get(Calendar.MONTH)+1).toString().padStart(2,'0') + "." +
-                cal.get(Calendar.YEAR).toString().padStart(4,'0')
-    }
-
     fun addEmployee(): MutableLiveData<String> {
         val emp = MutableLiveData<String>().apply { value = configuration().employeeName }
         employees.add(emp)
@@ -126,7 +117,11 @@ class WorkTimeData: ViewModel() {
     }
 
     fun copyFromSerialized(w: WorkTimeDataSerialized) {
-        date.value = w.date
+        val cal = Calendar.getInstance()
+        cal.set(Calendar.DAY_OF_MONTH, w.date.substring(0,2).toInt())
+        cal.set(Calendar.MONTH, w.date.substring(3,5).toInt()-1)
+        cal.set(Calendar.YEAR, w.date.substring(6,10).toInt())
+        date.value = cal
         employees.clear()
         for(empSer in w.employees) {
             val emp = MutableLiveData<String>().apply { value = empSer }

@@ -146,6 +146,23 @@ data class SignatureDb(
     }
 }
 
+@Serializable
+data class WorkTimeContainerDbV2 (
+    val wtItems: List<WorkTimeDb>,
+    val wtVisibility: Boolean = true
+) {
+    @Serializable
+    data class WorkTimeDb(
+        val wtDate: String,
+        val wtEmployees: List<String>,
+        val wtStartTime: String,
+        val wtEndTime: String,
+        val wtPauseDuration: String,
+        val wtDriveTime: String,
+        val wtDistance: Int
+    ) {
+    }
+}
 
 @Serializable
 data class WorkTimeContainerDb (
@@ -347,10 +364,13 @@ abstract class ReportDatabase : RoomDatabase() {
                 database.execSQL("CREATE TABLE IF NOT EXISTS `ClientDb` (`id` INTEGER NOT NULL, `name` TEXT NOT NULL, `street` TEXT NOT NULL, `zip` TEXT NOT NULL, " +
                         "`city` TEXT NOT NULL, `distance` INTEGER NOT NULL, `useDistance` INTEGER NOT NULL, `driveTime` TEXT NOT NULL, " +
                         "`useDriveTime` INTEGER NOT NULL, `notes` TEXT NOT NULL, PRIMARY KEY(`id`))")
+                // V2 - V3 added 4 new default elements that are taken from a client but not directly taken from there
                 database.execSQL("ALTER TABLE ReportDb ADD defaultDriveTime TEXT NOT NULL DEFAULT `00:00`")
                 database.execSQL("ALTER TABLE ReportDb ADD useDefaultDriveTime INTEGER NOT NULL DEFAULT 0")
                 database.execSQL("ALTER TABLE ReportDb ADD defaultDistance INTEGER NOT NULL DEFAULT 0")
                 database.execSQL("ALTER TABLE ReportDb ADD useDefaultDistance INTEGER NOT NULL DEFAULT 0")
+                // V2 - V2 Migrate the date in work time from dd.mm.yyyy to Calendar.time (ms since epoch)
+                val wtcs = database.query("SELECT workTimeContainer FROM ReportDb")
             }
         }
     }

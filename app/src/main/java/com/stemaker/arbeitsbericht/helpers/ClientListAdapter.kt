@@ -34,6 +34,10 @@ class ClientListAdapter(val activity: AppCompatActivity, private val clientViewM
             if(c == null) return
             binding.client = c
             binding.lifecycleOwner = lcOwner
+            binding.editGroup.visibility = when(c.visible) {
+                true -> View.VISIBLE
+                false -> View.GONE
+            }
             binding.clientCardTop.setOnClickListener {
                 if(binding.editGroup.visibility == View.GONE) {
                     binding.expandContentPic.rotation = 180.toFloat()
@@ -76,7 +80,7 @@ class ClientListAdapter(val activity: AppCompatActivity, private val clientViewM
     override fun onBindViewHolder(holder: ClientViewHolder, position: Int) {
         holder.bind(clientViewModel.clients[position]) {
             recyclerView.scrollToPosition(position)
-            Handler(Looper.getMainLooper()).postDelayed({ recyclerView.smoothScrollToPosition(position) }, 50); //sometime not working, need some delay
+            Handler(Looper.getMainLooper()).postDelayed({ recyclerView.smoothScrollToPosition(position) }, 250); //sometime not working, need some delay
         }
     }
 
@@ -87,7 +91,7 @@ class ClientListAdapter(val activity: AppCompatActivity, private val clientViewM
     override fun elementAdded(element: Client, pos: Int) {
         notifyItemInserted(pos)
         recyclerView.scrollToPosition(pos)
-        Handler(Looper.getMainLooper()).postDelayed({ recyclerView.smoothScrollToPosition(pos) }, 50); //sometime not working, need some delay
+        Handler(Looper.getMainLooper()).postDelayed({ recyclerView.smoothScrollToPosition(pos) }, 250); //sometime not working, need some delay
     }
 
     override fun elementRemoved(element: Client, oldPos: Int) {

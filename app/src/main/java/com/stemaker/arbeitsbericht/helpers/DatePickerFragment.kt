@@ -12,32 +12,20 @@ import java.util.*
 // TODO: Put the button and TextView into a separate layout xml and inflate it here directly using data binding instead of letting the higher level
 //       XML handle it
 
-class DatePickerFragment(_dateString: MutableLiveData<String>, val ctx: Context) : DialogFragment(), DatePickerDialog.OnDateSetListener {
-    val dateString = _dateString
+class DatePickerFragment(val date: MutableLiveData<Calendar>, val ctx: Context) : DialogFragment(), DatePickerDialog.OnDateSetListener {
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        val year: Int
-        val month: Int
-        val day: Int
-        if(dateString.value == "") {
-            // Use the current date as the default date in the picker
-            val c = Calendar.getInstance()
-            year = c.get(Calendar.YEAR)
-            month = c.get(Calendar.MONTH)
-            day = c.get(Calendar.DAY_OF_MONTH)
-        } else {
-            val dateVal = dateString.value!!
-            day = dateVal.substring(0,2).toInt()
-            month = dateVal.substring(3,5).toInt()
-            year = dateVal.substring(6,10).toInt()
-        }
+        val year = date.value?.get(Calendar.YEAR)?:1970
+        val month = date.value?.get(Calendar.MONTH)?:0
+        val day = date.value?.get(Calendar.DAY_OF_MONTH)?:1
 
         // Create a new instance of DatePickerDialog and return it
-        return DatePickerDialog(ctx, this, year, month-1, day)
+        return DatePickerDialog(ctx, this, year, month, day)
     }
 
     override fun onDateSet(view: DatePicker, year: Int, month: Int, day: Int) {
-        dateString.value = day.toString().padStart(2,'0') + "." +
-                (month+1).toString().padStart(2,'0') + "." +
-                year.toString().padStart(4,'0')
+        date.value?.set(Calendar.YEAR, year)
+        date.value?.set(Calendar.MONTH, month)
+        date.value?.set(Calendar.DAY_OF_MONTH, day)
+        date.value = date.value
     }
 }

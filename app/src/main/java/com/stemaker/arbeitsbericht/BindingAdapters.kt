@@ -12,10 +12,12 @@ import androidx.databinding.InverseBindingListener
 import com.caverock.androidsvg.SVG
 import com.google.android.material.textfield.TextInputEditText
 import com.stemaker.arbeitsbericht.data.ReportData
+import com.stemaker.arbeitsbericht.data.calendarToDateString
 import com.stemaker.arbeitsbericht.data.configuration
 import com.stemaker.arbeitsbericht.helpers.LinearLayoutVisListener
 import java.io.File
 import java.text.DecimalFormatSymbols
+import java.util.*
 
 private const val TAG = "BindingAdapters"
 
@@ -241,6 +243,15 @@ object BindingAdapters {
             ReportData.ReportState.ON_HOLD -> imgView.setImageResource(ArbeitsberichtApp.getOnHoldIconDrawable())
             ReportData.ReportState.ARCHIVED -> imgView.setImageResource(ArbeitsberichtApp.getArchivedIconDrawable())
         }
+    }
+
+    /*****************************************************/
+    /* Binding Adapters to bind a Calendar to a TextView */
+    /*****************************************************/
+    @JvmStatic
+    @BindingAdapter("dateString")
+    fun setDateString(textView: TextView, c: Calendar) {
+        textView.text = calendarToDateString(c)
     }
 
     /**********************************************************************************/

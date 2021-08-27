@@ -147,24 +147,6 @@ data class SignatureDb(
 }
 
 @Serializable
-data class WorkTimeContainerDbV2 (
-    val wtItems: List<WorkTimeDb>,
-    val wtVisibility: Boolean = true
-) {
-    @Serializable
-    data class WorkTimeDb(
-        val wtDate: String,
-        val wtEmployees: List<String>,
-        val wtStartTime: String,
-        val wtEndTime: String,
-        val wtPauseDuration: String,
-        val wtDriveTime: String,
-        val wtDistance: Int
-    ) {
-    }
-}
-
-@Serializable
 data class WorkTimeContainerDb (
     val wtItems: List<WorkTimeDb>,
     val wtVisibility: Boolean = true
@@ -180,7 +162,7 @@ data class WorkTimeContainerDb (
         val wtDistance: Int
     ) {
         companion object {
-            fun fromReport(w: WorkTimeData): WorkTimeDb = WorkTimeDb(w.date.value!!, extractEmployees(w.employees), w.startTime.value!!, w.endTime.value!!, w.pauseDuration.value!!, w.driveTime.value!!, w.distance.value!!)
+            fun fromReport(w: WorkTimeData): WorkTimeDb = WorkTimeDb(calendarToDateString(w.date.value), extractEmployees(w.employees), w.startTime.value!!, w.endTime.value!!, w.pauseDuration.value!!, w.driveTime.value!!, w.distance.value!!)
             private fun extractEmployees(e: List<MutableLiveData<String>>): List<String> {
                 val l = mutableListOf<String>()
                 for(s in e) {
@@ -369,8 +351,6 @@ abstract class ReportDatabase : RoomDatabase() {
                 database.execSQL("ALTER TABLE ReportDb ADD useDefaultDriveTime INTEGER NOT NULL DEFAULT 0")
                 database.execSQL("ALTER TABLE ReportDb ADD defaultDistance INTEGER NOT NULL DEFAULT 0")
                 database.execSQL("ALTER TABLE ReportDb ADD useDefaultDistance INTEGER NOT NULL DEFAULT 0")
-                // V2 - V2 Migrate the date in work time from dd.mm.yyyy to Calendar.time (ms since epoch)
-                val wtcs = database.query("SELECT workTimeContainer FROM ReportDb")
             }
         }
     }

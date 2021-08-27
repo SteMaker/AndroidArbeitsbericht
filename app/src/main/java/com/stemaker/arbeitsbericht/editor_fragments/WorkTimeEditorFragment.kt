@@ -29,6 +29,7 @@ class WorkTimeEditorFragment : ReportEditorSectionFragment() {
     private var listener: OnWorkTimeEditorInteractionListener? = null
     lateinit var dataBinding: FragmentWorkTimeEditorBinding
     lateinit var report: ReportData
+    val workTimeViews = mutableListOf<View>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -74,22 +75,20 @@ class WorkTimeEditorFragment : ReportEditorSectionFragment() {
             }
 
             dataBinding.workTimeSortButton.setOnClickListener {
-                /*
                 val comparator = Comparator { a: WorkTimeData, b: WorkTimeData ->
-                    when {
-                        a.date.value.substring(6, 10) < b.date.value.substring(6, 10) -> -1
-                        a.date.value.substring(6, 10) > b.date.value.substring(6, 10) -> 1
-                        a.date.value.substring(3, 5) < b.date.value.substring(3, 5) -> -1
-                        a.date.value.substring(3, 5) > b.date.value.substring(3, 5) -> 1
-                        a.date.value.substring(0, 2) < b.date.value.substring(0, 2) -> -1
-                        a.date.value.substring(0, 2) > b.date.value.substring(0, 2) -> 1
-                        else -> 0
-                    }
+                    a.date.value?.let { ita -> b.date.value?.let { itb ->
+                        ita.time.compareTo(itb.time)
+                    } }?:0
                 }
-                workTimeContainerData.items.sortedWith(comparator)
-                 */
+                workTimeContainerData.items.sortWith(comparator)
+                val c = dataBinding.workTimeContentContainer
+                for(v in workTimeViews)
+                    c.removeView(v)
+                workTimeViews.clear()
+                for (wt in workTimeContainerData.items) {
+                    addWorkTimeView(wt, workTimeContainerData)
+                }
             }
-
         }
 
         return root
@@ -128,6 +127,7 @@ class WorkTimeEditorFragment : ReportEditorSectionFragment() {
         val workTimeDataBinding: WorkTimeLayoutBinding = WorkTimeLayoutBinding.inflate(inflater, null, false)
         workTimeDataBinding.workTime = wt
         workTimeDataBinding.lifecycleOwner = activity
+        workTimeViews.add(workTimeDataBinding.root)
 
         for(empl in wt.employees) {
             addEmployeeView(workTimeDataBinding.root, wt, empl)
@@ -182,6 +182,7 @@ class WorkTimeEditorFragment : ReportEditorSectionFragment() {
                         showConfirmationDialog(getString(R.string.del_confirmation), btn.context)
                     if (answer == AlertDialog.BUTTON_POSITIVE) {
                         container.removeView(workTimeDataBinding.root)
+                        workTimeViews.remove(workTimeDataBinding)
                         workTimeContainerData.removeWorkTime(wt)
                     } else {
                     }

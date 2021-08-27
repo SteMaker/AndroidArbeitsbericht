@@ -138,7 +138,7 @@ class WorkTimeDataSerialized() {
 
 
     fun copyFromData(w: WorkTimeData) {
-        date = w.date.value!!
+        date = calendarToDateString(w.date.value)
         employees.clear()
         for(empData in w.employees)
             employees.add(empData.value!!)

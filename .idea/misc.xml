@@ -3,12 +3,14 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="app/src/main/res/layout/activity_report_editor.xml" value="0.2927927927927928" />
         <entry key="app/src/main/res/layout/client_card_layout.xml" value="0.33" />
         <entry key="app/src/main/res/layout/client_select_dialog.xml" value="0.2774774774774775" />
         <entry key="app/src/main/res/layout/client_select_layout.xml" value="0.2774774774774775" />
         <entry key="app/src/main/res/layout/fragment_bill_editor.xml" value="0.30180180180180183" />
         <entry key="app/src/main/res/layout/fragment_work_time_editor.xml" value="0.30180180180180183" />
         <entry key="app/src/main/res/layout/report_filter_layout.xml" value="0.2774774774774775" />
+        <entry key="app/src/main/res/layout/work_time_layout.xml" value="0.3396396396396396" />
       </map>
     </option>
   </component>

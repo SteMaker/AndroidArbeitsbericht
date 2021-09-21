@@ -56,6 +56,7 @@ class BillEditorFragment : ReportEditorSectionFragment() {
                         report.defaultValues.useDefaultDriveTime = client.useDriveTime.value ?: false
                         report.defaultValues.defaultDriveTime = client.driveTime.value ?: "00:00"
                         report.defaultValues.defaultDistance = client.distance.value ?: 0
+                        report.project.clientId = client.id
                         if (client.useDriveTime.value == true || client.useDistance.value == true) {
                             val toast = Toast.makeText(root.context, R.string.presets_active_notification, Toast.LENGTH_LONG)
                             toast.show()

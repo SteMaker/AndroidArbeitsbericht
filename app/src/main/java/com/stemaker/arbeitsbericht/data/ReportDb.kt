@@ -87,7 +87,6 @@ class Converters {
 }
 @Entity
 data class ReportDb(
-    //@PrimaryKey val id: String,
     @PrimaryKey val cnt: Int,
     val create_date: String,
     val state: Int,
@@ -115,11 +114,12 @@ data class ReportDb(
 data class ProjectDb(
     val projectName: String,
     val extra1: String,
-    val projectVisibility: Boolean
+    val projectVisibility: Boolean,
+    var clientId: Int
 ) {
 
     companion object {
-        fun fromReport(p: ProjectData): ProjectDb = ProjectDb(p.name.value!!, p.extra1.value!!, p.visibility.value!!)
+        fun fromReport(p: ProjectData): ProjectDb = ProjectDb(p.name.value!!, p.extra1.value!!, p.visibility.value!!, p.clientId)
     }
 }
 
@@ -351,6 +351,7 @@ abstract class ReportDatabase : RoomDatabase() {
                 database.execSQL("ALTER TABLE ReportDb ADD useDefaultDriveTime INTEGER NOT NULL DEFAULT 0")
                 database.execSQL("ALTER TABLE ReportDb ADD defaultDistance INTEGER NOT NULL DEFAULT 0")
                 database.execSQL("ALTER TABLE ReportDb ADD useDefaultDistance INTEGER NOT NULL DEFAULT 0")
+                database.execSQL("ALTER TABLE ReportDb ADD clientId INTEGER NOT NULL DEFAULT ${Int.MAX_VALUE}")
             }
         }
     }

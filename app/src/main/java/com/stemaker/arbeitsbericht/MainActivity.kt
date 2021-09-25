@@ -3,6 +3,7 @@ package com.stemaker.arbeitsbericht
 //import kotlinx.android.synthetic.main.activity_main.*
 import android.content.Intent
 import android.os.Bundle
+import android.os.Handler
 import android.util.Log
 import android.view.*
 import androidx.appcompat.app.AlertDialog
@@ -109,12 +110,23 @@ class MainActivity : AppCompatActivity(), ReportCardInterface {
 
     private fun createNewReport() {
         // On creating a new report, we should make in work reports visible
-        configuration().reportFilter.inWork = true
-        configuration().reportFilter.update()
-        //storageHandler().updateFilter(reportStateVisibility.visibility)
-        storageHandler().createNewReportAndSelect()
-        val intent = Intent(this@MainActivity, ReportEditorActivity::class.java).apply {}
-        startActivity(intent)
+        // This is a really ugly workaround to overcome a race. reportFilter.update() causes reading from DB. This is typically finished only after
+        // the new report was created and added. Then the DB reading comes back without this new report and it is gone.
+        // What I need to do is to establish a ReportRepository that directly links with the filter and synchronizes additions, deletions, filtering
+        if(!configuration().reportFilter.inWork) {
+            configuration().reportFilter.inWork = true
+            configuration().reportFilter.update()
+            val handler = Handler()
+            handler.postDelayed(Runnable() {
+                storageHandler().createNewReportAndSelect()
+                val intent = Intent(this@MainActivity, ReportEditorActivity::class.java).apply {}
+                startActivity(intent)
+            }, 1000)
+        } else {
+            storageHandler().createNewReportAndSelect()
+            val intent = Intent(this@MainActivity, ReportEditorActivity::class.java).apply {}
+            startActivity(intent)
+        }
     }
 
     fun onClickNewReport(v_: View) {

@@ -18,7 +18,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     app:constraint_referenced_ids="client_name_layout,client_street_layout,client_zip_layout,client_city_layout,client_notes_layout,drivetime_container,client_distance_layout,del_button,use_drive_time,use_distance"
-                    android:visibility="visible"
+                    android:visibility="gone"
                     android:id="@+id/edit_group" />
             <TextView
                     android:id="@+id/client_textview"

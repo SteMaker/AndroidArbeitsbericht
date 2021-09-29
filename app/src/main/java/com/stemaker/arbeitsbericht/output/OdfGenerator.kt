@@ -7,6 +7,7 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import com.stemaker.arbeitsbericht.R
 import com.stemaker.arbeitsbericht.data.ReportData
+import com.stemaker.arbeitsbericht.data.calendarToDateString
 import com.stemaker.arbeitsbericht.data.configuration
 import org.odftoolkit.odfdom.doc.OdfTextDocument
 import org.odftoolkit.odfdom.doc.table.OdfTable
@@ -242,7 +243,7 @@ class OdfGenerator(activity: Activity, report: ReportData, progressBar: Progress
         fillTableHeads(table, arrayOf("Datum", "Mitarbeiter", "Arbeitsanfang", "Arbeitsende", "Fahrzeit [h:m]", "Fahrstrecke [km]", "Pause [h:m]", "Arbeitszeit [h:m]"))
         var idx = 1
         for(item in report.workTimeContainer.items) {
-            table.getCellByPosition(0, idx).setDisplayText(item.date.value)
+            table.getCellByPosition(0, idx).setDisplayText(calendarToDateString(item.date.value))
             var employees = ""
             for(e in item.employees) employees += "${e.value}\n"
             table.getCellByPosition(1, idx).setDisplayText(employees)

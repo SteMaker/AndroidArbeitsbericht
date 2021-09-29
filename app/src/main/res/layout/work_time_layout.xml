@@ -64,7 +64,7 @@
                            app:layout_constraintTop_toBottomOf="@id/work_time_date_fixed"
                            android:paddingLeft="5dp"
                            android:textColor="@color/iconFillColor"
-                           android:text='@{work_time.date}'/>
+                           app:dateString='@{work_time.date}'/>
                    <ImageView
                            android:id="@+id/work_time_date_pic"
                            android:layout_width="wrap_content"

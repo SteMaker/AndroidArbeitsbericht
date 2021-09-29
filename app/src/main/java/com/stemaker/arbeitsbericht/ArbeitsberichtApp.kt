@@ -2,6 +2,7 @@ package com.stemaker.arbeitsbericht
 
 import android.app.Application
 import android.content.Context
+import androidx.lifecycle.ViewModelProvider
 
 class ArbeitsberichtApp: Application() {
     override fun onCreate() {

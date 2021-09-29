@@ -2,6 +2,7 @@ package com.stemaker.arbeitsbericht.helpers
 
 import android.util.Base64
 import com.stemaker.arbeitsbericht.data.ReportData
+import com.stemaker.arbeitsbericht.data.calendarToDateString
 import com.stemaker.arbeitsbericht.data.configuration
 import java.io.File
 import java.io.FileInputStream
@@ -82,7 +83,7 @@ object HtmlReport {
                 "</tr>"
             rep.workTimeContainer.items.forEach {
             html += "<tr>" +
-                        "<td style=\"padding: 10px;$fs;border: 2px solid black;border-collapse: collapse;\"> ${it.date.value}</td>" +
+                        "<td style=\"padding: 10px;$fs;border: 2px solid black;border-collapse: collapse;\"> ${calendarToDateString(it.date.value)}</td>" +
                         "<td style=\"padding: 10px;$fs;border: 2px solid black;border-collapse: collapse;\">"
                 for(empl in it.employees)
                     html += "${empl.value!!}<br>"

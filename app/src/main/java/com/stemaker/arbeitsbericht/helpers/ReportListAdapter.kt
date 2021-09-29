@@ -1,6 +1,7 @@
 package com.stemaker.arbeitsbericht.helpers
 
 import android.content.res.Resources
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -43,6 +44,7 @@ class ReportListAdapter(val reportCardInterface: ReportCardInterface, val activi
         super.onAttachedToRecyclerView(recyclerView)
         this.recyclerView = recyclerView
     }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ReportViewHolder {
         val layoutInflater = LayoutInflater.from(parent.context);
         val itemBinding = ReportCardLayoutBinding.inflate(layoutInflater, parent, false);

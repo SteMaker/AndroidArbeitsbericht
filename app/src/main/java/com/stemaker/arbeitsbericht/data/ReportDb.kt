@@ -1,7 +1,10 @@
 package com.stemaker.arbeitsbericht.data
 
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.room.*
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import com.stemaker.arbeitsbericht.helpers.ReportFilter
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.cbor.Cbor
@@ -19,11 +22,12 @@ interface ReportDao {
     @Query("SELECT cnt FROM ReportDb ORDER BY cnt DESC")
     suspend fun getReportCnts(): List<Int>
 
-    @Query("SELECT cnt FROM ReportDb WHERE state IN (:stateFilter) ORDER BY cnt DESC")
-    suspend fun getFilteredReportIdsString(stateFilter: Set<Int>): List<Int>
+    @Query("SELECT cnt FROM ReportDb WHERE state IN (:stateFilter) AND UPPER(projectName) LIKE (:proj) AND UPPER(extra1) LIKE (:extra) ORDER BY cnt DESC")
+    suspend fun getFilteredReportIdsString(stateFilter: Set<Int>, proj: String, extra: String): List<Int>
 
     suspend fun getFilteredReportIds(filter: ReportFilter): List<Int> {
-        return getFilteredReportIdsString(filter.remainingStates)
+        return getFilteredReportIdsString(filter.remainingStates, "%${filter.projectName.toUpperCase()}%",
+            "%${filter.projectExtra.toUpperCase()}%")
     }
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
@@ -83,7 +87,6 @@ class Converters {
 }
 @Entity
 data class ReportDb(
-    //@PrimaryKey val id: String,
     @PrimaryKey val cnt: Int,
     val create_date: String,
     val state: Int,
@@ -96,6 +99,7 @@ data class ReportDb(
     val materialContainer: MaterialContainerDb,
     val lumpSumContainer: LumpSumContainerDb,
     val photoContainer: PhotoContainerDb,
+    @Embedded val defaultValues: DefaultValuesDb
 ) {
 
     companion object {
@@ -103,18 +107,19 @@ data class ReportDb(
             "", ProjectDb.fromReport(r.project), BillDb.fromReport(r.bill), SignatureDb.fromReport(r.signatureData),
             WorkTimeContainerDb.fromReport(r.workTimeContainer), WorkItemContainerDb.fromReport(r.workItemContainer),
             MaterialContainerDb.fromReport(r.materialContainer), LumpSumContainerDb.fromReport(r.lumpSumContainer),
-            PhotoContainerDb.fromReport(r.photoContainer) )
+            PhotoContainerDb.fromReport(r.photoContainer), DefaultValuesDb.fromReport(r.defaultValues) )
     }
 }
 
 data class ProjectDb(
     val projectName: String,
     val extra1: String,
-    val projectVisibility: Boolean
+    val projectVisibility: Boolean,
+    var clientId: Int
 ) {
 
     companion object {
-        fun fromReport(p: ProjectData): ProjectDb = ProjectDb(p.name.value!!, p.extra1.value!!, p.visibility.value!!)
+        fun fromReport(p: ProjectData): ProjectDb = ProjectDb(p.name.value!!, p.extra1.value!!, p.visibility.value!!, p.clientId)
     }
 }
 
@@ -141,7 +146,6 @@ data class SignatureDb(
     }
 }
 
-
 @Serializable
 data class WorkTimeContainerDb (
     val wtItems: List<WorkTimeDb>,
@@ -158,7 +162,7 @@ data class WorkTimeContainerDb (
         val wtDistance: Int
     ) {
         companion object {
-            fun fromReport(w: WorkTimeData): WorkTimeDb = WorkTimeDb(w.date.value!!, extractEmployees(w.employees), w.startTime.value!!, w.endTime.value!!, w.pauseDuration.value!!, w.driveTime.value!!, w.distance.value!!)
+            fun fromReport(w: WorkTimeData): WorkTimeDb = WorkTimeDb(calendarToDateString(w.date.value), extractEmployees(w.employees), w.startTime.value!!, w.endTime.value!!, w.pauseDuration.value!!, w.driveTime.value!!, w.distance.value!!)
             private fun extractEmployees(e: List<MutableLiveData<String>>): List<String> {
                 val l = mutableListOf<String>()
                 for(s in e) {
@@ -286,8 +290,69 @@ data class PhotoContainerDb(
     }
 }
 
-@Database(entities = [ReportDb::class], version = 2)
+data class DefaultValuesDb(
+    val defaultDriveTime: String,
+    val useDefaultDriveTime: Boolean,
+    val defaultDistance: Int,
+    val useDefaultDistance: Boolean
+) {
+
+    companion object {
+        fun fromReport(d: DefaultValues) = DefaultValuesDb(d.defaultDriveTime, d.useDefaultDriveTime, d.defaultDistance, d.useDefaultDistance)
+    }
+}
+@Dao
+interface ClientDao {
+    @Query("SELECT * FROM ClientDb ORDER BY name ASC")
+    suspend fun getClients(): List<ClientDb>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insert(clientDb: ClientDb)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun update(clientDb: ClientDb)
+
+    @Query("DELETE FROM ClientDb")
+    fun deleteTable()
+
+    @Query("DELETE FROM ClientDb WHERE id = :id")
+    suspend fun deleteById(id: Int)
+}
+
+@Entity
+data class ClientDb(
+    @PrimaryKey val id: Int,
+    var name: String = "",
+    var street: String = "",
+    var zip: String = "",
+    var city: String = "",
+    var distance: Int = 0,
+    var useDistance: Boolean = false,
+    var driveTime: String = "00:00",
+    var useDriveTime: Boolean = false,
+    var notes: String = ""
+) {
+}
+
+@Database(entities = [ReportDb::class, ClientDb::class], version = 3)
 @TypeConverters(Converters::class)
 abstract class ReportDatabase : RoomDatabase() {
     abstract fun reportDao(): ReportDao
+    abstract fun clientDao(): ClientDao
+    companion object {
+        val migr_2_3 = object: Migration(2, 3) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                // V2 -V3 added ClientDb table and add default values to ReportDb
+                database.execSQL("CREATE TABLE IF NOT EXISTS `ClientDb` (`id` INTEGER NOT NULL, `name` TEXT NOT NULL, `street` TEXT NOT NULL, `zip` TEXT NOT NULL, " +
+                        "`city` TEXT NOT NULL, `distance` INTEGER NOT NULL, `useDistance` INTEGER NOT NULL, `driveTime` TEXT NOT NULL, " +
+                        "`useDriveTime` INTEGER NOT NULL, `notes` TEXT NOT NULL, PRIMARY KEY(`id`))")
+                // V2 - V3 added 4 new default elements that are taken from a client but not directly taken from there
+                database.execSQL("ALTER TABLE ReportDb ADD defaultDriveTime TEXT NOT NULL DEFAULT `00:00`")
+                database.execSQL("ALTER TABLE ReportDb ADD useDefaultDriveTime INTEGER NOT NULL DEFAULT 0")
+                database.execSQL("ALTER TABLE ReportDb ADD defaultDistance INTEGER NOT NULL DEFAULT 0")
+                database.execSQL("ALTER TABLE ReportDb ADD useDefaultDistance INTEGER NOT NULL DEFAULT 0")
+                database.execSQL("ALTER TABLE ReportDb ADD clientId INTEGER NOT NULL DEFAULT ${Int.MAX_VALUE}")
+            }
+        }
+    }
 }

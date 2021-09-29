@@ -38,13 +38,21 @@ class WorkTimeContainerData(): ViewModel() {
         return wt
     }
 
+    fun addWorkTime(def: DefaultValues): WorkTimeData {
+        val wt = WorkTimeData()
+        if(def.useDefaultDistance) wt.distance.value = def.defaultDistance
+        if(def.useDefaultDriveTime) wt.driveTime.value = def.defaultDriveTime
+        items.add(wt)
+        return wt
+    }
+
     fun removeWorkTime(wt: WorkTimeData) {
         items.remove(wt)
     }
 }
 
 class WorkTimeData: ViewModel() {
-    val date = MutableLiveData<String>().apply { value =  getCurrentDate()}
+    val date = MutableLiveData<Calendar>().apply { value =  Calendar.getInstance() }
 
     val employees = mutableListOf<MutableLiveData<String>>().apply { add(MutableLiveData<String>().apply { value = configuration().employeeName } ) }
 
@@ -98,15 +106,6 @@ class WorkTimeData: ViewModel() {
 
     var distance = MutableLiveData<Int>().apply { value = 0 }
 
-    private fun getCurrentDate(): String {
-        val d = Date()
-        val cal = Calendar.getInstance()
-        cal.time = d
-        return cal.get(Calendar.DAY_OF_MONTH).toString().padStart(2,'0') + "." +
-                (cal.get(Calendar.MONTH)+1).toString().padStart(2,'0') + "." +
-                cal.get(Calendar.YEAR).toString().padStart(4,'0')
-    }
-
     fun addEmployee(): MutableLiveData<String> {
         val emp = MutableLiveData<String>().apply { value = configuration().employeeName }
         employees.add(emp)
@@ -118,7 +117,7 @@ class WorkTimeData: ViewModel() {
     }
 
     fun copyFromSerialized(w: WorkTimeDataSerialized) {
-        date.value = w.date
+        date.value = dateStringToCalendar(w.date)
         employees.clear()
         for(empSer in w.employees) {
             val emp = MutableLiveData<String>().apply { value = empSer }
@@ -132,7 +131,7 @@ class WorkTimeData: ViewModel() {
     }
 
     fun copyFromDb(w: WorkTimeContainerDb.WorkTimeDb) {
-        date.value = w.wtDate
+        date.value = dateStringToCalendar(w.wtDate)
         employees.clear()
         for(empSer in w.wtEmployees) {
             val emp = MutableLiveData<String>().apply { value = empSer }
@@ -145,21 +144,18 @@ class WorkTimeData: ViewModel() {
         distance.value = w.wtDistance
     }
 
-    fun incDateByOneWeekday(dateIn: String): String {
+    private fun incDateByOneWeekday(dateIn: Calendar): Calendar {
         var isWeekDay = true
-        val cal = Calendar.getInstance()
-        cal.set(dateIn.substring(6,10).toInt(), dateIn.substring(3,5).toInt()-1, dateIn.substring(0,2).toInt())
+        val dateOut = dateIn.clone() as Calendar
         while(isWeekDay) {
-            cal.add(Calendar.DATE, 1)
-            val dow = cal.get(Calendar.DAY_OF_WEEK)
+            dateOut.add(Calendar.DATE, 1)
+            val dow = dateOut.get(Calendar.DAY_OF_WEEK)
             if(dow == Calendar.SATURDAY || dow == Calendar.SUNDAY)
-                cal.add(Calendar.DATE, 1)
+                dateOut.add(Calendar.DATE, 1)
             else
                 isWeekDay = false
         }
-        return cal.get(Calendar.DAY_OF_MONTH).toString().padStart(2,'0') + "." +
-                (cal.get(Calendar.MONTH)+1).toString().padStart(2,'0') + "." +
-                cal.get(Calendar.YEAR).toString().padStart(4,'0')
+        return dateOut
     }
 
     fun clone(w: WorkTimeData) {

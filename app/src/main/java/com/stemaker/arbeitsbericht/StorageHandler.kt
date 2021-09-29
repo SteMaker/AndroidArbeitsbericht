@@ -25,7 +25,6 @@ interface ReportListObserver {
     fun notifyReportRemoved(cnt: Int)
     fun notifyReportListChanged(cnts: List<Int>)
 }
-
 object StorageHandler {
     private val gson: Gson = Gson()
     private val visReportCnts: MutableList<Int> = mutableListOf()
@@ -43,10 +42,10 @@ object StorageHandler {
     val workItemDictionary: Set<String>
         get() = _workItemDictionary
 
-    private val db = Room.databaseBuilder(
+    val db = Room.databaseBuilder(
         ArbeitsberichtApp.appContext,
         ReportDatabase::class.java, "Arbeitsbericht-Reports"
-    ).fallbackToDestructiveMigration().build()
+    ).fallbackToDestructiveMigration().addMigrations(ReportDatabase.migr_2_3).build()
 
     private val inited = AtomicBoolean(false)
     var initJob: Job? = null
@@ -152,8 +151,10 @@ object StorageHandler {
     private fun observeReport(r: ReportData) {
         val stateObserver = Observer<ReportData.ReportState> { _ -> reportChanged(r)}
         val projectNameObserver = Observer<String> { _ -> reportChanged(r)}
+        val projectExtraObserver = Observer<String> { _ -> reportChanged(r)}
         r.state.observeForever(stateObserver)
         r.project.name.observeForever(projectNameObserver)
+        r.project.extra1.observeForever(projectExtraObserver)
     }
 
     private fun removeReportFromCache(cnt: Int) {

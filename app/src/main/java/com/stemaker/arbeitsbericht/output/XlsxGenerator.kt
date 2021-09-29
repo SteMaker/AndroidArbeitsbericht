@@ -6,6 +6,7 @@ import android.util.Log
 import android.widget.ProgressBar
 import android.widget.TextView
 import com.stemaker.arbeitsbericht.data.ReportData
+import com.stemaker.arbeitsbericht.data.calendarToDateString
 import com.stemaker.arbeitsbericht.data.configuration
 import com.stemaker.arbeitsbericht.output.ReportGenerator
 import org.apache.poi.ss.usermodel.*
@@ -497,7 +498,7 @@ class XlsxGenerator(activity: Activity, report: ReportData, progressBar: Progres
             row = sheet.createRow(rown+2+rowIdx)
             var employees = ""
             for(e in item.employees) employees += "${e.value}\n"
-            val columns = arrayOf(item.date.value, employees, item.startTime.value, item.endTime.value, item.driveTime.value, item.distance.value.toString(), item.pauseDuration.value, item.workDuration.value)
+            val columns = arrayOf(calendarToDateString(item.date.value), employees, item.startTime.value, item.endTime.value, item.driveTime.value, item.distance.value.toString(), item.pauseDuration.value, item.workDuration.value)
             columns.forEachIndexed { colIdx, e ->
                 row.createCell(colIdx).also {
                     it.setCellStyle(selectTableStyle(table, startRow+2+rowIdx, colIdx))

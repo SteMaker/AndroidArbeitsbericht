@@ -13,6 +13,15 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         app:visibility="@={bill_data.visibility}">
+        <Button
+                android:id="@+id/client_select_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                style="@style/ArbeitsberichtAppTheme.IconTextButtons"
+                app:icon="@drawable/ic_assignment_black_24dp"
+                android:text="@string/client_list"
+                android:layout_gravity="right"
+                />
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="395dp"
             android:layout_height="wrap_content"

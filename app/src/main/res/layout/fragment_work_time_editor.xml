@@ -13,14 +13,29 @@
         android:background="@color/cardview_light_background"
         android:orientation="vertical"
         app:visibility="@={work_time_container_data.visibility}">
-        <Button
-            android:id="@+id/work_time_add_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:paddingRight="20dp"
-            android:text="@string/add"
-            style="@style/ArbeitsberichtAppTheme.IconTextButtons"
-            app:icon="@drawable/ic_add_circle_black_24dp"
-        />
+        <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+            <Button
+                    android:id="@+id/work_time_add_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    android:text="@string/add"
+                    style="@style/ArbeitsberichtAppTheme.IconTextButtons"
+                    app:icon="@drawable/ic_add_circle_black_24dp"
+                    />
+            <Button
+                    android:id="@+id/work_time_sort_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    android:text="@string/sort"
+                    style="@style/ArbeitsberichtAppTheme.IconTextButtons"
+                    app:icon="@drawable/ic_baseline_sort_24"
+                    />
+        </androidx.constraintlayout.widget.ConstraintLayout>
     </com.stemaker.arbeitsbericht.helpers.LinearLayoutVisListener> <!-- End of worktimes_content_container-->
 </layout>

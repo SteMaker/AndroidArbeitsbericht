@@ -125,8 +125,12 @@ class ReportListAdapter(val reportCardInterface: ReportCardInterface, val activi
 
     override fun notifyReportRemoved(cnt: Int) {
         val pos = reportCnts.indexOfFirst { it == cnt }
-        reportCnts.removeAt(pos)
-        notifyItemRemoved(pos)
+        try {
+            reportCnts.removeAt(pos)
+            notifyItemRemoved(pos)
+        } catch (e: Exception) {
+            Log.e(TAG, "Tried to remove not existent report")
+        }
     }
 
     private fun setBottomMargin(view: View, bottomMargin: Int) {

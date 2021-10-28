@@ -483,99 +483,123 @@ class XlsxGenerator(activity: Activity, report: ReportData, progressBar: Progres
     }
 
     private fun setWorkTime(sheet: XSSFSheet, startRow: Int): Int {
-        val rown = startRow
-        val table = TableCoordinates(startRow+1, startRow+1+report.workTimeContainer.items.size, 0, 7)
-        // Headline
-        var row = sheet.createRow(rown)
-        row.createCell(0).also {
-            it.setCellStyle(styles[StyleTypes.HEAD2])
-            it.setCellValue("Arbeits- / Fahrzeiten und Fahrstrecken")
-        }
+        if(report.workTimeContainer.items.size > 0) {
+            val rown = startRow
+            val table = TableCoordinates(startRow + 1, startRow + 1 + report.workTimeContainer.items.size, 0, 7)
+            // Headline
+            var row = sheet.createRow(rown)
+            row.createCell(0).also {
+                it.setCellStyle(styles[StyleTypes.HEAD2])
+                it.setCellValue("Arbeits- / Fahrzeiten und Fahrstrecken")
+            }
 
-        row = sheet.createRow(rown+1)
-        fillTableHeads(row, arrayOf("Datum", "Mitarbeiter", "Arbeits-anfang", "Arbeits-ende", "Fahrzeit [h:m]", "Fahr-strecke [km]", "Pause [h:m]", "Arbeitszeit [h:m]"))
-        report.workTimeContainer.items.forEachIndexed { rowIdx, item ->
-            row = sheet.createRow(rown+2+rowIdx)
-            var employees = ""
-            for(e in item.employees) employees += "${e.value}\n"
-            val columns = arrayOf(calendarToDateString(item.date.value), employees, item.startTime.value, item.endTime.value, item.driveTime.value, item.distance.value.toString(), item.pauseDuration.value, item.workDuration.value)
-            columns.forEachIndexed { colIdx, e ->
-                row.createCell(colIdx).also {
-                    it.setCellStyle(selectTableStyle(table, startRow+2+rowIdx, colIdx))
-                    it.setCellValue(e)
+            row = sheet.createRow(rown + 1)
+            fillTableHeads(
+                row,
+                arrayOf("Datum", "Mitarbeiter", "Arbeits-anfang", "Arbeits-ende", "Fahrzeit [h:m]", "Fahr-strecke [km]", "Pause [h:m]", "Arbeitszeit [h:m]")
+            )
+            report.workTimeContainer.items.forEachIndexed { rowIdx, item ->
+                row = sheet.createRow(rown + 2 + rowIdx)
+                var employees = ""
+                for (e in item.employees) employees += "${e.value}\n"
+                val columns = arrayOf(
+                    calendarToDateString(item.date.value),
+                    employees,
+                    item.startTime.value,
+                    item.endTime.value,
+                    item.driveTime.value,
+                    item.distance.value.toString(),
+                    item.pauseDuration.value,
+                    item.workDuration.value
+                )
+                columns.forEachIndexed { colIdx, e ->
+                    row.createCell(colIdx).also {
+                        it.setCellStyle(selectTableStyle(table, startRow + 2 + rowIdx, colIdx))
+                        it.setCellValue(e)
+                    }
                 }
             }
-        }
-        return 2+report.workTimeContainer.items.size
+            return 2 + report.workTimeContainer.items.size
+        } else
+            return 0
     }
 
     private fun setWorkItem(sheet: XSSFSheet, startRow: Int): Int {
-        val rown = startRow
-        val table = TableCoordinates(startRow+1, startRow+1+report.workItemContainer.items.size, 0, 0)
-        // Headline
-        var row = sheet.createRow(rown)
-        row.createCell(0).also {
-            it.setCellStyle(styles[StyleTypes.HEAD2])
-            it.setCellValue("Durchgeführte Arbeiten")
-        }
-        row = sheet.createRow(rown+1)
-        fillTableHeads(row, arrayOf("Arbeit"))
-        report.workItemContainer.items.forEachIndexed { rowIdx, item ->
-            row = sheet.createRow(rown+2+rowIdx)
+        if(report.workItemContainer.items.size > 0) {
+            val rown = startRow
+            val table = TableCoordinates(startRow + 1, startRow + 1 + report.workItemContainer.items.size, 0, 0)
+            // Headline
+            var row = sheet.createRow(rown)
             row.createCell(0).also {
-                it.setCellStyle(selectTableStyle(table, startRow+2+rowIdx, 0))
-                it.setCellValue(item.item.value)
+                it.setCellStyle(styles[StyleTypes.HEAD2])
+                it.setCellValue("Durchgeführte Arbeiten")
             }
-        }
-        return 2+report.workItemContainer.items.size
+            row = sheet.createRow(rown + 1)
+            fillTableHeads(row, arrayOf("Arbeit"))
+            report.workItemContainer.items.forEachIndexed { rowIdx, item ->
+                row = sheet.createRow(rown + 2 + rowIdx)
+                row.createCell(0).also {
+                    it.setCellStyle(selectTableStyle(table, startRow + 2 + rowIdx, 0))
+                    it.setCellValue(item.item.value)
+                }
+            }
+            return 2 + report.workItemContainer.items.size
+        } else
+            return 0
     }
 
     private fun setLumpSum(sheet: XSSFSheet, startRow: Int): Int {
-        val rown = startRow
-        val table = TableCoordinates(startRow+1, startRow+1+report.lumpSumContainer.items.size, 0, 2)
-        // Headline
-        var row = sheet.createRow(rown)
-        row.createCell(0).also {
-            it.setCellStyle(styles[StyleTypes.HEAD2])
-            it.setCellValue("Pauschalen")
-        }
-        row = sheet.createRow(rown+1)
-        fillTableHeads(row, arrayOf("Pauschale", "Bemerkung", "Anzahl"))
-        report.lumpSumContainer.items.forEachIndexed { rowIdx, item ->
-            row = sheet.createRow(rown+2+rowIdx)
-            val columns = arrayOf(item.item.value, item.comment.value, item.amount.value.toString())
-            columns.forEachIndexed { colIdx, e ->
-                row.createCell(colIdx).also {
-                    it.setCellStyle(selectTableStyle(table, startRow+2+rowIdx, colIdx))
-                    it.setCellValue(e)
+        if(report.lumpSumContainer.items.size > 0) {
+            val rown = startRow
+            val table = TableCoordinates(startRow + 1, startRow + 1 + report.lumpSumContainer.items.size, 0, 2)
+            // Headline
+            var row = sheet.createRow(rown)
+            row.createCell(0).also {
+                it.setCellStyle(styles[StyleTypes.HEAD2])
+                it.setCellValue("Pauschalen")
+            }
+            row = sheet.createRow(rown + 1)
+            fillTableHeads(row, arrayOf("Pauschale", "Bemerkung", "Anzahl"))
+            report.lumpSumContainer.items.forEachIndexed { rowIdx, item ->
+                row = sheet.createRow(rown + 2 + rowIdx)
+                val columns = arrayOf(item.item.value, item.comment.value, item.amount.value.toString())
+                columns.forEachIndexed { colIdx, e ->
+                    row.createCell(colIdx).also {
+                        it.setCellStyle(selectTableStyle(table, startRow + 2 + rowIdx, colIdx))
+                        it.setCellValue(e)
+                    }
                 }
             }
-        }
-        return 2+report.lumpSumContainer.items.size
+            return 2 + report.lumpSumContainer.items.size
+        } else
+            return 0
     }
 
     private fun setMaterial(sheet: XSSFSheet, startRow: Int): Int {
-        val rown = startRow
-        val table = TableCoordinates(startRow+1, startRow+1+report.materialContainer.items.size, 0, 1)
-        // Headline
-        var row = sheet.createRow(rown)
-        row.createCell(0).also {
-            it.setCellStyle(styles[StyleTypes.HEAD2])
-            it.setCellValue("Material")
-        }
-        row = sheet.createRow(rown+1)
-        fillTableHeads(row, arrayOf("Material", "Anzahl"))
-        report.materialContainer.items.forEachIndexed { rowIdx, item ->
-            row = sheet.createRow(rown+2+rowIdx)
-            val columns = arrayOf(item.item.value, item.amount.value.toString())
-            columns.forEachIndexed { colIdx, e ->
-                row.createCell(colIdx).also {
-                    it.setCellStyle(selectTableStyle(table, startRow+2+rowIdx, colIdx))
-                    it.setCellValue(e)
+        if(report.materialContainer.items.size > 0) {
+            val rown = startRow
+            val table = TableCoordinates(startRow + 1, startRow + 1 + report.materialContainer.items.size, 0, 1)
+            // Headline
+            var row = sheet.createRow(rown)
+            row.createCell(0).also {
+                it.setCellStyle(styles[StyleTypes.HEAD2])
+                it.setCellValue("Material")
+            }
+            row = sheet.createRow(rown + 1)
+            fillTableHeads(row, arrayOf("Material", "Anzahl"))
+            report.materialContainer.items.forEachIndexed { rowIdx, item ->
+                row = sheet.createRow(rown + 2 + rowIdx)
+                val columns = arrayOf(item.item.value, item.amount.value.toString())
+                columns.forEachIndexed { colIdx, e ->
+                    row.createCell(colIdx).also {
+                        it.setCellStyle(selectTableStyle(table, startRow + 2 + rowIdx, colIdx))
+                        it.setCellValue(e)
+                    }
                 }
             }
-        }
-        return 2+report.materialContainer.items.size
+            return 2 + report.materialContainer.items.size
+        } else
+            return 0
     }
 
     private fun setPhoto(wb: XSSFWorkbook) {

@@ -92,6 +92,8 @@ class ConfigurationActivity : AppCompatActivity() {
             findViewById<EditText>(R.id.footer_ftp_path).setText(configuration().footerServerPath)
             findViewById<SwitchMaterial>(R.id.pdf_use_logo).isChecked = configuration().pdfUseLogo
             findViewById<SwitchMaterial>(R.id.pdf_use_footer).isChecked = configuration().pdfUseFooter
+            findViewById<SwitchMaterial>(R.id.pdf_use_internal).isChecked = configuration().useInlinePdfViewer
+
             findViewById<SwitchMaterial>(R.id.xlsx_use_logo).isChecked = configuration().xlsxUseLogo
             findViewById<SwitchMaterial>(R.id.xlsx_use_footer).isChecked = configuration().xlsxUseFooter
             val radioGroup = findViewById<RadioGroup>(R.id.output_type_select_radiogroup)
@@ -299,6 +301,7 @@ class ConfigurationActivity : AppCompatActivity() {
         configuration().fontSize = findViewById<Slider>(R.id.fontsize_slider).value.toInt()
         configuration().pdfUseLogo = findViewById<SwitchMaterial>(R.id.pdf_use_logo).isChecked
         configuration().pdfUseFooter = findViewById<SwitchMaterial>(R.id.pdf_use_footer).isChecked
+        configuration().useInlinePdfViewer = findViewById<SwitchMaterial>(R.id.pdf_use_internal).isChecked
         configuration().xlsxUseLogo = findViewById<SwitchMaterial>(R.id.xlsx_use_logo).isChecked
         configuration().xlsxUseFooter = findViewById<SwitchMaterial>(R.id.xlsx_use_footer).isChecked
         configuration().xlsxLogoWidth = findViewById<Slider>(R.id.xlsx_logo_width_slider).value.toInt()

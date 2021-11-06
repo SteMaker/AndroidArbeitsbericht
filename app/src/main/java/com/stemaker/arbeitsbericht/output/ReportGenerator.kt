@@ -97,7 +97,7 @@ abstract class ReportGenerator(val activity: Activity, val report: ReportData, p
         return getHash(files) == report.lastStoreHash.toString() && report.lastStoreHash != 0
     }
 
-    suspend fun create(files: Array<File>) {
+    suspend fun create(files: Array<File>): Boolean {
         if(renderInUiThread) {
             var cont: Continuation<Boolean>? = null
             createDoc(files) {
@@ -109,6 +109,7 @@ abstract class ReportGenerator(val activity: Activity, val report: ReportData, p
                 cont = it
             }
             Log.d(TAG, "resume")
+            return true
         } else {
             val msg = Message()
             msg.what = MSG_CREATE
@@ -116,8 +117,7 @@ abstract class ReportGenerator(val activity: Activity, val report: ReportData, p
                 msg.obj = Create(files, it)
                 docHandler.sendMessage(msg)
             }
-            if (ret.success) return
-            throw(Exception(ret.error))
+            return ret.success
         }
     }
 

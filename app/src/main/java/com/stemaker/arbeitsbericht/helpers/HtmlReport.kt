@@ -69,23 +69,24 @@ object HtmlReport {
 
 
         // Work times table
-        html += "<h2>Arbeits-/fahrzeiten und Fahrstrecken</h2>" +
-                "<table style=\"border: 2px solid black;border-collapse: collapse;\">" +
+        if(rep.workTimeContainer.items.size > 0) {
+            html += "<h2>Arbeits-/fahrzeiten und Fahrstrecken</h2>" +
+                    "<table style=\"border: 2px solid black;border-collapse: collapse;\">" +
                     "<tr>" +
-                        "<th style=\"padding: 15px;$fs;text-align:left;border: 2px solid black;border-collapse: collapse;\">Datum</th>" +
-                        "<th style=\"padding: 15px;$fs;text-align:left;border: 2px solid black;border-collapse: collapse;\">Mitarbeiter</th>" +
-                        "<th style=\"padding: 15px;$fs;text-align:left;border: 2px solid black;border-collapse: collapse;\">Arbeits-anfang</th>" +
-                        "<th style=\"padding: 15px;$fs;text-align:left;border: 2px solid black;border-collapse: collapse;\">Arbeits-ende</th>" +
-                        "<th style=\"padding: 15px;$fs;text-align:left;border: 2px solid black;border-collapse: collapse;\">Fahrzeit<br>[h:m]</th>" +
-                        "<th style=\"padding: 15px;$fs;text-align:left;border: 2px solid black;border-collapse: collapse;\">Fahr-strecke [km]</th>" +
-                        "<th style=\"padding: 15px;$fs;text-align:left;border: 2px solid black;border-collapse: collapse;\">Pause<br>[h:m]</th>" +
-                        "<th style=\"padding: 15px;$fs;text-align:left;border: 2px solid black;border-collapse: collapse;\">Arbeits-zeit [h:m]</th>" +
-                "</tr>"
+                    "<th style=\"padding: 15px;$fs;text-align:left;border: 2px solid black;border-collapse: collapse;\">Datum</th>" +
+                    "<th style=\"padding: 15px;$fs;text-align:left;border: 2px solid black;border-collapse: collapse;\">Mitarbeiter</th>" +
+                    "<th style=\"padding: 15px;$fs;text-align:left;border: 2px solid black;border-collapse: collapse;\">Arbeits-anfang</th>" +
+                    "<th style=\"padding: 15px;$fs;text-align:left;border: 2px solid black;border-collapse: collapse;\">Arbeits-ende</th>" +
+                    "<th style=\"padding: 15px;$fs;text-align:left;border: 2px solid black;border-collapse: collapse;\">Fahrzeit<br>[h:m]</th>" +
+                    "<th style=\"padding: 15px;$fs;text-align:left;border: 2px solid black;border-collapse: collapse;\">Fahr-strecke [km]</th>" +
+                    "<th style=\"padding: 15px;$fs;text-align:left;border: 2px solid black;border-collapse: collapse;\">Pause<br>[h:m]</th>" +
+                    "<th style=\"padding: 15px;$fs;text-align:left;border: 2px solid black;border-collapse: collapse;\">Arbeits-zeit [h:m]</th>" +
+                    "</tr>"
             rep.workTimeContainer.items.forEach {
-            html += "<tr>" +
+                html += "<tr>" +
                         "<td style=\"padding: 10px;$fs;border: 2px solid black;border-collapse: collapse;\"> ${calendarToDateString(it.date.value)}</td>" +
                         "<td style=\"padding: 10px;$fs;border: 2px solid black;border-collapse: collapse;\">"
-                for(empl in it.employees)
+                for (empl in it.employees)
                     html += "${empl.value!!}<br>"
                 html += "</td>" +
                         "<td style=\"padding: 10px;$fs;border: 2px solid black;border-collapse: collapse;\"> ${it.startTime.value} Uhr</td>" +
@@ -94,69 +95,77 @@ object HtmlReport {
                         "<td style=\"padding: 10px;$fs;border: 2px solid black;border-collapse: collapse;\"> ${it.distance.value}</td>" +
                         "<td style=\"padding: 10px;$fs;border: 2px solid black;border-collapse: collapse;\"> ${it.pauseDuration.value}</td>" +
                         "<td style=\"padding: 10px;$fs;border: 2px solid black;border-collapse: collapse;\"> ${it.workDuration.value}</td>" +
-                    "</tr>"
+                        "</tr>"
+            }
+            html += "</table><hr>"
         }
-        html += "</table><hr>"
 
         // Work items table
-        html += "<h2>Durchgeführte Arbeiten</h2>" +
-                "<table style=\"border: 2px solid black;border-collapse: collapse;\">" +
+        if(rep.workItemContainer.items.size > 0) {
+            html += "<h2>Durchgeführte Arbeiten</h2>" +
+                    "<table style=\"border: 2px solid black;border-collapse: collapse;\">" +
                     "<tr>" +
-                        "<th style=\"padding: 15px;$fs;text-align:left;border: 2px solid black;border-collapse: collapse;\">Arbeit</th>" +
+                    "<th style=\"padding: 15px;$fs;text-align:left;border: 2px solid black;border-collapse: collapse;\">Arbeit</th>" +
                     "</tr>"
-        rep.workItemContainer.items.forEach {
-            html += "<tr>" +
+            rep.workItemContainer.items.forEach {
+                html += "<tr>" +
                         "<td style=\"padding: 10px;$fs;border: 2px solid black;border-collapse: collapse;\"> ${it.item.value}</td>" +
-                    "</tr>"
+                        "</tr>"
+            }
+            html += "</table><hr>"
         }
-        html += "</table><hr>"
 
-        // Lump sums
-        html += "<h2>Pauschalen</h2>" +
-                "<table style=\"border: 2px solid black;border-collapse: collapse;\">" +
+        if(rep.lumpSumContainer.items.size > 0) {
+            // Lump sums
+            html += "<h2>Pauschalen</h2>" +
+                    "<table style=\"border: 2px solid black;border-collapse: collapse;\">" +
                     "<tr>" +
-                        "<th style=\"padding: 15px;$fs;text-align:left;border: 2px solid black;border-collapse: collapse;\">Pauschale</th>" +
-                        "<th style=\"padding: 15px;$fs;text-align:left;border: 2px solid black;border-collapse: collapse;\">Anzahl</th>" +
-                        "<th style=\"padding: 15px;$fs;text-align:left;border: 2px solid black;border-collapse: collapse;\">Bemerkung</th>" +
-                "</tr>"
-        rep.lumpSumContainer.items.forEach {
-            html += "<tr>" +
+                    "<th style=\"padding: 15px;$fs;text-align:left;border: 2px solid black;border-collapse: collapse;\">Pauschale</th>" +
+                    "<th style=\"padding: 15px;$fs;text-align:left;border: 2px solid black;border-collapse: collapse;\">Anzahl</th>" +
+                    "<th style=\"padding: 15px;$fs;text-align:left;border: 2px solid black;border-collapse: collapse;\">Bemerkung</th>" +
+                    "</tr>"
+            rep.lumpSumContainer.items.forEach {
+                html += "<tr>" +
                         "<td style=\"padding: 10px;$fs;border: 2px solid black;border-collapse: collapse;\"> ${it.item.value}</td>" +
                         "<td style=\"padding: 10px;$fs;border: 2px solid black;border-collapse: collapse;\"> ${it.amount.value}</td>" +
                         "<td style=\"padding: 10px;$fs;border: 2px solid black;border-collapse: collapse;\"> ${it.comment.value}</td>" +
-                    "</tr>"
+                        "</tr>"
+            }
+            html += "</table><hr>"
         }
-        html += "</table><hr>"
 
         // Material table
-        html += "<h2>Material</h2>" +
-                "<table style=\"border: 2px solid black;border-collapse: collapse;\">"
-        if(rep.materialContainer.isAnyMaterialUnitSet()) {
-            html += "<tr>" +
+        if(rep.materialContainer.items.size > 0) {
+            html += "<h2>Material</h2>" +
+                    "<table style=\"border: 2px solid black;border-collapse: collapse;\">"
+            if (rep.materialContainer.isAnyMaterialUnitSet()) {
+                html += "<tr>" +
                         "<th style=\"padding: 15px;$fs;text-align:left;border: 2px solid black;border-collapse: collapse;\">Material</th>" +
                         "<th style=\"padding: 15px;$fs;text-align:left;border: 2px solid black;border-collapse: collapse;\">Anzahl</th>" +
                         "<th style=\"padding: 15px;$fs;text-align:left;border: 2px solid black;border-collapse: collapse;\">Einheit</th>" +
-                    "</tr>"
-            rep.materialContainer.items.forEach {
-                html += "<tr>" +
-                        "<td style=\"padding: 10px;$fs;border: 2px solid black;border-collapse: collapse;\"> ${it.item.value}</td>" +
-                        "<td style=\"padding: 10px;$fs;border: 2px solid black;border-collapse: collapse;\"> ${it.amount.value}</td>" +
-                        "<td style=\"padding: 10px;$fs;border: 2px solid black;border-collapse: collapse;\"> ${it.unit.value}</td>" +
                         "</tr>"
-            }
-        } else {
-            html += "<tr>" +
-                    "<th style=\"padding: 15px;$fs;text-align:left;border: 2px solid black;border-collapse: collapse;\">Material</th>" +
-                    "<th style=\"padding: 15px;$fs;text-align:left;border: 2px solid black;border-collapse: collapse;\">Anzahl</th>" +
-                    "</tr>"
-            rep.materialContainer.items.forEach {
+                rep.materialContainer.items.forEach {
+                    html += "<tr>" +
+                            "<td style=\"padding: 10px;$fs;border: 2px solid black;border-collapse: collapse;\"> ${it.item.value}</td>" +
+                            "<td style=\"padding: 10px;$fs;border: 2px solid black;border-collapse: collapse;\"> ${it.amount.value}</td>" +
+                            "<td style=\"padding: 10px;$fs;border: 2px solid black;border-collapse: collapse;\"> ${it.unit.value}</td>" +
+                            "</tr>"
+                }
+            } else {
                 html += "<tr>" +
-                        "<td style=\"padding: 10px;$fs;border: 2px solid black;border-collapse: collapse;\"> ${it.item.value}</td>" +
-                        "<td style=\"padding: 10px;$fs;border: 2px solid black;border-collapse: collapse;\"> ${it.amount.value}</td>" +
+                        "<th style=\"padding: 15px;$fs;text-align:left;border: 2px solid black;border-collapse: collapse;\">Material</th>" +
+                        "<th style=\"padding: 15px;$fs;text-align:left;border: 2px solid black;border-collapse: collapse;\">Anzahl</th>" +
                         "</tr>"
+                rep.materialContainer.items.forEach {
+                    html += "<tr>" +
+                            "<td style=\"padding: 10px;$fs;border: 2px solid black;border-collapse: collapse;\"> ${it.item.value}</td>" +
+                            "<td style=\"padding: 10px;$fs;border: 2px solid black;border-collapse: collapse;\"> ${it.amount.value}</td>" +
+                            "</tr>"
+                }
             }
+            html += "</table><hr>"
         }
-        html += "</table><hr>"
+
         if(rep.photoContainer.items.size != 0) {
             html += "<h2>Fotos</h2>"
             rep.photoContainer.items.forEach {
@@ -201,4 +210,3 @@ object HtmlReport {
         return html
     }
 }
-

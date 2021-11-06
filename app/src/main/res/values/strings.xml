@@ -43,6 +43,7 @@
     <string name="del_signature">Sind sie sich sicher, dass sie die Unterschrift löschen wollen?</string>
     <string name="overwrite_confirmation">Der Bericht exisitiert bereits als PDF, soll er überschrieben werden?</string>
     <string name="send_fail">Senden fehlgeschlagen!</string>
+    <string name="pdf_viewer_fail">Konnte PDF Renderer nicht generieren</string>
     <string name="sharing">Bericht teilen ...</string>
     <string name="ok">OK</string>
     <string name="cancel">Abbrechen</string>
@@ -96,6 +97,7 @@
     <string name="fontsize">Schriftgröße</string>
     <string name="use_logo">Logo verwenden</string>
     <string name="use_footer">Fusszeile verwenden</string>
+    <string name="use_internal_pdf">Eigene PDF Vorschau</string>
     <string name="logowidth">Logobreite [mm]</string>
     <string name="footerwidth">Fusszeilenbreite [mm]</string>
 

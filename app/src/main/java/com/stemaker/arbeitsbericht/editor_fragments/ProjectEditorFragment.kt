@@ -41,8 +41,11 @@ class ProjectEditorFragment : ReportEditorSectionFragment() {
         dataBinding.lifecycleOwner = this
 
         GlobalScope.launch(Dispatchers.Main) {
-            dataBinding.projectData = listener!!.getProjectData()
-            dataBinding.reportData = listener!!.getReportData()
+            listener?.also {
+                // There can be a race with onDetach so that the listener is already null
+                dataBinding.projectData = it.getProjectData()
+                dataBinding.reportData = it.getReportData()
+            }
         }
         return root
     }

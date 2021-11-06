@@ -4,8 +4,11 @@ import android.Manifest
 import android.content.ClipData
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.pdf.PdfRenderer
 import android.net.Uri
 import android.os.Bundle
+import android.os.ParcelFileDescriptor
 import android.print.*
 import android.util.Log
 import android.view.*
@@ -18,6 +21,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
+import androidx.core.graphics.createBitmap
 import androidx.databinding.DataBindingUtil
 import com.stemaker.arbeitsbericht.data.ReportData
 import com.stemaker.arbeitsbericht.data.SignatureData
@@ -75,20 +79,21 @@ class SummaryActivity : AppCompatActivity() {
                 when (item.itemId) {
                     R.id.show_preview-> {
                         prepareAndShare(false) {
-                            it?.also { showReport(it) }
+                                file, type -> file?.also { showReport(file, type) }
                         }
                         true
                     }
                     R.id.send_report -> {
                         prepareAndShare(true) {
-                            sendMail(it, storageHandler().getReport()!!)
+                                file, _ -> sendMail(file, storageHandler().getReport()!!)
                         }
                         true
                     }
                     R.id.share_report -> {
                         prepareAndShare(true) {
-                            if (it != null) {
-                                shareReport(it, storageHandler().getReport()!!)
+                                file, _ ->
+                            if (file != null) {
+                                shareReport(file, storageHandler().getReport()!!)
                             } else {
                                 val toast = Toast.makeText(applicationContext, R.string.send_fail, Toast.LENGTH_LONG)
                                 toast.show()
@@ -111,35 +116,6 @@ class SummaryActivity : AppCompatActivity() {
             val html = HtmlReport.encodeReport(storageHandler().getReport()!!, this@SummaryActivity.filesDir, false)
             val wv = findViewById<WebView>(R.id.webview)
             wv.loadDataWithBaseURL("", html, "text/html", "UTF-8", "")
-        }
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when (item.itemId) {
-            R.id.show_preview-> {
-                prepareAndShare(false) {
-                    it?.also { showReport(it) }
-                }
-                true
-            }
-            R.id.send_report -> {
-                prepareAndShare(true) {
-                    sendMail(it, storageHandler().getReport()!!)
-                }
-                true
-            }
-            R.id.share_report -> {
-                prepareAndShare(true) {
-                    if (it != null) {
-                        shareReport(it, storageHandler().getReport()!!)
-                    } else {
-                        val toast = Toast.makeText(applicationContext, R.string.send_fail, Toast.LENGTH_LONG)
-                        toast.show()
-                    }
-                }
-                true
-            }
-            else -> super.onOptionsItemSelected(item)
         }
     }
 
@@ -260,7 +236,7 @@ class SummaryActivity : AppCompatActivity() {
     }
 
     var writePermissionContinuation: Continuation<Boolean>? = null
-    private fun prepareAndShare(ask: Boolean, distribute: (file: File?)->Unit) {
+    private fun prepareAndShare(ask: Boolean, distribute: (file: File?, type: OutputType)->Unit) {
         GlobalScope.launch(Dispatchers.Main) {
             saveSignatures()
             if(ask)
@@ -284,8 +260,8 @@ class SummaryActivity : AppCompatActivity() {
                 }
             }
             if(permissionGranted) {
-                val file = createReport()
-                distribute(file)
+                val fileAndType = createReport()
+                distribute(fileAndType.first, fileAndType.second)
             }
         }
 
@@ -302,7 +278,8 @@ class SummaryActivity : AppCompatActivity() {
     }
 
     // TODO: Currently only supporting a single output file, currently no other use case
-    private suspend fun createReport(): File? {
+    private suspend fun createReport(): Pair<File?, OutputType> {
+        var file: File? = null
         val type = when {
             configuration().useXlsxOutput -> OutputType.XLSX
             configuration().useOdfOutput -> OutputType.ODT
@@ -310,9 +287,9 @@ class SummaryActivity : AppCompatActivity() {
             else -> OutputType.PDF
         }
         if(type == OutputType.UNKNOWN)
-            return null
+            return Pair(null, type)
 
-        val report = storageHandler().getReport() ?: return null
+        val report = storageHandler().getReport() ?: return Pair(null, type)
         val generator = when(type) {
             // FIXME: Add support for select !!!!
             OutputType.XLSX -> XlsxGenerator(this@SummaryActivity, report, binding.createReportProgressbar,
@@ -323,7 +300,7 @@ class SummaryActivity : AppCompatActivity() {
                 binding.createReportProgressText)
         }
         val files = generator.getFilesForGeneration()
-        return if(files != null) {
+        file = if(files != null) {
             if(generator.isDocUpToDate(files)) {
                 files[0]
             } else {
@@ -333,7 +310,10 @@ class SummaryActivity : AppCompatActivity() {
                 createSigPngs(files[1], files[2])
                 window.setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
                 findViewById<LinearLayout>(R.id.create_report_progress_container).visibility = View.VISIBLE
-                generator.create(files)
+                if(!generator.create(files)) {
+                    val toast = Toast.makeText(this, "Entschuldigung, es ist ein Fehler beim Erstellen des Berichts aufgetreten", Toast.LENGTH_LONG)
+                    toast.show()
+                }
                 findViewById<LinearLayout>(R.id.create_report_progress_container).visibility = View.GONE
                 window.clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
                 files[0]
@@ -342,6 +322,7 @@ class SummaryActivity : AppCompatActivity() {
             Log.d(TAG, "dropping odf generation")
             null
         }
+        return Pair(file, type)
     }
 
     private fun createSigPngs(cSigFile: File, eSigFile: File) {
@@ -373,7 +354,7 @@ class SummaryActivity : AppCompatActivity() {
         }
     }
 
-    private fun showReport(file: File) {
+    private fun showReportExternal(file: File) {
         val intent = Intent(Intent.ACTION_VIEW)
         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         val uri = FileProvider.getUriForFile(this, "com.stemaker.arbeitsbericht.fileprovider", file)
@@ -387,6 +368,18 @@ class SummaryActivity : AppCompatActivity() {
                 showInfoDialog(getString(R.string.no_xdf_viewer, extension.capitalize()), this@SummaryActivity)
             }
         }
+    }
+
+    private fun showReportInternal(file: File, type: OutputType) {
+        val pdfPreviewDialog = PdfPreviewDialog(file, applicationContext)
+        pdfPreviewDialog.show(supportFragmentManager, "PdfPreviewDialog")
+    }
+
+    private fun showReport(file: File, type: OutputType) {
+        if(configuration().useInlinePdfViewer && type == OutputType.PDF)
+            showReportInternal(file, type)
+        else
+            showReportExternal(file)
     }
 
     private fun sendMail(xdfFile: File?, report: ReportData) {

@@ -32,6 +32,7 @@ class ReportFilterDialog: DialogFragment() {
             filter.projectName = dataBinding.projectName.text.toString()
             filter.projectExtra = dataBinding.projectExtra.text.toString()
             filter.update()
+            filter.save()
             dismiss()
         }
         dataBinding.cancelButton.setOnClickListener {

@@ -3,14 +3,12 @@ package com.stemaker.arbeitsbericht.helpers
 import androidx.databinding.Observable
 import androidx.lifecycle.*
 import com.stemaker.arbeitsbericht.data.ReportData
+import com.stemaker.arbeitsbericht.data.configuration
 
 class ReportFilter(): Observable, ViewModel() {
     var projectName = ""
     var projectExtra = ""
-    val remainingStates = mutableSetOf<Int>(
-        ReportData.ReportState.toInt(ReportData.ReportState.IN_WORK),
-        ReportData.ReportState.toInt(ReportData.ReportState.ON_HOLD),
-        ReportData.ReportState.toInt(ReportData.ReportState.DONE))
+    val remainingStates = mutableSetOf<Int>()
 
     var inWork
         get() = remainingStates.contains(ReportData.ReportState.toInt(ReportData.ReportState.IN_WORK))?:true
@@ -62,5 +60,29 @@ class ReportFilter(): Observable, ViewModel() {
         observers.forEach {
             it.onPropertyChanged(this, 0)
         }
+    }
+
+    fun fromStore(pN: String, pE: String, states: Int) {
+        projectName = pN
+        projectExtra = pE
+        if(states and (1 shl ReportData.ReportState.toInt(ReportData.ReportState.IN_WORK)) != 0)
+            inWork = true
+        if(states and (1 shl ReportData.ReportState.toInt(ReportData.ReportState.ON_HOLD)) != 0)
+            onHold = true
+        if(states and (1 shl ReportData.ReportState.toInt(ReportData.ReportState.DONE)) != 0)
+            done = true
+        if(states and (1 shl ReportData.ReportState.toInt(ReportData.ReportState.ARCHIVED)) != 0)
+            archived = true
+    }
+
+    fun save() {
+        var filterStates = 0
+        for(i in remainingStates) {
+            filterStates = filterStates or (1 shl i)
+        }
+        configuration().filterProjectName = projectName
+        configuration().filterProjectExtra = projectExtra
+        configuration().filterStates = filterStates
+        configuration().save()
     }
 }

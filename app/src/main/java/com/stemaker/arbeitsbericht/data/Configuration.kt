@@ -63,6 +63,11 @@ class ConfigurationStore {
     var photoResolution: Int = 1024
     var currentClientId: Int = 1
     var useInlinePdfViewer: Boolean = true
+    var filterProjectName: String = ""
+    var filterProjectExtra: String = ""
+    var filterStates: Int = (1 shl ReportData.ReportState.toInt(ReportData.ReportState.IN_WORK)) or
+            (1 shl ReportData.ReportState.toInt(ReportData.ReportState.ON_HOLD)) or
+            (1 shl ReportData.ReportState.toInt(ReportData.ReportState.DONE))
 }
 
 fun configuration(): Configuration {
@@ -104,6 +109,7 @@ object Configuration {
                 _appUpdateWasDone = true
                 updateConfiguration(store.vers)
             }
+            reportFilter.fromStore(store.filterProjectName, store.filterProjectExtra, store.filterStates)
         }
     }
 
@@ -334,6 +340,21 @@ object Configuration {
         get(): Boolean = store.useInlinePdfViewer
         set(value) {
             store.useInlinePdfViewer = value }
+
+    var filterProjectName: String
+        get(): String = store.filterProjectName
+        set(value) {
+            store.filterProjectName = value}
+
+    var filterProjectExtra: String
+        get(): String = store.filterProjectExtra
+        set(value) {
+            store.filterProjectExtra = value}
+
+    var filterStates: Int
+        get(): Int = store.filterStates
+        set(value) {
+            store.filterStates = value}
 
     private fun encryptPassword(pwd: String): String {
         /* Now we try to store the password in an encrypted way. First we retrieve a key

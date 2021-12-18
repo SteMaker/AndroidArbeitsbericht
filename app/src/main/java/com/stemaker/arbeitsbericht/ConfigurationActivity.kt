@@ -58,6 +58,8 @@ class ConfigurationActivity : AppCompatActivity() {
             findViewById<EditText>(R.id.config_mail_receiver).setText(configuration().recvMail)
             findViewById<SwitchMaterial>(R.id.crashlog_enable).isChecked = configuration().crashlyticsEnabled
             FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(configuration().crashlyticsEnabled)
+            findViewById<SwitchMaterial>(R.id.always_landscape).isChecked = configuration().lockScreenOrientation
+
             findViewById<EditText>(R.id.sftp_host).setText(configuration().sFtpHost)
             findViewById<EditText>(R.id.sftp_port).setText(configuration().sFtpPort.toString())
             findViewById<EditText>(R.id.sftp_user).setText(configuration().sFtpUser)
@@ -286,6 +288,8 @@ class ConfigurationActivity : AppCompatActivity() {
         configuration().recvMail = findViewById<EditText>(R.id.config_mail_receiver).getText().toString()
         configuration().crashlyticsEnabled = findViewById<SwitchMaterial>(R.id.crashlog_enable).isChecked
         FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(configuration().crashlyticsEnabled)
+        configuration().lockScreenOrientation = findViewById<SwitchMaterial>(R.id.always_landscape).isChecked
+
         configuration().useOdfOutput = findViewById<RadioButton>(R.id.radio_odf_output).isChecked
         configuration().useXlsxOutput = findViewById<RadioButton>(R.id.radio_xlsx_output).isChecked
         configuration().selectOutput = findViewById<RadioButton>(R.id.radio_select_output).isChecked

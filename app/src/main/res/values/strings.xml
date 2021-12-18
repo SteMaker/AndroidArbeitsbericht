@@ -67,6 +67,7 @@
     <string name="lump_sum_from_server">Pauschalendefinition von einem server beziehen</string>
     <string name="sftp_path_lump_sum">Pfad zur Pauschalendatei auf dem SFTP server</string>
     <string name="crashlog_enable">Im Falle eines Absturzes Bericht an Autor senden</string>
+    <string name="always_portrait">Bildschirm immer im Hochformat</string>
     <string name="in_work">In Arbeit</string>
     <string name="on_hold">Unterbrochen</string>
     <string name="done">Erledigt</string>

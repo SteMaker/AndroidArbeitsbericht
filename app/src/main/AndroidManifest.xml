@@ -38,7 +38,8 @@
         <activity
                 android:name=".ReportEditorActivity"
                 android:parentActivityName=".MainActivity"
-                android:screenOrientation="fullSensor" />
+                android:screenOrientation="fullSensor"
+                android:configChanges="orientation|screenSize|screenLayout"/>
         <activity
                 android:name=".MainActivity"
                 android:screenOrientation="portrait">

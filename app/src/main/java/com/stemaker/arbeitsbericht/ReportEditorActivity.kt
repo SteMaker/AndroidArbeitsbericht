@@ -1,6 +1,9 @@
 package com.stemaker.arbeitsbericht
 
 import android.content.Intent
+import android.content.pm.ActivityInfo
+import android.content.res.Configuration
+import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -10,11 +13,12 @@ import androidx.databinding.DataBindingUtil
 import com.stemaker.arbeitsbericht.data.*
 import com.stemaker.arbeitsbericht.databinding.ActivityReportEditorBinding
 import com.stemaker.arbeitsbericht.editor_fragments.*
+import com.stemaker.arbeitsbericht.helpers.OrientationNotificationDialogFragment
 import kotlinx.coroutines.*
 
 private const val TAG = "ReportEditorActivity"
 
-class ReportEditorActivity : AppCompatActivity(),
+class ReportEditorActivity : OrientationNotificationDialogFragment.OrientationSelection,AppCompatActivity(),
     ProjectEditorFragment.OnProjectEditorInteractionListener,
     BillEditorFragment.OnBillEditorInteractionListener,
     WorkTimeEditorFragment.OnWorkTimeEditorInteractionListener,
@@ -29,6 +33,10 @@ class ReportEditorActivity : AppCompatActivity(),
     /* General stuff */
     /*****************/
     override fun onCreate(savedInstanceState: Bundle?) {
+        requestedOrientation = when(configuration().lockScreenOrientation) {
+            true -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
+            else -> ActivityInfo.SCREEN_ORIENTATION_FULL_USER
+        }
         super.onCreate(savedInstanceState)
         storageInitJob = storageHandler().initialize()
         topBinding = DataBindingUtil.setContentView(this, R.layout.activity_report_editor)
@@ -66,6 +74,24 @@ class ReportEditorActivity : AppCompatActivity(),
         topBinding.reportEditorActivityToolbar.setNavigationOnClickListener {
             onBackPressed()
         }
+        if(!configuration().lockScreenOrientationNoInfo && resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            val screenOrientationDialog = OrientationNotificationDialogFragment(this)
+            screenOrientationDialog.show(supportFragmentManager, "Orientation dialog")
+        }
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        Log.d("ABCDEF", "cfg change")
+        if(!configuration().lockScreenOrientationNoInfo && newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            val screenOrientationDialog = OrientationNotificationDialogFragment(this)
+            screenOrientationDialog.show(supportFragmentManager, "Orientation dialog")
+        }
+    }
+
+    override fun setOrientation(orientation: Int) {
+        Log.d("ABCDEF", "cfg change")
+        requestedOrientation = orientation
     }
 
     override fun onPause() {

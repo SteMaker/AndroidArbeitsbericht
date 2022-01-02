@@ -2,31 +2,24 @@ package com.stemaker.arbeitsbericht.editor_fragments
 
 import android.content.Context
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.databinding.DataBindingUtil
-import com.stemaker.arbeitsbericht.AboutDialogFragment
 import com.stemaker.arbeitsbericht.ClientRepository
 import com.stemaker.arbeitsbericht.ClientSelectDialog
 import com.stemaker.arbeitsbericht.R
 import com.stemaker.arbeitsbericht.data.BillData
-import com.stemaker.arbeitsbericht.data.ReportData
-import com.stemaker.arbeitsbericht.databinding.FragmentBillEditorBinding
+import com.stemaker.arbeitsbericht.data.ProjectData
+import com.stemaker.arbeitsbericht.databinding.FragmentProjectBillEditorBinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
-class BillEditorFragment : ReportEditorSectionFragment() {
-    lateinit var dataBinding: FragmentBillEditorBinding
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        Log.d("Arbeitsbericht","BillEditorFragment.onCreate called")
-    }
+class ProjectBillEditorFragment  : ReportEditorSectionFragment() {
+    lateinit var dataBinding: FragmentProjectBillEditorBinding
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -34,14 +27,17 @@ class BillEditorFragment : ReportEditorSectionFragment() {
     ): View? {
         // Inflate the layout for this fragment
         val root = super.onCreateView(inflater, container, savedInstanceState)
-        dataBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_bill_editor, null, false)
+        dataBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_project_bill_editor, null, false)
         root!!.findViewById<LinearLayout>(R.id.section_container).addView(dataBinding.root)
+
         GlobalScope.launch(Dispatchers.Main) {
             listener?.let {
+                // There can be a race with onDetach so that the listener is already null
                 val report = it.getReportData()
+                dataBinding.projectData = report.project
                 dataBinding.billData = report.bill
                 ClientRepository.initJob.join()
-                dataBinding.clientSelectButton.setOnClickListener {
+                dataBinding.clientSelectButton?.setOnClickListener {
                     val clientSelectDialog = ClientSelectDialog()
                     if (ClientRepository.clients.isEmpty()) {
                         val toast = Toast.makeText(root.context, "Es sind keine Kunden definiert", Toast.LENGTH_LONG)
@@ -69,20 +65,23 @@ class BillEditorFragment : ReportEditorSectionFragment() {
                 }
             }
         }
+        setHeadline("Projekt / Kunde / Rechnungsaddresse")
 
-        setHeadline("Rechnungsadresse")
         dataBinding.lifecycleOwner = viewLifecycleOwner
+
+        GlobalScope.launch(Dispatchers.Main) {
+        }
         return root
     }
 
     override fun setVisibility(vis: Boolean) {
-        dataBinding.billContentContainer.visibility = when(vis) {
+        dataBinding.projectBillContentContainer.visibility = when(vis) {
             true -> View.VISIBLE
             else -> View.GONE
         }
     }
 
     override fun getVisibility(): Boolean {
-        return dataBinding.billContentContainer.visibility != View.GONE
+        return dataBinding.projectBillContentContainer.visibility != View.GONE
     }
 }

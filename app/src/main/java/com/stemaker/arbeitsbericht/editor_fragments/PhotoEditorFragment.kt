@@ -1,7 +1,6 @@
 package com.stemaker.arbeitsbericht.editor_fragments
 
 import android.app.Activity.RESULT_OK
-import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -13,8 +12,6 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -42,15 +39,9 @@ import kotlin.coroutines.suspendCoroutine
 private const val TAG = "PhotoEditorFrag"
 
 class PhotoEditorFragment : ReportEditorSectionFragment() {
-    private var listener: OnPhotoEditorInteractionListener? = null
     lateinit var dataBinding: FragmentPhotoEditorBinding
-    //private var photoLoadCont: Continuation<Uri?>? = null
     private var contCnt = 1
     private val activityResultContinuation = mutableMapOf<Int, Continuation<Uri?>>()
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -65,60 +56,46 @@ class PhotoEditorFragment : ReportEditorSectionFragment() {
 
         setHeadline(getString(R.string.photo))
 
-        dataBinding.lifecycleOwner = this
+        dataBinding.lifecycleOwner = viewLifecycleOwner
         GlobalScope.launch(Dispatchers.Main) {
-            val photoContainerData = listener!!.getPhotoContainerData()
-            dataBinding.photoContainerData = photoContainerData
+            listener?.let {
+                val photoContainerData = it.getReportData().photoContainer
+                dataBinding.photoContainerData = photoContainerData
 
-            for (p in photoContainerData.items) {
-                addPhotoView(p, photoContainerData)
-            }
-
-            dataBinding.root.findViewById<Button>(R.id.photo_add_button).setOnClickListener(object : View.OnClickListener {
-                override fun onClick(btn: View) {
-                    val p = photoContainerData.addPhoto()
+                for (p in photoContainerData.items) {
                     addPhotoView(p, photoContainerData)
                 }
-            })
+
+                dataBinding.photoAddButton.setOnClickListener(object : View.OnClickListener {
+                    override fun onClick(btn: View) {
+                        val p = photoContainerData.addPhoto()
+                        addPhotoView(p, photoContainerData)
+                    }
+                })
+            }
         }
 
         return root
     }
 
-    override fun onAttach(context: Context) {
-        super.onAttach(context)
-        if (context is OnPhotoEditorInteractionListener) {
-            listener = context
-        } else {
-            throw RuntimeException(context.toString() + " must implement OnPhotoEditorInteractionListener")
+    override fun setVisibility(vis: Boolean) {
+        dataBinding.photoContentContainer.visibility = when(vis) {
+            true -> View.VISIBLE
+            else -> View.GONE
         }
     }
 
-    override fun onDetach() {
-        super.onDetach()
-        listener = null
-    }
-
-    override fun setVisibility(vis: Boolean) {
-        dataBinding.root.findViewById<LinearLayout>(R.id.photo_content_container).setVisibility(if(vis) View.VISIBLE else View.GONE)
-    }
-
     override fun getVisibility(): Boolean {
-        return dataBinding.root.findViewById<LinearLayout>(R.id.photo_content_container).visibility != View.GONE
+        return dataBinding.photoContentContainer.visibility != View.GONE
     }
-
-    interface OnPhotoEditorInteractionListener {
-        suspend fun getPhotoContainerData(): PhotoContainerData
-    }
-
 
     fun addPhotoView(p: PhotoData, photoContainerData: PhotoContainerData) {
         val inflater = layoutInflater
-        val container = dataBinding.root.findViewById<LinearLayout>(R.id.photo_content_container)
+        val container = dataBinding.photoContentContainer
         val photoDataBinding: PhotoLayoutBinding = PhotoLayoutBinding.inflate(inflater, null, false)
         photoDataBinding.photo = p
         photoDataBinding.lifecycleOwner = activity
-        photoDataBinding.root.findViewById<Button>(R.id.photo_del_button).setOnClickListener(object: View.OnClickListener {
+        photoDataBinding.photoDelButton.setOnClickListener(object: View.OnClickListener {
             override fun onClick(btn: View) {
                 GlobalScope.launch(Dispatchers.Main) {
                     val answer =
@@ -131,7 +108,7 @@ class PhotoEditorFragment : ReportEditorSectionFragment() {
             }
         })
 
-        photoDataBinding.root.findViewById<Button>(R.id.photo_take_button).setOnClickListener(object : View.OnClickListener {
+        photoDataBinding.photoTakeButton.setOnClickListener(object : View.OnClickListener {
             override fun onClick(btn: View) {
                 GlobalScope.launch(Dispatchers.Main) {
                     Intent(MediaStore.ACTION_IMAGE_CAPTURE).also { takePictureIntent ->
@@ -155,20 +132,28 @@ class PhotoEditorFragment : ReportEditorSectionFragment() {
                                     contCnt++
                                 }
                                 Log.d(TAG, "Selected photo: ${file}")
-                                try {
-                                    applyPhotoFile(p, photoFile)
-                                } catch (ex: Exception) {
-                                    val toast = Toast.makeText(activity, "Konnte Datei für Foto nicht erstellen", Toast.LENGTH_LONG)
+                                file?.let {
+                                    try {
+                                        applyPhotoFile(p, photoFile)
+                                    } catch (ex: Exception) {
+                                        val toast = Toast.makeText(activity, "Konnte Datei für Foto nicht erstellen", Toast.LENGTH_LONG)
+                                        toast.show()
+                                    }
+                                }?:run {
+                                    val toast = Toast.makeText(activity, "Bildaufnahme fehlgeschlagen", Toast.LENGTH_LONG)
                                     toast.show()
                                 }
                             }
+                        }?:run {
+                            val toast = Toast.makeText(activity, "Konnte keine Kamera-App starten", Toast.LENGTH_LONG)
+                            toast.show()
                         }
                     }
                 }
             }
         })
 
-        photoDataBinding.root.findViewById<Button>(R.id.photo_load_button).setOnClickListener(object : View.OnClickListener {
+        photoDataBinding.photoLoadButton.setOnClickListener(object : View.OnClickListener {
             override fun onClick(btn: View) {
                 GlobalScope.launch(Dispatchers.Main) {
                     val mimeTypes = arrayOf("image/jpeg")
@@ -199,7 +184,7 @@ class PhotoEditorFragment : ReportEditorSectionFragment() {
             }
         })
 
-        photoDataBinding.root.findViewById<ImageView>(R.id.photo_view).setOnClickListener(object : View.OnClickListener {
+        photoDataBinding.photoView.setOnClickListener(object : View.OnClickListener {
             override fun onClick(btn: View) {
                 if(p.file.value != "") {
                     val tmpFile = File(p.file.value!!) // because old app version stored the path here as well
@@ -266,6 +251,11 @@ class PhotoEditorFragment : ReportEditorSectionFragment() {
         if (resultCode == RESULT_OK) {
             activityResultContinuation[requestCode]?.let {
                 it.resume(data?.data)
+                activityResultContinuation.remove(requestCode)
+            }
+        } else {
+            activityResultContinuation[requestCode]?.let {
+                it.resume(null)
                 activityResultContinuation.remove(requestCode)
             }
         }

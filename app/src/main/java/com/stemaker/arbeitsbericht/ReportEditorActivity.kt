@@ -3,7 +3,6 @@ package com.stemaker.arbeitsbericht
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
-import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -18,17 +17,13 @@ import kotlinx.coroutines.*
 
 private const val TAG = "ReportEditorActivity"
 
-class ReportEditorActivity : OrientationNotificationDialogFragment.OrientationSelection,AppCompatActivity(),
-    ProjectEditorFragment.OnProjectEditorInteractionListener,
-    BillEditorFragment.OnBillEditorInteractionListener,
-    WorkTimeEditorFragment.OnWorkTimeEditorInteractionListener,
-    WorkItemEditorFragment.OnWorkItemEditorInteractionListener,
-    MaterialEditorFragment.OnMaterialEditorInteractionListener,
-    LumpSumEditorFragment.OnLumpSumEditorInteractionListener,
-    PhotoEditorFragment.OnPhotoEditorInteractionListener {
+class ReportEditorActivity() : AppCompatActivity(),
+    ReportEditorSectionFragment.OnReportEditorInteractionListener,
+    OrientationNotificationDialogFragment.ForcePortraitListener {
 
     lateinit var topBinding : ActivityReportEditorBinding
     var storageInitJob: Job? = null
+
     /*****************/
     /* General stuff */
     /*****************/
@@ -74,42 +69,29 @@ class ReportEditorActivity : OrientationNotificationDialogFragment.OrientationSe
         topBinding.reportEditorActivityToolbar.setNavigationOnClickListener {
             onBackPressed()
         }
-        if(!configuration().lockScreenOrientationNoInfo && resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            val screenOrientationDialog = OrientationNotificationDialogFragment(this)
+        if(!configuration().lockScreenOrientationNoInfo && !configuration().lockScreenOrientation &&
+            resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            val screenOrientationDialog = OrientationNotificationDialogFragment()
+            screenOrientationDialog.setForcePortraitListener(this)
             screenOrientationDialog.show(supportFragmentManager, "Orientation dialog")
         }
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
-        Log.d("ABCDEF", "cfg change")
-        if(!configuration().lockScreenOrientationNoInfo && newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            val screenOrientationDialog = OrientationNotificationDialogFragment(this)
-            screenOrientationDialog.show(supportFragmentManager, "Orientation dialog")
-        }
+        recreate()
     }
 
-    override fun setOrientation(orientation: Int) {
-        Log.d("ABCDEF", "cfg change")
-        requestedOrientation = orientation
-    }
-
-    override fun onPause() {
-        Log.d(TAG, "onPause")
-        super.onPause()
+    override fun forcePortrait() {
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
+        recreate()
     }
 
     override fun onStop() {
-        Log.d(TAG, "onStop")
         super.onStop()
         runBlocking {
             storageHandler().saveActiveReport()
         }
-    }
-
-    override fun onDestroy() {
-        Log.d(TAG, "onDestroy")
-        super.onDestroy()
     }
 
     private suspend fun waitForStorageHandler() {
@@ -121,45 +103,5 @@ class ReportEditorActivity : OrientationNotificationDialogFragment.OrientationSe
     override suspend fun getReportData(): ReportData {
         waitForStorageHandler()
         return storageHandler().getReport()!!
-    }
-
-    override suspend fun getProjectData(): ProjectData {
-        waitForStorageHandler()
-        return storageHandler().getReport()!!.project
-    }
-
-    override suspend fun getBillData(): BillData {
-        waitForStorageHandler()
-        return storageHandler().getReport()!!.bill
-    }
-
-    override suspend fun getReport(): ReportData {
-        waitForStorageHandler()
-        return storageHandler().getReport()!!
-    }
-
-    override suspend fun getWorkTimeContainerData(): WorkTimeContainerData {
-        waitForStorageHandler()
-        return storageHandler().getReport()!!.workTimeContainer
-    }
-
-    override suspend fun getWorkItemContainerData(): WorkItemContainerData {
-        waitForStorageHandler()
-        return storageHandler().getReport()!!.workItemContainer
-    }
-
-    override suspend fun getMaterialContainerData(): MaterialContainerData {
-        waitForStorageHandler()
-        return storageHandler().getReport()!!.materialContainer
-    }
-
-    override suspend fun getLumpSumContainerData(): LumpSumContainerData {
-        waitForStorageHandler()
-        return storageHandler().getReport()!!.lumpSumContainer
-    }
-
-    override suspend fun getPhotoContainerData(): PhotoContainerData {
-        waitForStorageHandler()
-        return storageHandler().getReport()!!.photoContainer
     }
 }

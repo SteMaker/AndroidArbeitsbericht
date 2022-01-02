@@ -13,9 +13,11 @@ import com.google.android.material.switchmaterial.SwitchMaterial
 import com.stemaker.arbeitsbericht.R
 import com.stemaker.arbeitsbericht.data.configuration
 
-class OrientationNotificationDialogFragment(val listener: OrientationSelection): DialogFragment() {
-    interface OrientationSelection {
-        fun setOrientation(orientation: Int)
+class OrientationNotificationDialogFragment(): DialogFragment() {
+    private var listener: ForcePortraitListener? = null
+
+    interface ForcePortraitListener {
+        fun forcePortrait()
     }
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         // Inflate the layout for this fragment
@@ -31,6 +33,10 @@ class OrientationNotificationDialogFragment(val listener: OrientationSelection):
         configuration().lockScreenOrientationNoInfo = view?.findViewById<SwitchMaterial>(R.id.no_show)?.isChecked?:false
         configuration().save()
         if(configuration().lockScreenOrientation)
-            listener.setOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT)
+            listener?.forcePortrait()
+    }
+
+    fun setForcePortraitListener(l: ForcePortraitListener) {
+        listener = l
     }
 }

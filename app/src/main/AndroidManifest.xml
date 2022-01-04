@@ -29,20 +29,17 @@
                 android:parentActivityName=".MainActivity" />
         <activity
                 android:name=".SummaryActivity"
-                android:parentActivityName=".ReportEditorActivity"
-                android:screenOrientation="portrait" />
+                android:parentActivityName=".ReportEditorActivity"/>
         <activity
                 android:name=".ConfigurationActivity"
-                android:parentActivityName=".MainActivity"
-                android:screenOrientation="portrait" />
+                android:parentActivityName=".MainActivity"/>
         <activity
                 android:name=".ReportEditorActivity"
                 android:parentActivityName=".MainActivity"
                 android:screenOrientation="fullUser"
                 android:configChanges="orientation|screenSize|screenLayout"/>
         <activity
-                android:name=".MainActivity"
-                android:screenOrientation="portrait">
+                android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

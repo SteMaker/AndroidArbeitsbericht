@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.ClipData
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.pdf.PdfRenderer
 import android.net.Uri
@@ -108,10 +109,10 @@ class SummaryActivity : AppCompatActivity() {
                 onBackPressed()
             }
             /* Make headline text area of signature also clickable */
-            val employeeSigText = findViewById<TextView>(R.id.employee_signature_text)
-            employeeSigText!!.setOnClickListener { onClickHideShowEmployeeSignature(findViewById<Button>(R.id.hide_employee_signature_btn)) }
-            val clientSigText = findViewById<TextView>(R.id.client_signature_text)
-            clientSigText!!.setOnClickListener { onClickHideShowClientSignature(findViewById<Button>(R.id.hide_client_signature_btn)) }
+            //val employeeSigText = findViewById<TextView>(R.id.employee_signature_text)
+            //employeeSigText!!.setOnClickListener { onClickHideEmployeeSignature(findViewById<Button>(R.id.hide_employee_signature_btn)) }
+            //val clientSigText = findViewById<TextView>(R.id.client_signature_text)
+            //clientSigText!!.setOnClickListener { onClickHideClientSignature(findViewById<Button>(R.id.hide_client_signature_btn)) }
 
             val html = HtmlReport.encodeReport(storageHandler().getReport()!!, this@SummaryActivity.filesDir, false)
             val wv = findViewById<WebView>(R.id.webview)
@@ -170,16 +171,16 @@ class SummaryActivity : AppCompatActivity() {
         lockEmployeeSignature()
     }
 
-    fun onClickHideShowEmployeeSignature(@Suppress("UNUSED_PARAMETER") b: View) {
-        val btn = b as Button
-        val sigPad = findViewById<LockableSignaturePad>(R.id.employee_signature)
-        if(sigPad!!.visibility == View.VISIBLE) {
-            sigPad.visibility = View.GONE
-            btn.rotation = 180F
-        } else {
-            sigPad.visibility = View.VISIBLE
-            btn.rotation = 0F
-        }
+    fun onClickShowEmployeeSignature(@Suppress("UNUSED_PARAMETER") b: View) {
+        binding.employeeSignatureCard.visibility = View.VISIBLE
+        binding.showEmployeeSignatureBtn.visibility = View.GONE
+        if(resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE && resources.configuration.screenWidthDp < 1000)
+            onClickHideClientSignature(b)
+    }
+
+    fun onClickHideEmployeeSignature(@Suppress("UNUSED_PARAMETER") b: View) {
+        binding.employeeSignatureCard.visibility = View.GONE
+        binding.showEmployeeSignatureBtn.visibility = View.VISIBLE
     }
 
     fun onClickClearClientSignature(@Suppress("UNUSED_PARAMETER") btn: View) {
@@ -217,16 +218,16 @@ class SummaryActivity : AppCompatActivity() {
         lockClientSignature()
     }
 
-    fun onClickHideShowClientSignature(@Suppress("UNUSED_PARAMETER") b: View) {
-        val btn = b as Button
-        val sigPad = findViewById<LockableSignaturePad>(R.id.client_signature)
-        if(sigPad!!.visibility == View.VISIBLE) {
-            sigPad.visibility = View.GONE
-            btn.rotation = 180F
-        } else {
-            sigPad.visibility = View.VISIBLE
-            btn.rotation = 0F
-        }
+    fun onClickShowClientSignature(@Suppress("UNUSED_PARAMETER") b: View) {
+        binding.clientSignatureCard.visibility = View.VISIBLE
+        binding.showClientSignatureBtn.visibility = View.GONE
+        if(this.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE && resources.configuration.screenWidthDp < 1000)
+            onClickHideEmployeeSignature(b)
+    }
+
+    fun onClickHideClientSignature(@Suppress("UNUSED_PARAMETER") b: View) {
+        binding.clientSignatureCard.visibility = View.GONE
+        binding.showClientSignatureBtn.visibility = View.VISIBLE
     }
 
     private fun saveSignatures() {

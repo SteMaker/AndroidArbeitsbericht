@@ -65,8 +65,8 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintRight_toLeftOf="@id/show_client_signature_btn"
-                android:layout_marginRight="5dp"
+                app:layout_constraintLeft_toLeftOf="parent"
+                android:layout_marginLeft="5dp"
                 app:icon="@drawable/ic_baseline_draw_24"
                 android:text="AN"
                 style="@style/ArbeitsberichtAppTheme.FloatButtons"
@@ -78,6 +78,7 @@
                 android:layout_height="wrap_content"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
+                android:layout_marginRight="5dp"
                 app:icon="@drawable/ic_baseline_draw_24"
                 android:text="AG"
                 style="@style/ArbeitsberichtAppTheme.FloatButtons"
@@ -88,8 +89,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:barrierDirection="top"
-                app:barrierAllowsGoneWidgets="false"
-                app:constraint_referenced_ids="show_employee_signature_btn,show_client_signature_btn,client_signature_card"
+                app:constraint_referenced_ids="show_employee_signature_btn,show_client_signature_btn"
                 />
         <androidx.constraintlayout.widget.Barrier
                 android:id="@+id/barrier_client_bottom"
@@ -100,11 +100,10 @@
                 />
         <androidx.cardview.widget.CardView
                 android:id="@+id/employee_signature_card"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 app:layout_constraintBottom_toTopOf="@id/barrier_employee_bottom"
                 app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintRight_toRightOf="parent"
                 android:visibility="gone"
                 style="@style/ArbeitsberichtAppTheme.CardLevel1"
                 android:clickable="false">
@@ -119,12 +118,11 @@
                         app:constraint_referenced_ids="employee_signature_text,clear_employee_signature_btn,lock_employee_signature_btn"/>
                 <TextView
                         android:id="@+id/employee_signature_text"
-                        android:layout_width="0dp"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         app:layout_constraintTop_toTopOf="parent"
                         app:layout_constraintBottom_toTopOf="@id/barrier1"
                         app:layout_constraintLeft_toLeftOf="parent"
-                        app:layout_constraintRight_toLeftOf="@id/clear_employee_signature_btn"
                         android:text="@string/employee_signature"
                         android:textSize="20sp"
                         android:clickable="true"
@@ -135,7 +133,7 @@
                         android:layout_height="wrap_content"
                         app:layout_constraintTop_toTopOf="parent"
                         app:layout_constraintBottom_toTopOf="@id/barrier1"
-                        app:layout_constraintRight_toLeftOf="@id/lock_employee_signature_btn"
+                        app:layout_constraintLeft_toRightOf="@id/employee_signature_text"
                         app:icon="@drawable/ic_delete_black_24dp"
                         style="@style/ArbeitsberichtAppTheme.IconButtons"
                         android:onClick="onClickClearEmployeeSignature"
@@ -147,7 +145,7 @@
                         android:layout_height="wrap_content"
                         app:layout_constraintTop_toTopOf="parent"
                         app:layout_constraintBottom_toTopOf="@id/barrier1"
-                        app:layout_constraintRight_toLeftOf="@id/hide_employee_signature_btn"
+                        app:layout_constraintLeft_toRightOf="@id/clear_employee_signature_btn"
                         app:icon="@drawable/ic_lock_black_24"
                         style="@style/ArbeitsberichtAppTheme.IconButtons"
                         android:onClick="onClickLockEmployeeSignature"
@@ -159,16 +157,30 @@
                         android:layout_height="wrap_content"
                         app:layout_constraintTop_toTopOf="parent"
                         app:layout_constraintBottom_toTopOf="@id/barrier1"
-                        app:layout_constraintRight_toRightOf="parent"
+                        app:layout_constraintLeft_toRightOf="@id/lock_employee_signature_btn"
                         app:icon="@drawable/ic_baseline_keyboard_double_arrow_down_24"
                         style="@style/ArbeitsberichtAppTheme.IconButtons"
                         android:onClick="onClickHideEmployeeSignature"
                         />
+                <androidx.constraintlayout.widget.Guideline
+                        android:id="@+id/guideline_employee_sigpad_width"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        app:layout_constraintGuide_begin="400dp"
+                        android:orientation="vertical"/>
+                <androidx.constraintlayout.widget.Barrier
+                        android:id="@+id/barrier_employee_sigpad_width"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:barrierDirection="end"
+                        app:constraint_referenced_ids="guideline_employee_sigpad_width,hide_employee_signature_btn"
+                        />
                 <com.stemaker.arbeitsbericht.LockableSignaturePad
                         android:id="@+id/employee_signature"
-                        android:layout_width="match_parent"
+                        android:layout_width="0dp"
                         android:layout_height="200dp"
                         app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintRight_toRightOf="@id/barrier_employee_sigpad_width"
                         app:layout_constraintTop_toBottomOf="@id/barrier1"
                         app:penColor="@android:color/black"
                         />
@@ -176,10 +188,9 @@
         </androidx.cardview.widget.CardView>
         <androidx.cardview.widget.CardView
                 android:id="@+id/client_signature_card"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 app:layout_constraintBottom_toTopOf="@id/barrier_client_bottom"
-                app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
                 android:visibility="gone"
                 style="@style/ArbeitsberichtAppTheme.CardLevel1"
@@ -200,7 +211,6 @@
                         app:layout_constraintTop_toTopOf="parent"
                         app:layout_constraintBottom_toTopOf="@id/barrier2"
                         app:layout_constraintLeft_toLeftOf="parent"
-                        app:layout_constraintRight_toLeftOf="@id/clear_client_signature_btn"
                         android:text="@string/client_signature"
                         android:textSize="20sp"
                         android:clickable="true"
@@ -211,7 +221,7 @@
                         android:layout_height="wrap_content"
                         app:layout_constraintTop_toTopOf="parent"
                         app:layout_constraintBottom_toTopOf="@id/barrier2"
-                        app:layout_constraintRight_toLeftOf="@id/lock_client_signature_btn"
+                        app:layout_constraintLeft_toRightOf="@id/client_signature_text"
                         app:icon="@drawable/ic_delete_black_24dp"
                         style="@style/ArbeitsberichtAppTheme.IconButtons"
                         android:onClick="onClickClearClientSignature"
@@ -223,7 +233,7 @@
                         android:layout_height="wrap_content"
                         app:layout_constraintTop_toTopOf="parent"
                         app:layout_constraintBottom_toTopOf="@id/barrier2"
-                        app:layout_constraintRight_toLeftOf="@id/hide_client_signature_btn"
+                        app:layout_constraintLeft_toRightOf="@id/clear_client_signature_btn"
                         app:icon="@drawable/ic_lock_black_24"
                         style="@style/ArbeitsberichtAppTheme.IconButtons"
                         android:onClick="onClickLockClientSignature"
@@ -235,16 +245,30 @@
                         android:layout_height="wrap_content"
                         app:layout_constraintTop_toTopOf="parent"
                         app:layout_constraintBottom_toTopOf="@id/barrier2"
-                        app:layout_constraintRight_toRightOf="parent"
+                        app:layout_constraintLeft_toRightOf="@id/lock_client_signature_btn"
                         app:icon="@drawable/ic_baseline_keyboard_double_arrow_down_24"
                         style="@style/ArbeitsberichtAppTheme.IconButtons"
                         android:onClick="onClickHideClientSignature"
                         />
+                <androidx.constraintlayout.widget.Guideline
+                        android:id="@+id/guideline_client_sigpad_width"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        app:layout_constraintGuide_begin="400dp"
+                        android:orientation="vertical"/>
+                <androidx.constraintlayout.widget.Barrier
+                        android:id="@+id/barrier_client_sigpad_width"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:barrierDirection="end"
+                        app:constraint_referenced_ids="guideline_client_sigpad_width,hide_client_signature_btn"
+                        />
                 <com.stemaker.arbeitsbericht.LockableSignaturePad
                         android:id="@+id/client_signature"
-                        android:layout_width="match_parent"
+                        android:layout_width="0dp"
                         android:layout_height="200dp"
                         app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintRight_toRightOf="@id/barrier_client_sigpad_width"
                         app:layout_constraintTop_toBottomOf="@id/barrier2"
                         app:penColor="@android:color/black"
                         />

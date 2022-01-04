@@ -8,6 +8,9 @@
         <entry key="app/src/main/res/layout-land/activity_report_editor.xml" value="0.4532627865961199" />
         <entry key="app/src/main/res/layout-land/fragment_project_bill_editor.xml" value="0.5" />
         <entry key="app/src/main/res/layout-land/fragment_work_time_editor.xml" value="0.7369791666666666" />
+        <entry key="app/src/main/res/layout-land/photo_layout.xml" value="0.33" />
+        <entry key="app/src/main/res/layout-land/work_item_layout.xml" value="0.33" />
+        <entry key="app/src/main/res/layout-land/work_time_layout.xml" value="0.5" />
         <entry key="app/src/main/res/layout/activity_client_list.xml" value="0.2774774774774775" />
         <entry key="app/src/main/res/layout/activity_configuration.xml" value="0.3182291666666667" />
         <entry key="app/src/main/res/layout/activity_lump_sum_definition.xml" value="0.3182291666666667" />
@@ -30,8 +33,10 @@
         <entry key="app/src/main/res/layout/fragment_report_editor_section.xml" value="0.5354166666666667" />
         <entry key="app/src/main/res/layout/fragment_work_time_editor.xml" value="0.30180180180180183" />
         <entry key="app/src/main/res/layout/lump_sum_edit_layout.xml" value="0.3109375" />
+        <entry key="app/src/main/res/layout/photo_layout.xml" value="0.5354166666666667" />
         <entry key="app/src/main/res/layout/report_card_layout.xml" value="0.3182291666666667" />
         <entry key="app/src/main/res/layout/report_filter_layout.xml" value="0.2774774774774775" />
+        <entry key="app/src/main/res/layout/work_item_layout.xml" value="0.5354166666666667" />
         <entry key="app/src/main/res/layout/work_time_layout.xml" value="0.3396396396396396" />
         <entry key="app/src/main/res/menu/editor_menu.xml" value="0.5354166666666667" />
       </map>

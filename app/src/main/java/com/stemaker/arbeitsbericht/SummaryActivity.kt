@@ -3,6 +3,7 @@ package com.stemaker.arbeitsbericht
 import android.Manifest
 import android.content.ClipData
 import android.content.Intent
+import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.graphics.Bitmap
@@ -11,6 +12,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.ParcelFileDescriptor
 import android.print.*
+import android.util.DisplayMetrics
 import android.util.Log
 import android.view.*
 import android.webkit.MimeTypeMap
@@ -35,8 +37,10 @@ import java.io.File
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
+import kotlin.math.roundToInt
 
 private const val TAG = "SummaryActivity"
+
 
 class SummaryActivity : AppCompatActivity() {
     lateinit var binding: ActivitySummaryBinding
@@ -58,6 +62,10 @@ class SummaryActivity : AppCompatActivity() {
                 }
             } ?: run { Log.e(TAG, "storageHandler job was null :(") }
 
+            requestedOrientation = when(configuration().lockScreenOrientation) {
+                true -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
+                else -> ActivityInfo.SCREEN_ORIENTATION_FULL_USER
+            }
             signatureData = storageHandler().getReport()!!.signatureData
             binding.signature = signatureData
 
@@ -372,7 +380,8 @@ class SummaryActivity : AppCompatActivity() {
     }
 
     private fun showReportInternal(file: File, type: OutputType) {
-        val pdfPreviewDialog = PdfPreviewDialog(file, applicationContext)
+        val pdfPreviewDialog = PdfPreviewDialog()
+        pdfPreviewDialog.file = file
         pdfPreviewDialog.show(supportFragmentManager, "PdfPreviewDialog")
     }
 

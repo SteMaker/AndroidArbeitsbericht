@@ -28,10 +28,6 @@ class ReportEditorActivity() : AppCompatActivity(),
     /* General stuff */
     /*****************/
     override fun onCreate(savedInstanceState: Bundle?) {
-        requestedOrientation = when(configuration().lockScreenOrientation) {
-            true -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
-            else -> ActivityInfo.SCREEN_ORIENTATION_FULL_USER
-        }
         super.onCreate(savedInstanceState)
         storageInitJob = storageHandler().initialize()
         topBinding = DataBindingUtil.setContentView(this, R.layout.activity_report_editor)
@@ -49,6 +45,10 @@ class ReportEditorActivity() : AppCompatActivity(),
                     topBinding.loadNotify.visibility = View.GONE
                 }
             } ?: run { Log.e(TAG, "storageHandler job was null :(") }
+            requestedOrientation = when(configuration().lockScreenOrientation) {
+                true -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
+                else -> ActivityInfo.SCREEN_ORIENTATION_FULL_USER
+            }
 
             window.clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
         }

@@ -60,7 +60,8 @@ class ClientListAdapter(val activity: AppCompatActivity, private val clientViewM
             }
             binding.drivetimeContainer.setOnClickListener {
                 val activity = lcOwner as AppCompatActivity
-                val newFragment = TimePickerFragment(c.driveTime)
+                val newFragment = TimePickerFragment()
+                newFragment.timeString = c.driveTime
                 newFragment.show(activity.supportFragmentManager, "timePicker")
             }
         }

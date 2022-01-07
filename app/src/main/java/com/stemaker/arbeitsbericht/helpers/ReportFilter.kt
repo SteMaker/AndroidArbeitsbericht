@@ -5,7 +5,7 @@ import androidx.lifecycle.*
 import com.stemaker.arbeitsbericht.data.ReportData
 import com.stemaker.arbeitsbericht.data.configuration
 
-class ReportFilter(): Observable, ViewModel() {
+class ReportFilter: Observable, ViewModel() {
     var projectName = ""
     var projectExtra = ""
     val remainingStates = mutableSetOf<Int>()

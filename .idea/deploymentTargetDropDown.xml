@@ -7,11 +7,11 @@
         <deviceKey>
           <Key>
             <type value="VIRTUAL_DEVICE_PATH" />
-            <value value="$USER_HOME$/.android/avd/Huawei_P10_Android_9_SDK28.avd" />
+            <value value="$USER_HOME$/.android/avd/Pixel_C_API_29.avd" />
           </Key>
         </deviceKey>
       </Target>
     </runningDeviceTargetSelectedWithDropDown>
-    <timeTargetWasSelectedWithDropDown value="2022-01-04T16:42:52.006078Z" />
+    <timeTargetWasSelectedWithDropDown value="2022-01-07T14:04:40.334528Z" />
   </component>
 </project>

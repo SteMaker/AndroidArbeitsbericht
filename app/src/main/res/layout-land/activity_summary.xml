@@ -52,6 +52,7 @@
                 android:layout_height="0dp"
                 android:layout_weight="1"
                 app:layout_constraintTop_toBottomOf="@id/create_report_progress_container"
+                app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent">
             <WebView
@@ -166,7 +167,7 @@
                         android:id="@+id/guideline_employee_sigpad_width"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        app:layout_constraintGuide_begin="400dp"
+                        app:layout_constraintGuide_begin="450dp"
                         android:orientation="vertical"/>
                 <androidx.constraintlayout.widget.Barrier
                         android:id="@+id/barrier_employee_sigpad_width"
@@ -182,6 +183,7 @@
                         app:layout_constraintLeft_toLeftOf="parent"
                         app:layout_constraintRight_toRightOf="@id/barrier_employee_sigpad_width"
                         app:layout_constraintTop_toBottomOf="@id/barrier1"
+                        android:background="@color/editBackground"
                         app:penColor="@android:color/black"
                         />
             </androidx.constraintlayout.widget.ConstraintLayout>
@@ -254,7 +256,7 @@
                         android:id="@+id/guideline_client_sigpad_width"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        app:layout_constraintGuide_begin="400dp"
+                        app:layout_constraintGuide_begin="450dp"
                         android:orientation="vertical"/>
                 <androidx.constraintlayout.widget.Barrier
                         android:id="@+id/barrier_client_sigpad_width"
@@ -270,6 +272,7 @@
                         app:layout_constraintLeft_toLeftOf="parent"
                         app:layout_constraintRight_toRightOf="@id/barrier_client_sigpad_width"
                         app:layout_constraintTop_toBottomOf="@id/barrier2"
+                        android:background="@color/editBackground"
                         app:penColor="@android:color/black"
                         />
             </androidx.constraintlayout.widget.ConstraintLayout>

@@ -2,6 +2,7 @@ package com.stemaker.arbeitsbericht
 
 //import kotlinx.android.synthetic.main.activity_main.*
 import android.content.Intent
+import android.content.pm.ActivityInfo
 import android.os.Bundle
 import android.os.Handler
 import android.util.Log
@@ -39,7 +40,6 @@ class MainActivity : AppCompatActivity(), ReportCardInterface {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Log.d(TAG, "starting")
 
         val storageInitJob = storageHandler().initialize()
 
@@ -58,6 +58,10 @@ class MainActivity : AppCompatActivity(), ReportCardInterface {
             binding.progressBar.visibility = View.VISIBLE
             binding.initNotify.visibility = View.VISIBLE
             storageInitJob?.join()
+            requestedOrientation = when(configuration().lockScreenOrientation) {
+                true -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
+                else -> ActivityInfo.SCREEN_ORIENTATION_FULL_USER
+            }
             binding.progressBar.visibility = View.GONE
             binding.initNotify.visibility = View.GONE
             adapter.registerReportListObserver()

@@ -13,7 +13,7 @@ import com.google.android.material.switchmaterial.SwitchMaterial
 import com.stemaker.arbeitsbericht.R
 import com.stemaker.arbeitsbericht.data.configuration
 
-class OrientationNotificationDialogFragment(): DialogFragment() {
+class OrientationNotificationDialogFragment: DialogFragment() {
     private var listener: ForcePortraitListener? = null
 
     interface ForcePortraitListener {

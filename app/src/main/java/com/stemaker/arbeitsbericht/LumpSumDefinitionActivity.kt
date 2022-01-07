@@ -4,6 +4,7 @@ package com.stemaker.arbeitsbericht
 import android.Manifest
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
@@ -47,6 +48,10 @@ class LumpSumDefinitionActivity : AppCompatActivity() {
                     findViewById<ProgressBar>(R.id.sftp_progress).visibility = View.GONE
                 }
             } ?: run { Log.e(TAG, "storageHandler job was null :(") }
+            requestedOrientation = when(configuration().lockScreenOrientation) {
+                true -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
+                else -> ActivityInfo.SCREEN_ORIENTATION_FULL_USER
+            }
             binding.lumpSumFtpPath.setText(configuration().lumpSumServerPath)
             val lumpSums = configuration().lumpSums
             for (ls in lumpSums) {

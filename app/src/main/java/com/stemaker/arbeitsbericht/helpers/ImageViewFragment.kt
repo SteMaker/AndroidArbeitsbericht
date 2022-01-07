@@ -12,18 +12,22 @@ import java.io.File
 
 private const val TAG = "ImageViewFragment"
 
-class ImageViewFragment(val file: File) : DialogFragment() {
+class ImageViewFragment : DialogFragment() {
+    var file: File? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        val savedFile = savedInstanceState?.getSerializable("FILE")?:null
+        savedFile?.let { file = it as File }
         // Inflate the layout for this fragment
         val v = inflater.inflate(R.layout.fragment_image_view, container, false)
         val imgV: ImageView = v.findViewById(R.id.photo_view)
-        imgV.setOnClickListener(object: View.OnClickListener {
-            override fun onClick(imgV: View) {
-                dismiss()
-            }
-        })
+        imgV.setOnClickListener { dismiss() }
         GlideApp.with(this).load(file).into(imgV)
         return v
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putSerializable("FILE", file)
     }
 }

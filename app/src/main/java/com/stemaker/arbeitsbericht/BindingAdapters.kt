@@ -184,7 +184,7 @@ object BindingAdapters {
     fun setSrcPhotoFile(imgView: ImageView, fileName: String) {
         val tmpFile = File(fileName) // because old app version stored the path here as well
         val file = File(imgView.context.getExternalFilesDir(Environment.DIRECTORY_PICTURES), tmpFile.name)
-        if(file.exists())
+        if(file.exists() && file.isFile)
             GlideApp.with(imgView.context).load(file).into(imgView)
     }
 

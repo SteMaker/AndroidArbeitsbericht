@@ -127,20 +127,15 @@ class PhotoEditorFragment : ReportEditorSectionFragment() {
                                 val photoURI: Uri = FileProvider.getUriForFile(activity!!.applicationContext, "com.stemaker.arbeitsbericht.fileprovider", photoFile)
                                 takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
                                 startActivityForResult(takePictureIntent, contCnt)
-                                val file = suspendCoroutine<Uri?> {
+                                // result is null, if it really failed we'll catch an exception below
+                                val result = suspendCoroutine<Uri?> {
                                     activityResultContinuation[contCnt] = it
                                     contCnt++
                                 }
-                                Log.d(TAG, "Selected photo: ${file}")
-                                file?.let {
-                                    try {
-                                        applyPhotoFile(p, photoFile)
-                                    } catch (ex: Exception) {
-                                        val toast = Toast.makeText(activity, "Konnte Datei für Foto nicht erstellen", Toast.LENGTH_LONG)
-                                        toast.show()
-                                    }
-                                }?:run {
-                                    val toast = Toast.makeText(activity, "Bildaufnahme fehlgeschlagen", Toast.LENGTH_LONG)
+                                try {
+                                    applyPhotoFile(p, photoFile)
+                                } catch (ex: Exception) {
+                                    val toast = Toast.makeText(activity, "Konnte Datei für Foto nicht erstellen", Toast.LENGTH_LONG)
                                     toast.show()
                                 }
                             }
@@ -188,7 +183,8 @@ class PhotoEditorFragment : ReportEditorSectionFragment() {
             override fun onClick(btn: View) {
                 if(p.file.value != "") {
                     val tmpFile = File(p.file.value!!) // because old app version stored the path here as well
-                    val photoView = ImageViewFragment(File(activity!!.getExternalFilesDir(Environment.DIRECTORY_PICTURES), tmpFile.name))
+                    val photoView = ImageViewFragment()
+                    photoView.file = File(activity!!.getExternalFilesDir(Environment.DIRECTORY_PICTURES), tmpFile.name)
                     photoView.show(activity!!.supportFragmentManager, "PhotoView")
                 }
             }
@@ -251,11 +247,6 @@ class PhotoEditorFragment : ReportEditorSectionFragment() {
         if (resultCode == RESULT_OK) {
             activityResultContinuation[requestCode]?.let {
                 it.resume(data?.data)
-                activityResultContinuation.remove(requestCode)
-            }
-        } else {
-            activityResultContinuation[requestCode]?.let {
-                it.resume(null)
                 activityResultContinuation.remove(requestCode)
             }
         }

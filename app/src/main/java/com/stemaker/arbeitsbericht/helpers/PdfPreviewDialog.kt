@@ -6,9 +6,7 @@ import android.graphics.Color
 import android.graphics.pdf.PdfRenderer
 import android.os.Bundle
 import android.os.ParcelFileDescriptor
-import android.util.Log
 import android.view.*
-import android.widget.Button
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.fragment.app.DialogFragment
@@ -16,14 +14,24 @@ import com.stemaker.arbeitsbericht.R
 import java.io.File
 import kotlin.math.abs
 
-class PdfPreviewDialog(val file: File, val ctx: Context) : DialogFragment() {
-    private val fd: ParcelFileDescriptor? = ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY)
-    private val renderer: PdfRenderer? = fd?.let { PdfRenderer(it) }
+class PdfPreviewDialog : DialogFragment() {
+    var file: File? = null
+        set(value) {
+            field = value
+            fd = ParcelFileDescriptor.open(value, ParcelFileDescriptor.MODE_READ_ONLY)
+            renderer = fd?.let { PdfRenderer(it) }
+        }
+
+    private var fd: ParcelFileDescriptor? = null
+    private var renderer: PdfRenderer? = null
     private var currentPage = 0
     private var bitmap: Bitmap? = null
     private lateinit var imgV: ImageView
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        if(file == null) {
+            savedInstanceState?.getSerializable("FILE")?.let { file = it as File }
+        }
         val v = inflater.inflate(R.layout.fragment_pdf_preview_dialog, container, false)
         val btnClose: View = v.findViewById(R.id.close_button)
         btnClose.setOnClickListener {
@@ -41,12 +49,12 @@ class PdfPreviewDialog(val file: File, val ctx: Context) : DialogFragment() {
         imgV = v.findViewById(R.id.pdf_preview_image_view)
 
         if(renderer == null) {
-            val toast = Toast.makeText(ctx, R.string.pdf_viewer_fail, Toast.LENGTH_LONG)
+            val toast = Toast.makeText(activity, R.string.pdf_viewer_fail, Toast.LENGTH_LONG)
             toast.show()
             dismiss()
         } else {
             renderPage(currentPage)
-            imgV.setOnTouchListener(object: OnSwipeTouchListener(ctx) {
+            imgV.setOnTouchListener(object: OnSwipeTouchListener(activity as Context) {
                 override fun onSwipeLeft() {
                     nextPage()
                 }
@@ -58,6 +66,11 @@ class PdfPreviewDialog(val file: File, val ctx: Context) : DialogFragment() {
         return v
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putSerializable("FILE", file)
+    }
+
     private fun previousPage() {
         currentPage--
         if(currentPage < 0)
@@ -66,21 +79,21 @@ class PdfPreviewDialog(val file: File, val ctx: Context) : DialogFragment() {
     }
 
     private fun nextPage() {
-        renderer?.also {
+        renderer?.let {
             currentPage++
-            if (currentPage >= renderer.pageCount)
-                currentPage = renderer.pageCount - 1
+            if (currentPage >= it.pageCount)
+                currentPage = it.pageCount - 1
             renderPage(currentPage)
         }
     }
 
-    private fun renderPage(page: Int) {
-        if (renderer != null) {
-            val page = renderer.openPage(page)
-            bitmap?.eraseColor(Color.WHITE)?:run {
+    private fun renderPage(pagenum: Int) {
+        renderer?.let { pdfRenderer ->
+            val page = pdfRenderer.openPage(pagenum)
+            bitmap?.eraseColor(Color.WHITE) ?: run {
                 bitmap = Bitmap.createBitmap(page.width, page.height, Bitmap.Config.ARGB_8888)
             }
-            bitmap?.also {
+            bitmap?.let {
                 page.render(it, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
                 imgV.setImageBitmap(it)
             }

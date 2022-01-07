@@ -1,18 +1,14 @@
 package com.stemaker.arbeitsbericht.editor_fragments
 
-import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
-import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.lifecycle.MutableLiveData
 import com.stemaker.arbeitsbericht.R
-import com.stemaker.arbeitsbericht.data.ReportData
 import com.stemaker.arbeitsbericht.data.WorkTimeContainerData
 import com.stemaker.arbeitsbericht.data.WorkTimeData
 import com.stemaker.arbeitsbericht.databinding.EmployeeEntryLayoutBinding
@@ -115,32 +111,37 @@ class WorkTimeEditorFragment : ReportEditorSectionFragment() {
 
         workTimeDataBinding.dateContainer.setOnClickListener(object: View.OnClickListener {
             override fun onClick(btn: View) {
-                val newFragment = DatePickerFragment(wt.date, btn.context)
+                val newFragment = DatePickerFragment()
+                newFragment.date = wt.date
                 newFragment.show(parentFragmentManager, "datePicker")
             }
         })
         workTimeDataBinding.startContainer.setOnClickListener(object: View.OnClickListener {
             override fun onClick(btn: View) {
-                val newFragment = TimePickerFragment(wt.startTime)
-                newFragment.show(parentFragmentManager, "timePicker")
+                val newFragment = TimePickerFragment()
+                newFragment.timeString = wt.startTime
+                newFragment.show(parentFragmentManager, "startTimePicker")
             }
         })
         workTimeDataBinding.endContainer.setOnClickListener(object: View.OnClickListener {
             override fun onClick(btn: View) {
-                val newFragment = TimePickerFragment(wt.endTime)
-                newFragment.show(parentFragmentManager, "timePicker")
+                val newFragment = TimePickerFragment()
+                newFragment.timeString = wt.endTime
+                newFragment.show(parentFragmentManager, "endTimePicker")
             }
         })
         workTimeDataBinding.pausetimeContainer.setOnClickListener(object: View.OnClickListener {
             override fun onClick(btn: View) {
-                val newFragment = TimePickerFragment(wt.pauseDuration)
-                newFragment.show(parentFragmentManager, "timePicker")
+                val newFragment = TimePickerFragment()
+                newFragment.timeString = wt.pauseDuration
+                newFragment.show(parentFragmentManager, "pauseTimePicker")
             }
         })
         workTimeDataBinding.drivetimeContainer.setOnClickListener(object: View.OnClickListener {
             override fun onClick(btn: View) {
-                val newFragment = TimePickerFragment(wt.driveTime)
-                newFragment.show(parentFragmentManager, "timePicker")
+                val newFragment = TimePickerFragment()
+                newFragment.timeString = wt.driveTime
+                newFragment.show(parentFragmentManager, "driveTimePicker")
             }
         })
         workTimeDataBinding.workTimeAddEmployee.setOnClickListener(object: View.OnClickListener {
@@ -198,5 +199,4 @@ class WorkTimeEditorFragment : ReportEditorSectionFragment() {
         val pos = container.getChildCount()
         container.addView(employeeDataBinding.root, pos)
     }
-
 }

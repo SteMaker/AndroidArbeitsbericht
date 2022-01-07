@@ -2,6 +2,7 @@ package com.stemaker.arbeitsbericht
 
 import android.Manifest
 import android.content.Intent
+import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.graphics.BitmapFactory
 import android.net.Uri
@@ -40,6 +41,7 @@ class ConfigurationActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Log.d(TAG, "onCreate: ${this}")
         setContentView(R.layout.activity_configuration)
 
         val storageInitJob = storageHandler().initialize()
@@ -52,6 +54,10 @@ class ConfigurationActivity : AppCompatActivity() {
                     findViewById<ProgressBar>(R.id.sftp_progress).visibility = View.GONE
                 }
             } ?: run { Log.e(TAG, "storageHandler job was null :(") }
+            requestedOrientation = when(configuration().lockScreenOrientation) {
+                true -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
+                else -> ActivityInfo.SCREEN_ORIENTATION_FULL_USER
+            }
             findViewById<EditText>(R.id.config_employee_name).setText(configuration().employeeName)
             findViewById<EditText>(R.id.config_device_name).setText(configuration().deviceName)
             findViewById<EditText>(R.id.config_report_id_pattern).setText(configuration().reportIdPattern.value)
@@ -348,11 +354,12 @@ class ConfigurationActivity : AppCompatActivity() {
     private var continuation: Continuation<Uri?>? = null
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
+        Log.d(TAG, "onActivityResult: ${this}")
         if(requestCode == REQUEST_LOAD && resultCode == RESULT_OK) {
             val selectedfile = data?.getData()
             //TODO: We would need to handle the case the app gets destroyed in between, can be easily
             //reproduced by enabling don't keep activities in the dev options
-            continuation!!.resume(selectedfile)
+            continuation?.resume(selectedfile)
         }
     }
 

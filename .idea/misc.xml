@@ -19,7 +19,7 @@
         <entry key="app/src/main/res/layout/activity_lump_sum_definition.xml" value="0.3182291666666667" />
         <entry key="app/src/main/res/layout/activity_main.xml" value="0.2774774774774775" />
         <entry key="app/src/main/res/layout/activity_report_editor.xml" value="0.2927927927927928" />
-        <entry key="app/src/main/res/layout/activity_summary.xml" value="0.5" />
+        <entry key="app/src/main/res/layout/activity_summary.xml" value="0.25" />
         <entry key="app/src/main/res/layout/client_card_layout.xml" value="0.33" />
         <entry key="app/src/main/res/layout/client_select_dialog.xml" value="0.2774774774774775" />
         <entry key="app/src/main/res/layout/client_select_layout.xml" value="0.2774774774774775" />
@@ -31,6 +31,7 @@
         <entry key="app/src/main/res/layout/fragment_image_view.xml" value="0.2994791666666667" />
         <entry key="app/src/main/res/layout/fragment_orientation_notification_dialog.xml" value="0.3109375" />
         <entry key="app/src/main/res/layout/fragment_pdf_preview_dialog.xml" value="0.33" />
+        <entry key="app/src/main/res/layout/fragment_photo_editor.xml" value="0.255859375" />
         <entry key="app/src/main/res/layout/fragment_project_bill_editor.xml" value="0.3182291666666667" />
         <entry key="app/src/main/res/layout/fragment_project_editor.xml" value="0.5354166666666667" />
         <entry key="app/src/main/res/layout/fragment_report_editor_section.xml" value="0.5354166666666667" />

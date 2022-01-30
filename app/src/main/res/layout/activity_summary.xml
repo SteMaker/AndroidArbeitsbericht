@@ -66,10 +66,11 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintRight_toLeftOf="@id/show_client_signature_btn"
+                app:layout_constraintLeft_toLeftOf="parent"
                 android:layout_marginRight="5dp"
                 app:icon="@drawable/ic_baseline_draw_24"
-                android:text="AN"
+                android:text="Auftragnehmer"
+                android:textSize="18dp"
                 style="@style/ArbeitsberichtAppTheme.FloatButtons"
                 android:onClick="onClickShowEmployeeSignature"
                 />
@@ -80,7 +81,8 @@
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
                 app:icon="@drawable/ic_baseline_draw_24"
-                android:text="AG"
+                android:text="Auftraggeber"
+                android:textSize="18dp"
                 style="@style/ArbeitsberichtAppTheme.FloatButtons"
                 android:onClick="onClickShowClientSignature"
                 />
@@ -99,7 +101,7 @@
                 app:barrierDirection="top"
                 app:constraint_referenced_ids="show_employee_signature_btn,show_client_signature_btn"
                 />
-        <androidx.cardview.widget.CardView
+        <com.google.android.material.card.MaterialCardView
                 android:id="@+id/employee_signature_card"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -107,6 +109,8 @@
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
                 android:visibility="gone"
+                app:strokeColor="@color/foreground"
+                app:strokeWidth="2dp"
                 style="@style/ArbeitsberichtAppTheme.CardLevel1"
                 android:clickable="false">
             <androidx.constraintlayout.widget.ConstraintLayout
@@ -175,8 +179,8 @@
                         app:penColor="@android:color/black"
                         />
             </androidx.constraintlayout.widget.ConstraintLayout>
-        </androidx.cardview.widget.CardView>
-        <androidx.cardview.widget.CardView
+        </com.google.android.material.card.MaterialCardView>
+        <com.google.android.material.card.MaterialCardView
                 android:id="@+id/client_signature_card"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -184,6 +188,8 @@
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
                 android:visibility="gone"
+                app:strokeColor="@color/foreground"
+                app:strokeWidth="2dp"
                 style="@style/ArbeitsberichtAppTheme.CardLevel1"
                 android:clickable="false">
             <androidx.constraintlayout.widget.ConstraintLayout
@@ -252,6 +258,6 @@
                         app:penColor="@android:color/black"
                         />
             </androidx.constraintlayout.widget.ConstraintLayout>
-        </androidx.cardview.widget.CardView>
+        </com.google.android.material.card.MaterialCardView>
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

@@ -6,13 +6,10 @@ import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.content.res.Configuration
-import android.graphics.Bitmap
-import android.graphics.pdf.PdfRenderer
+import android.graphics.Point
 import android.net.Uri
 import android.os.Bundle
-import android.os.ParcelFileDescriptor
 import android.print.*
-import android.util.DisplayMetrics
 import android.util.Log
 import android.view.*
 import android.webkit.MimeTypeMap
@@ -24,7 +21,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
-import androidx.core.graphics.createBitmap
 import androidx.databinding.DataBindingUtil
 import com.stemaker.arbeitsbericht.data.ReportData
 import com.stemaker.arbeitsbericht.data.SignatureData
@@ -37,7 +33,6 @@ import java.io.File
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
-import kotlin.math.roundToInt
 
 private const val TAG = "SummaryActivity"
 
@@ -126,6 +121,15 @@ class SummaryActivity : AppCompatActivity() {
             val wv = findViewById<WebView>(R.id.webview)
             wv.loadDataWithBaseURL("", html, "text/html", "UTF-8", "")
         }
+        // In landscape limiting the width of the signature pad to the max width possible in portrait,
+        // to make sure the same area is accessible in both
+        val size = Point()
+        display?.getRealSize(size)
+        if(size.x > size.y) {
+            val percent = size.y.toFloat()/size.x.toFloat()
+            binding.guidelineEmployeeSigpadWidth?.setGuidelinePercent(percent)
+            binding.guidelineClientSigpadWidth?.setGuidelinePercent(1.0f-percent)
+        }
     }
 
     override fun onBackPressed() {
@@ -180,15 +184,16 @@ class SummaryActivity : AppCompatActivity() {
     }
 
     fun onClickShowEmployeeSignature(@Suppress("UNUSED_PARAMETER") b: View) {
-        binding.employeeSignatureCard.visibility = View.VISIBLE
-        binding.showEmployeeSignatureBtn.visibility = View.GONE
-        if(resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE && resources.configuration.screenWidthDp < 1000)
-            onClickHideClientSignature(b)
+        if(binding.employeeSignatureCard.visibility == View.GONE) {
+            binding.employeeSignatureCard.visibility = View.VISIBLE
+            binding.clientSignatureCard.visibility = View.GONE
+        } else {
+            binding.employeeSignatureCard.visibility = View.GONE
+        }
     }
 
     fun onClickHideEmployeeSignature(@Suppress("UNUSED_PARAMETER") b: View) {
         binding.employeeSignatureCard.visibility = View.GONE
-        binding.showEmployeeSignatureBtn.visibility = View.VISIBLE
     }
 
     fun onClickClearClientSignature(@Suppress("UNUSED_PARAMETER") btn: View) {
@@ -227,15 +232,16 @@ class SummaryActivity : AppCompatActivity() {
     }
 
     fun onClickShowClientSignature(@Suppress("UNUSED_PARAMETER") b: View) {
-        binding.clientSignatureCard.visibility = View.VISIBLE
-        binding.showClientSignatureBtn.visibility = View.GONE
-        if(this.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE && resources.configuration.screenWidthDp < 1000)
-            onClickHideEmployeeSignature(b)
+        if(binding.clientSignatureCard.visibility == View.GONE) {
+            binding.clientSignatureCard.visibility = View.VISIBLE
+            binding.employeeSignatureCard.visibility = View.GONE
+        } else {
+            binding.clientSignatureCard.visibility = View.GONE
+        }
     }
 
     fun onClickHideClientSignature(@Suppress("UNUSED_PARAMETER") b: View) {
         binding.clientSignatureCard.visibility = View.GONE
-        binding.showClientSignatureBtn.visibility = View.VISIBLE
     }
 
     private fun saveSignatures() {

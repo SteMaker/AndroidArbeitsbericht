@@ -7,6 +7,8 @@ import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
+//@TODO Should be replaced with DialogFragment since those leak windows if the activity gets restarted
+// due to rotate or changing in another app
 suspend fun showConfirmationDialog(title: String, context: Context, msg: String=""): Int {
     var continuation: Continuation<Int>? = null
     val alert = AlertDialog.Builder(context)

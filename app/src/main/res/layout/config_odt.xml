@@ -63,7 +63,7 @@
                 app:layout_constraintRight_toRightOf="parent"
                 android:text="@string/file_load"
                 style="@style/ArbeitsberichtAppTheme.TextButtons"
-                android:onClick="onClickLoadTemplate"
+                android:onClick="onClickLoadOdt"
                 />
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.cardview.widget.CardView>

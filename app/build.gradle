@@ -14,8 +14,8 @@ android {
         applicationId "com.stemaker.arbeitsbericht"
         minSdkVersion 23
         targetSdkVersion 30
-        versionCode 27
-        versionName "v2.16.0"
+        versionCode 28
+        versionName "v2.17.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {

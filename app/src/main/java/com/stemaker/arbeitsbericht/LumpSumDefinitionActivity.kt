@@ -62,12 +62,25 @@ class LumpSumDefinitionActivity : AppCompatActivity() {
             when (item.itemId) {
                 R.id.config_save_button -> {
                     save()
+                    val intent = Intent(this@LumpSumDefinitionActivity, MainActivity::class.java).apply {}
+                    startActivity(intent)
                     true
                 }
                 else -> super.onOptionsItemSelected(item)
             }
         }
     }
+
+    override fun onPause() {
+        super.onPause()
+        save()
+    }
+
+    override fun onBackPressed() {
+        super.onBackPressed()
+        save()
+    }
+
 
     @Suppress("UNUSED_PARAMETER")
     fun onClickAddLumpSumDefinition(btn: View) {
@@ -105,8 +118,6 @@ class LumpSumDefinitionActivity : AppCompatActivity() {
             storageHandler().updateLumpSums()
             configuration().unlock()
             storageHandler().saveConfigurationToFile(getApplicationContext())
-            val intent = Intent(this@LumpSumDefinitionActivity, MainActivity::class.java).apply {}
-            startActivity(intent)
         }
     }
 

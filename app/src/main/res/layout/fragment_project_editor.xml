@@ -5,7 +5,6 @@
         tools:context=".editor_fragments.ProjectEditorFragment">
     <data>
         <variable name="project_data" type="com.stemaker.arbeitsbericht.data.ProjectData"/>
-        <variable name="report_data" type="com.stemaker.arbeitsbericht.data.ReportData"/>
     </data>
 
         <com.stemaker.arbeitsbericht.helpers.LinearLayoutVisListener
@@ -38,12 +37,5 @@
                     android:text="@={project_data.extra1}"
                     android:hint="@string/extra"/>
             </com.google.android.material.textfield.TextInputLayout>
-            <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/egal"
-                    android:text="@{report_data.id}"
-                    android:visibility="gone"
-                    />
         </com.stemaker.arbeitsbericht.helpers.LinearLayoutVisListener> <!-- End of project_content_container -->
 </layout>

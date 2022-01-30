@@ -2,6 +2,7 @@ package com.stemaker.arbeitsbericht
 
 import android.Manifest
 import android.content.Intent
+import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.graphics.BitmapFactory
 import android.net.Uri
@@ -33,13 +34,16 @@ import kotlin.coroutines.suspendCoroutine
 
 private const val TAG = "ConfigurationActivity"
 private const val PERMISSION_CODE_REQUEST_INTERNET = 1
-private const val REQUEST_LOAD = 123
+private const val REQUEST_LOAD_LOGO = 123
+private const val REQUEST_LOAD_FOOTER = 124
+private const val REQUEST_LOAD_ODT = 125
 
 class ConfigurationActivity : AppCompatActivity() {
     private var internetPermissionContinuation: Continuation<Boolean>? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         setContentView(R.layout.activity_configuration)
 
         val storageInitJob = storageHandler().initialize()
@@ -52,12 +56,18 @@ class ConfigurationActivity : AppCompatActivity() {
                     findViewById<ProgressBar>(R.id.sftp_progress).visibility = View.GONE
                 }
             } ?: run { Log.e(TAG, "storageHandler job was null :(") }
+            requestedOrientation = when(configuration().lockScreenOrientation) {
+                true -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
+                else -> ActivityInfo.SCREEN_ORIENTATION_FULL_USER
+            }
             findViewById<EditText>(R.id.config_employee_name).setText(configuration().employeeName)
             findViewById<EditText>(R.id.config_device_name).setText(configuration().deviceName)
             findViewById<EditText>(R.id.config_report_id_pattern).setText(configuration().reportIdPattern.value)
             findViewById<EditText>(R.id.config_mail_receiver).setText(configuration().recvMail)
             findViewById<SwitchMaterial>(R.id.crashlog_enable).isChecked = configuration().crashlyticsEnabled
             FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(configuration().crashlyticsEnabled)
+            findViewById<SwitchMaterial>(R.id.always_landscape).isChecked = configuration().lockScreenOrientation
+
             findViewById<EditText>(R.id.sftp_host).setText(configuration().sFtpHost)
             findViewById<EditText>(R.id.sftp_port).setText(configuration().sFtpPort.toString())
             findViewById<EditText>(R.id.sftp_user).setText(configuration().sFtpUser)
@@ -129,7 +139,8 @@ class ConfigurationActivity : AppCompatActivity() {
             val fontSizeSlider = findViewById<Slider>(R.id.fontsize_slider)
             val fontSizeEdit = findViewById<EditText>(R.id.fontsize_text)
             fontSizeSlider.value = configuration().fontSize.toFloat()
-            fontSizeEdit.text.replace(0, 0, configuration().fontSize.toString())
+            fontSizeEdit.text.replace(0, fontSizeEdit.text.length, configuration().fontSize.toString())
+            //fontSizeEdit.text.replace(0, fontSizeEdit.text.length, configuration().fontSize.toString())
             fontSizeSlider.addOnChangeListener { _, value, _ ->
                 fontSizeEdit.text.replace(0, fontSizeEdit.text.length, value.toInt().toString())
             }
@@ -158,7 +169,7 @@ class ConfigurationActivity : AppCompatActivity() {
             val xlsxLogoWidthSlider = findViewById<Slider>(R.id.xlsx_logo_width_slider)
             val xlsxLogoWidthEdit = findViewById<EditText>(R.id.xlsx_logo_width_text)
             xlsxLogoWidthSlider.value = configuration().xlsxLogoWidth.toFloat()
-            xlsxLogoWidthEdit.text.replace(0, 0, configuration().xlsxLogoWidth.toString())
+            xlsxLogoWidthEdit.text.replace(0, xlsxLogoWidthEdit.text.length, configuration().xlsxLogoWidth.toString())
             xlsxLogoWidthSlider.addOnChangeListener { _, value, _ ->
                 xlsxLogoWidthEdit.text.replace(0, xlsxLogoWidthEdit.text.length, value.toInt().toString())
             }
@@ -185,7 +196,7 @@ class ConfigurationActivity : AppCompatActivity() {
             val xlsxFooterWidthSlider = findViewById<Slider>(R.id.xlsx_footer_width_slider)
             val xlsxFooterWidthEdit = findViewById<EditText>(R.id.xlsx_footer_width_text)
             xlsxFooterWidthSlider.value = configuration().xlsxFooterWidth.toFloat()
-            xlsxFooterWidthEdit.text.replace(0, 0, configuration().xlsxFooterWidth.toString())
+            xlsxFooterWidthEdit.text.replace(0, xlsxFooterWidthEdit.text.length, configuration().xlsxFooterWidth.toString())
             xlsxFooterWidthSlider.addOnChangeListener { _, value, _ ->
                 xlsxFooterWidthEdit.text.replace(0, xlsxFooterWidthEdit.text.length, value.toInt().toString())
             }
@@ -212,7 +223,7 @@ class ConfigurationActivity : AppCompatActivity() {
             val scalePhotosSlider = findViewById<Slider>(R.id.scale_photos_slider)
             val scalePhotosEdit = findViewById<EditText>(R.id.scale_photos_value)
             scalePhotosSlider.value = configuration().photoResolution.toFloat()
-            scalePhotosEdit.text.replace(0, 0, configuration().photoResolution.toString())
+            scalePhotosEdit.text.replace(0, scalePhotosEdit.text.length, configuration().photoResolution.toString())
             scalePhotosSlider.addOnChangeListener { _, value, _ ->
                 scalePhotosEdit.text.replace(0, scalePhotosEdit.text.length, value.toInt().toString())
             }
@@ -249,11 +260,18 @@ class ConfigurationActivity : AppCompatActivity() {
             when (item.itemId) {
                 R.id.config_save_button -> {
                     save()
+                    val intent = Intent(this@ConfigurationActivity, MainActivity::class.java).apply {}
+                    startActivity(intent)
                     true
                 }
                 else -> super.onOptionsItemSelected(item)
             }
         }
+    }
+
+    override fun onStop() {
+        super.onStop()
+        save()
     }
 
     private fun showFileInImageView(fileName: String, id: Int): Double {
@@ -286,6 +304,8 @@ class ConfigurationActivity : AppCompatActivity() {
         configuration().recvMail = findViewById<EditText>(R.id.config_mail_receiver).getText().toString()
         configuration().crashlyticsEnabled = findViewById<SwitchMaterial>(R.id.crashlog_enable).isChecked
         FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(configuration().crashlyticsEnabled)
+        configuration().lockScreenOrientation = findViewById<SwitchMaterial>(R.id.always_landscape).isChecked
+
         configuration().useOdfOutput = findViewById<RadioButton>(R.id.radio_odf_output).isChecked
         configuration().useXlsxOutput = findViewById<RadioButton>(R.id.radio_xlsx_output).isChecked
         configuration().selectOutput = findViewById<RadioButton>(R.id.radio_select_output).isChecked
@@ -312,8 +332,6 @@ class ConfigurationActivity : AppCompatActivity() {
 
         findViewById<ProgressBar>(R.id.sftp_progress).visibility = View.GONE
         window.clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
-        val intent = Intent(this@ConfigurationActivity, MainActivity::class.java).apply {}
-        startActivity(intent)
     }
 
     fun onClickConnect(@Suppress("UNUSED_PARAMETER") btn: View) {
@@ -341,14 +359,15 @@ class ConfigurationActivity : AppCompatActivity() {
         }
     }
 
-    private var continuation: Continuation<Uri?>? = null
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if(requestCode == REQUEST_LOAD && resultCode == RESULT_OK) {
-            val selectedfile = data?.getData()
-            //TODO: We would need to handle the case the app gets destroyed in between, can be easily
-            //reproduced by enabling don't keep activities in the dev options
-            continuation!!.resume(selectedfile)
+        Log.d(TAG, "onActivityResult: ${this}")
+        if(requestCode == REQUEST_LOAD_ODT && resultCode == RESULT_OK) {
+            odtFileLoaded(data?.data)
+        } else if(requestCode == REQUEST_LOAD_LOGO && resultCode == RESULT_OK) {
+            logoFileLoaded(data?.data)
+        } else if(requestCode == REQUEST_LOAD_FOOTER && resultCode == RESULT_OK) {
+            footerFileLoaded(data?.data)
         }
     }
 
@@ -366,26 +385,25 @@ class ConfigurationActivity : AppCompatActivity() {
         inStream.close()
     }
 
-    fun onClickLoadTemplate(@Suppress("UNUSED_PARAMETER") btn: View) {
-        GlobalScope.launch(Dispatchers.Main) {
-            val intent = Intent()
-                .setType("application/vnd.oasis.opendocument.text-template")
-                .setAction(Intent.ACTION_GET_CONTENT)
+    fun onClickLoadOdt(@Suppress("UNUSED_PARAMETER") btn: View) {
+        val intent = Intent()
+            .setType("application/vnd.oasis.opendocument.text-template")
+            .setAction(Intent.ACTION_GET_CONTENT)
+        startActivityForResult(Intent.createChooser(intent, getString(R.string.odf_file_choose)), REQUEST_LOAD_ODT)
+    }
 
-            startActivityForResult(Intent.createChooser(intent, getString(R.string.odf_file_choose)), REQUEST_LOAD)
-            val file = suspendCoroutine<Uri?> {
-                continuation = it
-            }
-            if(file == null) {
-                Log.d(TAG, "No ODF template file was selected")
-            } else {
-                Log.d(TAG, "Selected ODF template: ${file}")
-                try {
-                    val dst = "custom_output_template.ott"
-                    copyUriToFile(file, dst)
-                    configuration().odfTemplateFile = dst
-                } catch (e: Exception) {
-                    showInfoDialog(getString(R.string.getfile_error), this@ConfigurationActivity, e.message?:getString(R.string.unknown))
+    private fun odtFileLoaded(file: Uri?) {
+        if(file == null) {
+            Log.d(TAG, "No ODF template file was selected")
+        } else {
+            Log.d(TAG, "Selected ODF template: ${file}")
+            try {
+                val dst = "custom_output_template.ott"
+                copyUriToFile(file, dst)
+                configuration().odfTemplateFile = dst
+            } catch (e: Exception) {
+                GlobalScope.launch(Dispatchers.Main) {
+                    showInfoDialog(getString(R.string.getfile_error), this@ConfigurationActivity, e.message ?: getString(R.string.unknown))
                 }
             }
         }
@@ -420,28 +438,27 @@ class ConfigurationActivity : AppCompatActivity() {
     }
 
     fun onClickLoadLogo(@Suppress("UNUSED_PARAMETER") btn: View) {
-        GlobalScope.launch(Dispatchers.Main) {
-            val mimetypes = arrayOf("image/jpeg", "image/png")
-            val intent = Intent()
-                .setType("*/*")
-                .putExtra(Intent.EXTRA_MIME_TYPES, mimetypes)
-                .setAction(Intent.ACTION_GET_CONTENT)
+        val mimetypes = arrayOf("image/jpeg", "image/png")
+        val intent = Intent()
+            .setType("*/*")
+            .putExtra(Intent.EXTRA_MIME_TYPES, mimetypes)
+            .setAction(Intent.ACTION_GET_CONTENT)
+        startActivityForResult(Intent.createChooser(intent, getString(R.string.logo_file_choose)), REQUEST_LOAD_LOGO)
+    }
 
-            startActivityForResult(Intent.createChooser(intent, getString(R.string.logo_file_choose)), REQUEST_LOAD)
-            val file = suspendCoroutine<Uri?> {
-                continuation = it
-            }
-            if(file == null) {
-                Log.d(TAG, "No logo file was selected")
-            } else {
-                Log.d(TAG, "Selected logo: ${file}")
-                try {
-                    val dst = "logo.jpg"
-                    copyUriToFile(file, dst)
-                    configuration().logoFile = dst
-                    configuration().logoRatio = showFileInImageView(dst, R.id.logo_image)
-                } catch (e: Exception) {
-                    showInfoDialog(getString(R.string.getfile_error), this@ConfigurationActivity, e.message?:getString(R.string.unknown))
+    private fun logoFileLoaded(file: Uri?) {
+        if(file == null) {
+            Log.d(TAG, "No logo file was selected")
+        } else {
+            Log.d(TAG, "Selected logo: ${file}")
+            try {
+                val dst = "logo.jpg"
+                copyUriToFile(file, dst)
+                configuration().logoFile = dst
+                configuration().logoRatio = showFileInImageView(dst, R.id.logo_image)
+            } catch (e: Exception) {
+                GlobalScope.launch(Dispatchers.Main) {
+                    showInfoDialog(getString(R.string.getfile_error), this@ConfigurationActivity, e.message ?: getString(R.string.unknown))
                 }
             }
         }
@@ -481,28 +498,27 @@ class ConfigurationActivity : AppCompatActivity() {
     }
 
     fun onClickLoadFooter(@Suppress("UNUSED_PARAMETER") btn: View) {
-        GlobalScope.launch(Dispatchers.Main) {
-            val mimetypes = arrayOf("image/jpeg", "image/png")
-            val intent = Intent()
-                .setType("*/*")
-                .putExtra(Intent.EXTRA_MIME_TYPES, mimetypes)
-                .setAction(Intent.ACTION_GET_CONTENT)
+        val mimetypes = arrayOf("image/jpeg", "image/png")
+        val intent = Intent()
+            .setType("*/*")
+            .putExtra(Intent.EXTRA_MIME_TYPES, mimetypes)
+            .setAction(Intent.ACTION_GET_CONTENT)
+        startActivityForResult(Intent.createChooser(intent, getString(R.string.logo_file_choose)), REQUEST_LOAD_FOOTER)
+    }
 
-            startActivityForResult(Intent.createChooser(intent, getString(R.string.logo_file_choose)), REQUEST_LOAD)
-            val file = suspendCoroutine<Uri?> {
-                continuation = it
-            }
-            if(file == null) {
-                Log.d(TAG, "No footer file was selected")
-            } else {
-                Log.d(TAG, "Selected footer: ${file}")
-                try {
-                    val dst = "footer.jpg"
-                    copyUriToFile(file, dst)
-                    configuration().footerFile = dst
-                    configuration().footerRatio = showFileInImageView(dst, R.id.footer_image)
-                } catch (e: Exception) {
-                    showInfoDialog(getString(R.string.getfile_error), this@ConfigurationActivity, e.message?:getString(R.string.unknown))
+    private fun footerFileLoaded(file: Uri?) {
+        if (file == null) {
+            Log.d(TAG, "No footer file was selected")
+        } else {
+            Log.d(TAG, "Selected footer: ${file}")
+            try {
+                val dst = "footer.jpg"
+                copyUriToFile(file, dst)
+                configuration().footerFile = dst
+                configuration().footerRatio = showFileInImageView(dst, R.id.footer_image)
+            } catch (e: Exception) {
+                GlobalScope.launch(Dispatchers.Main) {
+                    showInfoDialog(getString(R.string.getfile_error), this@ConfigurationActivity, e.message ?: getString(R.string.unknown))
                 }
             }
         }

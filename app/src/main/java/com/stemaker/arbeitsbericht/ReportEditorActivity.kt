@@ -1,6 +1,8 @@
 package com.stemaker.arbeitsbericht
 
 import android.content.Intent
+import android.content.pm.ActivityInfo
+import android.content.res.Configuration
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -10,21 +12,18 @@ import androidx.databinding.DataBindingUtil
 import com.stemaker.arbeitsbericht.data.*
 import com.stemaker.arbeitsbericht.databinding.ActivityReportEditorBinding
 import com.stemaker.arbeitsbericht.editor_fragments.*
+import com.stemaker.arbeitsbericht.helpers.OrientationNotificationDialogFragment
 import kotlinx.coroutines.*
 
 private const val TAG = "ReportEditorActivity"
 
-class ReportEditorActivity : AppCompatActivity(),
-    ProjectEditorFragment.OnProjectEditorInteractionListener,
-    BillEditorFragment.OnBillEditorInteractionListener,
-    WorkTimeEditorFragment.OnWorkTimeEditorInteractionListener,
-    WorkItemEditorFragment.OnWorkItemEditorInteractionListener,
-    MaterialEditorFragment.OnMaterialEditorInteractionListener,
-    LumpSumEditorFragment.OnLumpSumEditorInteractionListener,
-    PhotoEditorFragment.OnPhotoEditorInteractionListener {
+class ReportEditorActivity() : AppCompatActivity(),
+    ReportEditorSectionFragment.OnReportEditorInteractionListener,
+    OrientationNotificationDialogFragment.ForcePortraitListener {
 
     lateinit var topBinding : ActivityReportEditorBinding
     var storageInitJob: Job? = null
+
     /*****************/
     /* General stuff */
     /*****************/
@@ -46,6 +45,10 @@ class ReportEditorActivity : AppCompatActivity(),
                     topBinding.loadNotify.visibility = View.GONE
                 }
             } ?: run { Log.e(TAG, "storageHandler job was null :(") }
+            requestedOrientation = when(configuration().lockScreenOrientation) {
+                true -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
+                else -> ActivityInfo.SCREEN_ORIENTATION_FULL_USER
+            }
 
             window.clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
         }
@@ -66,24 +69,29 @@ class ReportEditorActivity : AppCompatActivity(),
         topBinding.reportEditorActivityToolbar.setNavigationOnClickListener {
             onBackPressed()
         }
+        if(!configuration().lockScreenOrientationNoInfo && !configuration().lockScreenOrientation &&
+            resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            val screenOrientationDialog = OrientationNotificationDialogFragment()
+            screenOrientationDialog.setForcePortraitListener(this)
+            screenOrientationDialog.show(supportFragmentManager, "Orientation dialog")
+        }
     }
 
-    override fun onPause() {
-        Log.d(TAG, "onPause")
-        super.onPause()
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        recreate()
+    }
+
+    override fun forcePortrait() {
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
+        recreate()
     }
 
     override fun onStop() {
-        Log.d(TAG, "onStop")
         super.onStop()
         runBlocking {
             storageHandler().saveActiveReport()
         }
-    }
-
-    override fun onDestroy() {
-        Log.d(TAG, "onDestroy")
-        super.onDestroy()
     }
 
     private suspend fun waitForStorageHandler() {
@@ -95,45 +103,5 @@ class ReportEditorActivity : AppCompatActivity(),
     override suspend fun getReportData(): ReportData {
         waitForStorageHandler()
         return storageHandler().getReport()!!
-    }
-
-    override suspend fun getProjectData(): ProjectData {
-        waitForStorageHandler()
-        return storageHandler().getReport()!!.project
-    }
-
-    override suspend fun getBillData(): BillData {
-        waitForStorageHandler()
-        return storageHandler().getReport()!!.bill
-    }
-
-    override suspend fun getReport(): ReportData {
-        waitForStorageHandler()
-        return storageHandler().getReport()!!
-    }
-
-    override suspend fun getWorkTimeContainerData(): WorkTimeContainerData {
-        waitForStorageHandler()
-        return storageHandler().getReport()!!.workTimeContainer
-    }
-
-    override suspend fun getWorkItemContainerData(): WorkItemContainerData {
-        waitForStorageHandler()
-        return storageHandler().getReport()!!.workItemContainer
-    }
-
-    override suspend fun getMaterialContainerData(): MaterialContainerData {
-        waitForStorageHandler()
-        return storageHandler().getReport()!!.materialContainer
-    }
-
-    override suspend fun getLumpSumContainerData(): LumpSumContainerData {
-        waitForStorageHandler()
-        return storageHandler().getReport()!!.lumpSumContainer
-    }
-
-    override suspend fun getPhotoContainerData(): PhotoContainerData {
-        waitForStorageHandler()
-        return storageHandler().getReport()!!.photoContainer
     }
 }

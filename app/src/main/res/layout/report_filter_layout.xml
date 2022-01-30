@@ -22,34 +22,40 @@
                     android:text="@string/filter_reports"
                     android:textSize="24sp"
                     />
+            <androidx.constraintlayout.widget.Guideline
+                    android:id="@+id/vert_guide_50"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    app:layout_constraintGuide_percent ="0.5"/>
             <CheckBox
                     android:id="@+id/in_work"
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/in_work"
                     app:layout_constraintTop_toBottomOf="@id/headline"
                     app:layout_constraintLeft_toLeftOf="parent"/>
             <CheckBox
                     android:id="@+id/on_hold"
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/on_hold"
                     app:layout_constraintTop_toBottomOf="@id/in_work"
                     app:layout_constraintLeft_toLeftOf="parent"/>
             <CheckBox
                     android:id="@+id/done"
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/done"
-                    app:layout_constraintTop_toBottomOf="@id/on_hold"
-                    app:layout_constraintLeft_toLeftOf="parent"/>
+                    app:layout_constraintTop_toTopOf="@id/in_work"
+                    app:layout_constraintLeft_toRightOf="@id/vert_guide_50"/>
             <CheckBox
                     android:id="@+id/archived"
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/archived"
-                    app:layout_constraintTop_toBottomOf="@id/done"
-                    app:layout_constraintLeft_toLeftOf="parent"/>
+                    app:layout_constraintTop_toTopOf="@id/on_hold"
+                    app:layout_constraintLeft_toRightOf="@id/vert_guide_50"/>
             <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/project_name_layout"
                     android:layout_width="0dp"

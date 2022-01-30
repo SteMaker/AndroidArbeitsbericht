@@ -17,7 +17,6 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
 class ProjectEditorFragment : ReportEditorSectionFragment() {
-    private var listener: OnProjectEditorInteractionListener? = null
     lateinit var dataBinding: FragmentProjectEditorBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -38,43 +37,25 @@ class ProjectEditorFragment : ReportEditorSectionFragment() {
 
         setHeadline("Projekt / Kunde")
 
-        dataBinding.lifecycleOwner = this
+        dataBinding.lifecycleOwner =viewLifecycleOwner
 
         GlobalScope.launch(Dispatchers.Main) {
-            listener?.also {
+            listener?.let {
                 // There can be a race with onDetach so that the listener is already null
-                dataBinding.projectData = it.getProjectData()
-                dataBinding.reportData = it.getReportData()
+                dataBinding.projectData = it.getReportData().project
             }
         }
         return root
     }
 
-    override fun onAttach(context: Context) {
-        super.onAttach(context)
-        if (context is OnProjectEditorInteractionListener) {
-            listener = context
-        } else {
-            throw RuntimeException("$context must implement OnProjectEditorInteractionListener")
+    override fun setVisibility(vis: Boolean) {
+        dataBinding.projectContentContainer.visibility = when(vis) {
+            true -> View.VISIBLE
+            else -> View.GONE
         }
     }
 
-    override fun onDetach() {
-        super.onDetach()
-        listener = null
-    }
-
-    override fun setVisibility(vis: Boolean) {
-        dataBinding.root.findViewById<LinearLayout>(R.id.project_content_container).setVisibility(if(vis) View.VISIBLE else View.GONE)
-    }
-
     override fun getVisibility(): Boolean {
-        return dataBinding.root.findViewById<LinearLayout>(R.id.project_content_container).visibility != View.GONE
+        return dataBinding.projectContentContainer.visibility != View.GONE
     }
-
-    interface OnProjectEditorInteractionListener {
-        suspend fun getProjectData(): ProjectData
-        suspend fun getReportData(): ReportData
-    }
-
 }

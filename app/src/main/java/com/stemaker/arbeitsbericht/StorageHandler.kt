@@ -56,6 +56,7 @@ object StorageHandler {
     fun initialize(): Job? {
         if (inited.compareAndSet(false, true)) {
             initJob = GlobalScope.launch(Dispatchers.Main) {
+                Log.d(TAG, "initializing storage")
                 val c: Context = ArbeitsberichtApp.appContext
                 // Read the configuration. This needs to be low level -> no configuration() invocation yet
                 loadConfigurationFromFile(c)

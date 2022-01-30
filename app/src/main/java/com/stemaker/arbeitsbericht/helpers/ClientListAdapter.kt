@@ -42,11 +42,13 @@ class ClientListAdapter(val activity: AppCompatActivity, private val clientViewM
                 if(binding.editGroup.visibility == View.GONE) {
                     binding.expandContentPic.rotation = 180.toFloat()
                     binding.editGroup.visibility = View.VISIBLE
+                    c.visible = true
                     c.touched = true
                     onSelected()
                 } else {
                     binding.expandContentPic.rotation = 0.toFloat()
                     binding.editGroup.visibility = View.GONE
+                    c.visible = false
                 }
             }
 
@@ -60,7 +62,8 @@ class ClientListAdapter(val activity: AppCompatActivity, private val clientViewM
             }
             binding.drivetimeContainer.setOnClickListener {
                 val activity = lcOwner as AppCompatActivity
-                val newFragment = TimePickerFragment(c.driveTime)
+                val newFragment = TimePickerFragment()
+                newFragment.timeString = c.driveTime
                 newFragment.show(activity.supportFragmentManager, "timePicker")
             }
         }

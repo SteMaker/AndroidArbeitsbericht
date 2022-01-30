@@ -36,7 +36,8 @@ class InfoButton : AppCompatImageView {
             a.getString(R.styleable.InfoButton_infoUrl)?.let { infoUrl ->
                 setOnClickListener {
                     val act: AppCompatActivity = c as AppCompatActivity
-                    val helperDialog = HelperDialogFragment(infoUrl)
+                    val helperDialog = HelperDialogFragment()
+                    helperDialog.url = infoUrl
                     helperDialog.show(act.supportFragmentManager, "HelperDialog")
                     Log.d("test", "clicked :)")
                 }

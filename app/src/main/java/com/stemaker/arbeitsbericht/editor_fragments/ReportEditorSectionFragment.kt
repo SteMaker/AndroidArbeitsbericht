@@ -1,5 +1,6 @@
 package com.stemaker.arbeitsbericht.editor_fragments
 
+import android.content.Context
 import android.content.res.Configuration
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -10,10 +11,14 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import com.stemaker.arbeitsbericht.R
+import com.stemaker.arbeitsbericht.data.BillData
+import com.stemaker.arbeitsbericht.data.ProjectData
+import com.stemaker.arbeitsbericht.data.ReportData
 
 private const val TAG = "ReportEditSectFragment"
 
 abstract class ReportEditorSectionFragment : Fragment() {
+    protected var listener: OnReportEditorInteractionListener? = null
     lateinit var rootView: View
 
     override fun onCreateView(
@@ -38,6 +43,20 @@ abstract class ReportEditorSectionFragment : Fragment() {
         return rootView
     }
 
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        if (context is OnReportEditorInteractionListener) {
+            listener = context
+        } else {
+            throw RuntimeException("$context must implement OnReportEditorInteractionListener")
+        }
+    }
+
+    override fun onDetach() {
+        super.onDetach()
+        listener = null
+    }
+
     fun setHeadline(t: String) {
         rootView.findViewById<TextView>(R.id.resh_headline_textview).text = t
     }
@@ -54,4 +73,8 @@ abstract class ReportEditorSectionFragment : Fragment() {
 
     abstract fun setVisibility(vis: Boolean)
     abstract fun getVisibility(): Boolean
+
+    interface OnReportEditorInteractionListener {
+        suspend fun getReportData(): ReportData
+    }
 }

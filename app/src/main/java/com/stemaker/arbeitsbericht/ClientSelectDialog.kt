@@ -47,6 +47,11 @@ class ClientSelectDialog : DialogFragment() {
         }
     }
 
+    override fun onPause() {
+        dismiss()
+        super.onPause()
+    }
+
     fun setOnSelectListener(listener: (client: Client) -> Unit) {
         this.listener = listener
     }

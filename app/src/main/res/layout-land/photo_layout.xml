@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <data>
+        <variable name="photo" type="com.stemaker.arbeitsbericht.data.PhotoData"/>
+    </data>
+
+    <androidx.cardview.widget.CardView
+            android:id="@+id/photo_card_top"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            style="@style/ArbeitsberichtAppTheme.CardLevel1"
+            android:clickable="false">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+            <Button
+                    android:id="@+id/photo_take_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    style="@style/ArbeitsberichtAppTheme.IconButtons"
+                    app:icon="@drawable/ic_photo_camera_black_24dp"
+                    />
+            <Button
+                    android:id="@+id/photo_load_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintLeft_toRightOf="@id/photo_take_button"
+                    style="@style/ArbeitsberichtAppTheme.IconButtons"
+                    app:icon="@drawable/ic_baseline_insert_drive_file_24"
+                    />
+            <Button
+                    android:id="@+id/photo_del_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintLeft_toRightOf="@id/photo_load_button"
+                    style="@style/ArbeitsberichtAppTheme.IconButtons"
+                    app:icon="@drawable/ic_delete_black_24dp"
+                    />
+            <ImageView
+                    android:id="@+id/photo_view"
+                    android:layout_width="100dp"
+                    android:layout_height="100dp"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintBottom_toTopOf="@id/barrier"
+                    app:srcPhotoFile="@{photo.file}"
+                    />
+            <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintTop_toBottomOf="@id/photo_take_button"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintRight_toLeftOf="@id/photo_view">
+                <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/photo_description"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@={photo.description}"
+                        android:hint="@string/description"
+                        />
+            </com.google.android.material.textfield.TextInputLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.cardview.widget.CardView>
+
+</layout>

@@ -68,6 +68,8 @@ class ConfigurationStore {
     var filterStates: Int = (1 shl ReportData.ReportState.toInt(ReportData.ReportState.IN_WORK)) or
             (1 shl ReportData.ReportState.toInt(ReportData.ReportState.ON_HOLD)) or
             (1 shl ReportData.ReportState.toInt(ReportData.ReportState.DONE))
+    var lockScreenOrientation: Boolean = false
+    var lockScreenOrientationNoInfo: Boolean = false
 }
 
 fun configuration(): Configuration {
@@ -355,6 +357,16 @@ object Configuration {
         get(): Int = store.filterStates
         set(value) {
             store.filterStates = value}
+
+    var lockScreenOrientation: Boolean
+        get(): Boolean = store.lockScreenOrientation
+        set(value) {
+            store.lockScreenOrientation = value}
+
+    var lockScreenOrientationNoInfo: Boolean
+        get() = store.lockScreenOrientationNoInfo
+        set(value) {
+            store.lockScreenOrientationNoInfo = value}
 
     private fun encryptPassword(pwd: String): String {
         /* Now we try to store the password in an encrypted way. First we retrieve a key

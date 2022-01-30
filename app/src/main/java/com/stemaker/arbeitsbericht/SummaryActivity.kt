@@ -3,12 +3,12 @@ package com.stemaker.arbeitsbericht
 import android.Manifest
 import android.content.ClipData
 import android.content.Intent
+import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
-import android.graphics.Bitmap
-import android.graphics.pdf.PdfRenderer
+import android.content.res.Configuration
+import android.graphics.Point
 import android.net.Uri
 import android.os.Bundle
-import android.os.ParcelFileDescriptor
 import android.print.*
 import android.util.Log
 import android.view.*
@@ -21,7 +21,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
-import androidx.core.graphics.createBitmap
 import androidx.databinding.DataBindingUtil
 import com.stemaker.arbeitsbericht.data.ReportData
 import com.stemaker.arbeitsbericht.data.SignatureData
@@ -36,6 +35,7 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
 private const val TAG = "SummaryActivity"
+
 
 class SummaryActivity : AppCompatActivity() {
     lateinit var binding: ActivitySummaryBinding
@@ -57,6 +57,10 @@ class SummaryActivity : AppCompatActivity() {
                 }
             } ?: run { Log.e(TAG, "storageHandler job was null :(") }
 
+            requestedOrientation = when(configuration().lockScreenOrientation) {
+                true -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
+                else -> ActivityInfo.SCREEN_ORIENTATION_FULL_USER
+            }
             signatureData = storageHandler().getReport()!!.signatureData
             binding.signature = signatureData
 
@@ -108,14 +112,23 @@ class SummaryActivity : AppCompatActivity() {
                 onBackPressed()
             }
             /* Make headline text area of signature also clickable */
-            val employeeSigText = findViewById<TextView>(R.id.employee_signature_text)
-            employeeSigText!!.setOnClickListener { onClickHideShowEmployeeSignature(findViewById<Button>(R.id.hide_employee_signature_btn)) }
-            val clientSigText = findViewById<TextView>(R.id.client_signature_text)
-            clientSigText!!.setOnClickListener { onClickHideShowClientSignature(findViewById<Button>(R.id.hide_client_signature_btn)) }
+            //val employeeSigText = findViewById<TextView>(R.id.employee_signature_text)
+            //employeeSigText!!.setOnClickListener { onClickHideEmployeeSignature(findViewById<Button>(R.id.hide_employee_signature_btn)) }
+            //val clientSigText = findViewById<TextView>(R.id.client_signature_text)
+            //clientSigText!!.setOnClickListener { onClickHideClientSignature(findViewById<Button>(R.id.hide_client_signature_btn)) }
 
             val html = HtmlReport.encodeReport(storageHandler().getReport()!!, this@SummaryActivity.filesDir, false)
             val wv = findViewById<WebView>(R.id.webview)
             wv.loadDataWithBaseURL("", html, "text/html", "UTF-8", "")
+        }
+        // In landscape limiting the width of the signature pad to the max width possible in portrait,
+        // to make sure the same area is accessible in both
+        val size = Point()
+        display?.getRealSize(size)
+        if(size.x > size.y) {
+            val percent = size.y.toFloat()/size.x.toFloat()
+            binding.guidelineEmployeeSigpadWidth?.setGuidelinePercent(percent)
+            binding.guidelineClientSigpadWidth?.setGuidelinePercent(1.0f-percent)
         }
     }
 
@@ -170,16 +183,17 @@ class SummaryActivity : AppCompatActivity() {
         lockEmployeeSignature()
     }
 
-    fun onClickHideShowEmployeeSignature(@Suppress("UNUSED_PARAMETER") b: View) {
-        val btn = b as Button
-        val sigPad = findViewById<LockableSignaturePad>(R.id.employee_signature)
-        if(sigPad!!.visibility == View.VISIBLE) {
-            sigPad.visibility = View.GONE
-            btn.rotation = 180F
+    fun onClickShowEmployeeSignature(@Suppress("UNUSED_PARAMETER") b: View) {
+        if(binding.employeeSignatureCard.visibility == View.GONE) {
+            binding.employeeSignatureCard.visibility = View.VISIBLE
+            binding.clientSignatureCard.visibility = View.GONE
         } else {
-            sigPad.visibility = View.VISIBLE
-            btn.rotation = 0F
+            binding.employeeSignatureCard.visibility = View.GONE
         }
+    }
+
+    fun onClickHideEmployeeSignature(@Suppress("UNUSED_PARAMETER") b: View) {
+        binding.employeeSignatureCard.visibility = View.GONE
     }
 
     fun onClickClearClientSignature(@Suppress("UNUSED_PARAMETER") btn: View) {
@@ -217,16 +231,17 @@ class SummaryActivity : AppCompatActivity() {
         lockClientSignature()
     }
 
-    fun onClickHideShowClientSignature(@Suppress("UNUSED_PARAMETER") b: View) {
-        val btn = b as Button
-        val sigPad = findViewById<LockableSignaturePad>(R.id.client_signature)
-        if(sigPad!!.visibility == View.VISIBLE) {
-            sigPad.visibility = View.GONE
-            btn.rotation = 180F
+    fun onClickShowClientSignature(@Suppress("UNUSED_PARAMETER") b: View) {
+        if(binding.clientSignatureCard.visibility == View.GONE) {
+            binding.clientSignatureCard.visibility = View.VISIBLE
+            binding.employeeSignatureCard.visibility = View.GONE
         } else {
-            sigPad.visibility = View.VISIBLE
-            btn.rotation = 0F
+            binding.clientSignatureCard.visibility = View.GONE
         }
+    }
+
+    fun onClickHideClientSignature(@Suppress("UNUSED_PARAMETER") b: View) {
+        binding.clientSignatureCard.visibility = View.GONE
     }
 
     private fun saveSignatures() {
@@ -371,7 +386,8 @@ class SummaryActivity : AppCompatActivity() {
     }
 
     private fun showReportInternal(file: File, type: OutputType) {
-        val pdfPreviewDialog = PdfPreviewDialog(file, applicationContext)
+        val pdfPreviewDialog = PdfPreviewDialog()
+        pdfPreviewDialog.file = file
         pdfPreviewDialog.show(supportFragmentManager, "PdfPreviewDialog")
     }
 

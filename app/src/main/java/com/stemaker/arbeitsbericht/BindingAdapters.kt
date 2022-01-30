@@ -14,6 +14,7 @@ import com.google.android.material.textfield.TextInputEditText
 import com.stemaker.arbeitsbericht.data.ReportData
 import com.stemaker.arbeitsbericht.data.calendarToDateString
 import com.stemaker.arbeitsbericht.data.configuration
+import com.stemaker.arbeitsbericht.helpers.ConstraintLayoutVisListener
 import com.stemaker.arbeitsbericht.helpers.LinearLayoutVisListener
 import java.io.File
 import java.text.DecimalFormatSymbols
@@ -183,7 +184,7 @@ object BindingAdapters {
     fun setSrcPhotoFile(imgView: ImageView, fileName: String) {
         val tmpFile = File(fileName) // because old app version stored the path here as well
         val file = File(imgView.context.getExternalFilesDir(Environment.DIRECTORY_PICTURES), tmpFile.name)
-        if(file.exists())
+        if(file.exists() && file.isFile)
             GlideApp.with(imgView.context).load(file).into(imgView)
     }
 
@@ -231,6 +232,32 @@ object BindingAdapters {
         return view.visibility!=View.GONE
     }
 
+    @JvmStatic
+    @BindingAdapter("visibilityAttrChanged")
+    fun setListener(view: ConstraintLayoutVisListener, listener: InverseBindingListener?) {
+        if (listener != null) {
+            view.setVisibilityChangeListener(object: ConstraintLayoutVisListener.onVisibilityChange {
+                override fun visibilityChanged(view: View, visible: Boolean) {
+                    listener.onChange()
+                }
+            })
+        }
+    }
+    @JvmStatic
+    @BindingAdapter("visibility")
+    fun setVisibility(view: ConstraintLayoutVisListener, visible: Boolean) {
+        if(visible) {
+            view.visibility = View.VISIBLE
+        } else {
+            view.visibility = View.GONE
+        }
+    }
+
+    @JvmStatic
+    @InverseBindingAdapter(attribute="visibility")
+    fun getVisibility(view: ConstraintLayoutVisListener): Boolean {
+        return view.visibility!=View.GONE
+    }
     /**********************************************************************************/
     /* Binding Adapters to bind a ReportState to an ImageView (done vs. in work icon) */
     /**********************************************************************************/

@@ -41,6 +41,11 @@ object HtmlReport {
             "<!DOCTYPE html>" +
                     "<html lang=\"de\">" +
                     "<head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"/></head>" +
+                    "<style type=\"text/css\">" +
+                    ".nobreak {" +
+                    "page-break-inside: avoid;" +
+                    "}" +
+                    "</style>" +
                     "<body>"
         if(configuration().logoFile != "" && configuration().pdfUseLogo) {
             val logoFileContent = readFileToBytes(File(dir, configuration().logoFile))
@@ -70,6 +75,7 @@ object HtmlReport {
 
         // Work times table
         if(rep.workTimeContainer.items.size > 0) {
+            html += "<div class=\"nobreak\">"
             html += "<h2>Arbeits-/fahrzeiten und Fahrstrecken</h2>" +
                     "<table style=\"border: 2px solid black;border-collapse: collapse;\">" +
                     "<tr>" +
@@ -98,10 +104,12 @@ object HtmlReport {
                         "</tr>"
             }
             html += "</table><hr>"
+            html += "</div>"
         }
 
         // Work items table
         if(rep.workItemContainer.items.size > 0) {
+            html += "<div class=\"nobreak\">"
             html += "<h2>Durchgeführte Arbeiten</h2>" +
                     "<table style=\"border: 2px solid black;border-collapse: collapse;\">" +
                     "<tr>" +
@@ -113,10 +121,12 @@ object HtmlReport {
                         "</tr>"
             }
             html += "</table><hr>"
+            html += "</div>"
         }
 
         if(rep.lumpSumContainer.items.size > 0) {
             // Lump sums
+            html += "<div class=\"nobreak\">"
             html += "<h2>Pauschalen</h2>" +
                     "<table style=\"border: 2px solid black;border-collapse: collapse;\">" +
                     "<tr>" +
@@ -132,10 +142,12 @@ object HtmlReport {
                         "</tr>"
             }
             html += "</table><hr>"
+            html += "</div>"
         }
 
         // Material table
         if(rep.materialContainer.items.size > 0) {
+            html += "<div class=\"nobreak\">"
             html += "<h2>Material</h2>" +
                     "<table style=\"border: 2px solid black;border-collapse: collapse;\">"
             if (rep.materialContainer.isAnyMaterialUnitSet()) {
@@ -164,19 +176,23 @@ object HtmlReport {
                 }
             }
             html += "</table><hr>"
+            html += "</div>"
         }
 
         if(rep.photoContainer.items.size != 0) {
             html += "<h2>Fotos</h2>"
             rep.photoContainer.items.forEach {
                 val fileName = File(it.file.value).name // old version stored full path
+                html += "<div class=\"nobreak\">"
                 html += "<img src=\"content://com.stemaker.arbeitsbericht.fileprovider/ArbeitsberichtPhotos/$fileName\" style=\"max-width:100%\">"
                 html += "${it.description.value}"
+                html += "</div>"
             }
             html += "<hr>"
         }
         if(inclSignatures) {
             // Employee signature
+            html += "<div class=\"nobreak\">"
             html += "<h2>Unterschriften</h2>"
             if (rep.signatureData.clientSignatureSvg.value == "" && rep.signatureData.employeeSignatureSvg.value == "") {
                 html += "Keine Unterschriften vorhanden<hr>"
@@ -198,6 +214,7 @@ object HtmlReport {
                 html += "</tr>" +
                         "</table><hr>"
             }
+            html += "</div>"
         }
         if(configuration().footerFile != "" && configuration().pdfUseFooter) {
             val footerFileContent = readFileToBytes(File(dir, configuration().footerFile))

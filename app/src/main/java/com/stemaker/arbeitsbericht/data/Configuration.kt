@@ -6,6 +6,7 @@ import android.security.keystore.KeyProperties
 import android.util.Base64
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
+import com.bumptech.glide.load.resource.bitmap.CenterCrop
 import com.stemaker.arbeitsbericht.ArbeitsberichtApp
 import com.stemaker.arbeitsbericht.StorageHandler
 import com.stemaker.arbeitsbericht.helpers.ReportFilter
@@ -70,6 +71,10 @@ class ConfigurationStore {
             (1 shl ReportData.ReportState.toInt(ReportData.ReportState.DONE))
     var lockScreenOrientation: Boolean = false
     var lockScreenOrientationNoInfo: Boolean = false
+    var pdfLogoWidthPercent: Int = 100
+    var pdfLogoAlignment: Int = 0 // 0->center, 1->left, 2->right
+    var pdfFooterWidthPercent: Int = 100
+    var pdfFooterAlignment : Int = 0 // 0->center, 1->left, 2->right
 }
 
 fun configuration(): Configuration {
@@ -367,6 +372,48 @@ object Configuration {
         get() = store.lockScreenOrientationNoInfo
         set(value) {
             store.lockScreenOrientationNoInfo = value}
+
+    enum class Alignment(val a: Int) {
+        CENTER(0),
+        LEFT(1),
+        RIGHT(2)
+    }
+    var pdfLogoWidthPercent: Int
+        get() = store.pdfLogoWidthPercent
+        set(value) {
+            store.pdfLogoWidthPercent = value}
+
+    var pdfLogoAlignment: Alignment
+        get() = when(store.pdfLogoAlignment) {
+            0 -> Alignment.CENTER
+            2 -> Alignment.RIGHT
+            else -> Alignment.LEFT
+        }
+        set(value) {
+            store.pdfLogoAlignment = when(value) {
+                Alignment.CENTER -> 0
+                Alignment.RIGHT -> 2
+                else -> 1
+            }
+        }
+    var pdfFooterWidthPercent: Int
+        get() = store.pdfFooterWidthPercent
+        set(value) {
+            store.pdfFooterWidthPercent = value}
+
+    var pdfFooterAlignment: Alignment
+        get() = when(store.pdfFooterAlignment) {
+            0 -> Alignment.CENTER
+            2 -> Alignment.RIGHT
+            else -> Alignment.LEFT
+        }
+        set(value) {
+            store.pdfFooterAlignment = when(value) {
+                Alignment.CENTER -> 0
+                Alignment.RIGHT -> 2
+                else -> 1
+            }
+        }
 
     private fun encryptPassword(pwd: String): String {
         /* Now we try to store the password in an encrypted way. First we retrieve a key

@@ -1,6 +1,7 @@
 package com.stemaker.arbeitsbericht.helpers
 
 import android.util.Base64
+import com.stemaker.arbeitsbericht.data.Configuration
 import com.stemaker.arbeitsbericht.data.ReportData
 import com.stemaker.arbeitsbericht.data.calendarToDateString
 import com.stemaker.arbeitsbericht.data.configuration
@@ -35,6 +36,31 @@ object HtmlReport {
         return bytes
     }
 
+    private fun alignmentToCss(a: Configuration.Alignment): String {
+       return "align=\"" + when(a) {
+           Configuration.Alignment.CENTER -> "middle"
+           Configuration.Alignment.LEFT -> "left"
+           Configuration.Alignment.RIGHT -> "right"
+       } + "\""
+    }
+    private fun logoCssClass(): String {
+        return ".logo {" +
+                "height:${configuration().pdfLogoWidthPercent}%;" +
+                "width: ${configuration().pdfLogoWidthPercent}%;" +
+                "object-fit: contain;" +
+                alignmentToCss(configuration().pdfFooterAlignment) +
+                "}"
+    }
+
+    private fun footerCssClass(): String {
+        return ".footer {" +
+                "height:${configuration().pdfFooterWidthPercent}%;" +
+                "width: ${configuration().pdfFooterWidthPercent}%;" +
+                "object-fit: contain;" +
+                alignmentToCss(configuration().pdfFooterAlignment) +
+                "}"
+    }
+
     fun encodeReport(rep: ReportData, dir: File, inclSignatures: Boolean = true): String {
         val fs = "font-size:${configuration().fontSize}px"
         var html: String =
@@ -45,12 +71,14 @@ object HtmlReport {
                     ".nobreak {" +
                     "page-break-inside: avoid;" +
                     "}" +
+                    logoCssClass() +
+                    footerCssClass() +
                     "</style>" +
                     "<body>"
         if(configuration().logoFile != "" && configuration().pdfUseLogo) {
             val logoFileContent = readFileToBytes(File(dir, configuration().logoFile))
             val logo = Base64.encodeToString(logoFileContent, Base64.DEFAULT)
-            html += "<img src=\"data:image/jpg;base64,${logo}\" style=\"height: 100%; width: 100%; object-fit: contain\"/>"
+            html += "<img src=\"data:image/jpg;base64,${logo}\" class=\"logo\"/>"
         }
         html +=     "<h1>Arbeitsbericht Nr. ${rep.id.value}</h1>" +
                     "<table style=\"border: 2px solid black;border-collapse: collapse;\">" +
@@ -219,7 +247,7 @@ object HtmlReport {
         if(configuration().footerFile != "" && configuration().pdfUseFooter) {
             val footerFileContent = readFileToBytes(File(dir, configuration().footerFile))
             val footer = Base64.encodeToString(footerFileContent, Base64.DEFAULT)
-            html += "<img src=\"data:image/jpg;base64,${footer}\" style=\"height: 100%; width: 100%; object-fit: contain\"/>"
+            html += "<img src=\"data:image/jpg;base64,${footer}\" class=\"footer\"/>"
         }
 
         html += "</body></html>"

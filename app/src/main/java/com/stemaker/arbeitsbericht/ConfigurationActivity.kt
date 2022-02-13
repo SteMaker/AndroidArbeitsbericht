@@ -106,6 +106,21 @@ class ConfigurationActivity : AppCompatActivity() {
 
             findViewById<SwitchMaterial>(R.id.xlsx_use_logo).isChecked = configuration().xlsxUseLogo
             findViewById<SwitchMaterial>(R.id.xlsx_use_footer).isChecked = configuration().xlsxUseFooter
+            val pdfLogoWidthSlider = findViewById<Slider>(R.id.pdf_logo_width_slider)
+            pdfLogoWidthSlider.value = configuration().pdfLogoWidthPercent.toFloat()
+            val pdfLogoWidthText = findViewById<TextView>(R.id.pdf_logo_width_text)
+            pdfLogoWidthText.text = "Breite ${configuration().pdfLogoWidthPercent.toString()}%"
+            pdfLogoWidthSlider.addOnChangeListener { _, value, _ ->
+                pdfLogoWidthText.text = "Breite ${value.toInt().toString()}%"
+            }
+            val pdfFooterWidthSlider = findViewById<Slider>(R.id.pdf_footer_width_slider)
+            pdfFooterWidthSlider.value = configuration().pdfFooterWidthPercent.toFloat()
+            val pdfFooterWidthText = findViewById<TextView>(R.id.pdf_footer_width_text)
+            pdfFooterWidthText.text = "Breite ${configuration().pdfFooterWidthPercent.toString()}%"
+            pdfFooterWidthSlider.addOnChangeListener { _, value, _ ->
+                pdfFooterWidthText.text = "Breite ${value.toInt().toString()}%"
+            }
+
             val radioGroup = findViewById<RadioGroup>(R.id.output_type_select_radiogroup)
             radioGroup.setOnCheckedChangeListener { _, checkedId ->
                 when (checkedId) {
@@ -328,6 +343,8 @@ class ConfigurationActivity : AppCompatActivity() {
         configuration().xlsxFooterWidth = findViewById<Slider>(R.id.xlsx_footer_width_slider).value.toInt()
         configuration().photoResolution = findViewById<Slider>(R.id.scale_photos_slider).value.toInt()
         configuration().scalePhotos = findViewById<SwitchMaterial>(R.id.scale_photos).isChecked
+        configuration().pdfLogoWidthPercent = findViewById<Slider>(R.id.pdf_logo_width_slider).value.toInt()
+        configuration().pdfFooterWidthPercent = findViewById<Slider>(R.id.pdf_footer_width_slider).value.toInt()
         configuration().save()
 
         findViewById<ProgressBar>(R.id.sftp_progress).visibility = View.GONE

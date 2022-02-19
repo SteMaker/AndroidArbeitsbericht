@@ -98,8 +98,13 @@
     <string name="report_id_pattern">Vorlage Berichtsnummer</string>
     <string name="lump_sum_load">Pauschalen aus entfernter Datei laden</string>
     <string name="only_jpeg_supported">Es werden nur JPEG (.jpg oder .jpeg) Dateien unterstützt</string>
+    <string name="other">Weiteres</string>
+    <string name="font">Schrift</string>
     <string name="fontsize">Schriftgröße</string>
+    <string name="use">Verwenden</string>
+    <string name="logo">Logo</string>
     <string name="use_logo">Logo verwenden</string>
+    <string name="footer">Fusszeile</string>
     <string name="use_footer">Fusszeile verwenden</string>
     <string name="use_internal_pdf">Eigene PDF Vorschau</string>
     <string name="logowidth">Logobreite [mm]</string>

@@ -13,7 +13,7 @@ private const val TAG = "HtmlReport"
 
 object HtmlReport {
 
-    fun readFileToBytes(f: File): ByteArray {
+    private fun readFileToBytes(f: File): ByteArray {
         val size = f.length().toInt()
         val bytes = ByteArray(size)
         val tmpBuff = ByteArray(size)
@@ -37,18 +37,17 @@ object HtmlReport {
     }
 
     private fun alignmentToCss(a: Configuration.Alignment): String {
-       return "align=\"" + when(a) {
-           Configuration.Alignment.CENTER -> "middle"
-           Configuration.Alignment.LEFT -> "left"
-           Configuration.Alignment.RIGHT -> "right"
-       } + "\""
+       return when(a) {
+           Configuration.Alignment.CENTER -> "margin-left:auto;margin-right:auto;display:block;"
+           Configuration.Alignment.LEFT -> "margin-right:auto;display:block;"
+           Configuration.Alignment.RIGHT -> "margin-left:auto;display:block;"
+       }
     }
     private fun logoCssClass(): String {
         return ".logo {" +
                 "height:${configuration().pdfLogoWidthPercent}%;" +
                 "width: ${configuration().pdfLogoWidthPercent}%;" +
-                "object-fit: contain;" +
-                alignmentToCss(configuration().pdfFooterAlignment) +
+                alignmentToCss(configuration().pdfLogoAlignment) +
                 "}"
     }
 
@@ -56,7 +55,6 @@ object HtmlReport {
         return ".footer {" +
                 "height:${configuration().pdfFooterWidthPercent}%;" +
                 "width: ${configuration().pdfFooterWidthPercent}%;" +
-                "object-fit: contain;" +
                 alignmentToCss(configuration().pdfFooterAlignment) +
                 "}"
     }

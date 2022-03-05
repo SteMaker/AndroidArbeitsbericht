@@ -31,6 +31,7 @@ import com.stemaker.arbeitsbericht.helpers.*
 import com.stemaker.arbeitsbericht.output.OdfGenerator
 import kotlinx.coroutines.*
 import java.io.File
+import java.lang.Exception
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
@@ -378,9 +379,9 @@ class SummaryActivity : AppCompatActivity() {
         val extension = MimeTypeMap.getFileExtensionFromUrl(file.toString())
         val mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension)
         intent.setDataAndType(uri, mimeType)
-        if (intent.resolveActivity(packageManager) != null) {
+        try {
             startActivity(intent)
-        } else {
+        } catch (e: Exception) {
             GlobalScope.launch(Dispatchers.Main) {
                 showInfoDialog(getString(R.string.no_xdf_viewer, extension.capitalize()), this@SummaryActivity)
             }

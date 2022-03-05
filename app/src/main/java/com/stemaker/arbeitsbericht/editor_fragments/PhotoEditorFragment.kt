@@ -2,6 +2,7 @@ package com.stemaker.arbeitsbericht.editor_fragments
 
 import android.Manifest
 import android.app.Activity.RESULT_OK
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
@@ -148,8 +149,7 @@ class PhotoEditorFragment : ReportEditorSectionFragment() {
                     }
                     if(permissionGranted) {
                         Intent(MediaStore.ACTION_IMAGE_CAPTURE).also { takePictureIntent ->
-                            // Ensure that there's a camera activity to handle the intent
-                            takePictureIntent.resolveActivity(activity!!.packageManager)?.also {
+                            try {
                                 // Create the File where the photo should go
                                 val photoFile: File? = try {
                                     createImageFile()
@@ -176,7 +176,7 @@ class PhotoEditorFragment : ReportEditorSectionFragment() {
                                         toast.show()
                                     }
                                 }
-                            } ?: run {
+                            } catch (e: Exception) {
                                 val toast = Toast.makeText(activity, "Konnte keine Kamera-App starten", Toast.LENGTH_LONG)
                                 toast.show()
                             }

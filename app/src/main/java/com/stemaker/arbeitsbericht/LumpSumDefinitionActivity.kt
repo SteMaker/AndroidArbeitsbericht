@@ -43,9 +43,9 @@ class LumpSumDefinitionActivity : AppCompatActivity() {
         GlobalScope.launch(Dispatchers.Main) {
             storageInitJob?.let {
                 if (!it.isCompleted) {
-                    findViewById<ProgressBar>(R.id.sftp_progress).visibility = View.VISIBLE
+                    findViewById<ProgressBar>(R.id.sftp_progress)?.visibility = View.VISIBLE
                     it.join()
-                    findViewById<ProgressBar>(R.id.sftp_progress).visibility = View.GONE
+                    findViewById<ProgressBar>(R.id.sftp_progress)?.visibility = View.GONE
                 }
             } ?: run { Log.e(TAG, "storageHandler job was null :(") }
             requestedOrientation = when(configuration().lockScreenOrientation) {

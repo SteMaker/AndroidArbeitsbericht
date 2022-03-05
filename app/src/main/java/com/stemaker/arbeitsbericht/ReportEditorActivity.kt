@@ -103,6 +103,15 @@ class ReportEditorActivity() : AppCompatActivity(),
 
     override suspend fun getReportData(): ReportData {
         waitForStorageHandler()
-        return storageHandler().getReport()!!
+        var cnt = 3
+        var report: ReportData?
+        do {
+            report = storageHandler().getReport()
+            if (report == null) {
+                delay(2000)
+            }
+            cnt--
+        } while(report == null && cnt > 0)
+        return report!!
     }
 }

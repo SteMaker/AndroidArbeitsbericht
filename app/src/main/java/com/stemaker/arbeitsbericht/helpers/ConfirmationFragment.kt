@@ -1,6 +1,7 @@
 package com.stemaker.arbeitsbericht.helpers
 
 import android.content.Context
+import android.view.WindowManager
 import androidx.appcompat.app.AlertDialog
 import com.stemaker.arbeitsbericht.R
 import kotlin.coroutines.Continuation
@@ -34,9 +35,13 @@ suspend fun showInfoDialog(title: String, context: Context, msg: String=""): Int
         .setPositiveButton(R.string.ok) { _, button -> continuation!!.resume(AlertDialog.BUTTON_NEUTRAL) }
         .setOnCancelListener() { _ -> continuation!!.resume(AlertDialog.BUTTON_NEUTRAL) }
         .create()
-    alert.show()
-    return suspendCoroutine<Int> {
-        continuation = it
+    return try {
+        alert.show()
+        suspendCoroutine<Int> {
+            continuation = it
+        }
+    } catch(e: WindowManager.BadTokenException) {
+        AlertDialog.BUTTON_NEUTRAL
     }
 }
 

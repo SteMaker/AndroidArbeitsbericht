@@ -1,6 +1,7 @@
 package com.stemaker.arbeitsbericht
 
 //import kotlinx.android.synthetic.main.activity_main.*
+import android.content.Context
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.os.Bundle
@@ -41,7 +42,7 @@ class MainActivity : AppCompatActivity(), ReportCardInterface {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val storageInitJob = storageHandler().initialize()
+        val storageInitJob = storageHandler().initialize(this as Context)
 
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
         binding.lifecycleOwner = this

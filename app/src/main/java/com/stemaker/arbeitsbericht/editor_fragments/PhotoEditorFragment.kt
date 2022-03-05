@@ -1,7 +1,9 @@
 package com.stemaker.arbeitsbericht.editor_fragments
 
+import android.Manifest
 import android.app.Activity.RESULT_OK
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
@@ -14,9 +16,13 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.Toast
+import androidx.annotation.NonNull
 import androidx.appcompat.app.AlertDialog
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import com.stemaker.arbeitsbericht.R
+import com.stemaker.arbeitsbericht.SummaryActivity
 import com.stemaker.arbeitsbericht.data.PhotoContainerData
 import com.stemaker.arbeitsbericht.data.PhotoData
 import com.stemaker.arbeitsbericht.data.configuration
@@ -42,6 +48,7 @@ class PhotoEditorFragment : ReportEditorSectionFragment() {
     lateinit var dataBinding: FragmentPhotoEditorBinding
     private var contCnt = 1
     private val activityResultContinuation = mutableMapOf<Int, Continuation<Uri?>>()
+    var cameraPermissionContinuation: Continuation<Boolean>? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -89,6 +96,21 @@ class PhotoEditorFragment : ReportEditorSectionFragment() {
         return dataBinding.photoContentContainer.visibility != View.GONE
     }
 
+    override fun onRequestPermissionsResult(requestCode: Int, @NonNull permissions: Array<String>, @NonNull grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if(requestCode == REQUEST_CODE_CAMERA_PERMISSION) {
+            if(grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Log.d(TAG, "Access to camera granted")
+                cameraPermissionContinuation!!.resume(true)
+            } else {
+                Log.d(TAG, "Access to camera denied")
+                val toast = Toast.makeText(this.activity, "Berechtigungen abgelehnt, Foto kann nicht erstellt werden", Toast.LENGTH_LONG)
+                toast.show()
+                cameraPermissionContinuation!!.resume(false)
+            }
+        }
+    }
+
     fun addPhotoView(p: PhotoData, photoContainerData: PhotoContainerData) {
         val inflater = layoutInflater
         val container = dataBinding.photoContentContainer
@@ -111,37 +133,53 @@ class PhotoEditorFragment : ReportEditorSectionFragment() {
         photoDataBinding.photoTakeButton.setOnClickListener(object : View.OnClickListener {
             override fun onClick(btn: View) {
                 GlobalScope.launch(Dispatchers.Main) {
-                    Intent(MediaStore.ACTION_IMAGE_CAPTURE).also { takePictureIntent ->
-                        // Ensure that there's a camera activity to handle the intent
-                        takePictureIntent.resolveActivity(activity!!.packageManager)?.also {
-                            // Create the File where the photo should go
-                            val photoFile: File? = try {
-                                createImageFile()
-                            } catch (ex: IOException) {
-                                val toast = Toast.makeText(activity, "Konnte Datei für Foto nicht erstellen", Toast.LENGTH_LONG)
-                                toast.show()
-                                null
+                    var permissionGranted = true
+                    val ctx = this@PhotoEditorFragment.activity
+                    ctx?.also { ctxNotNull ->
+                        if (ContextCompat.checkSelfPermission(ctxNotNull, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+                            // Request user to grant write external storage permission.
+                            Log.d(TAG, "Need to query user for permissions, starting coroutine")
+                            requestPermissions(arrayOf(Manifest.permission.CAMERA), REQUEST_CODE_CAMERA_PERMISSION)
+                            permissionGranted = suspendCoroutine<Boolean> {
+                                Log.d(TAG, "Coroutine: suspended")
+                                cameraPermissionContinuation = it
                             }
-                            // Continue only if the File was successfully created
-                            photoFile?.also { photoFile ->
-                                val photoURI: Uri = FileProvider.getUriForFile(activity!!.applicationContext, "com.stemaker.arbeitsbericht.fileprovider", photoFile)
-                                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
-                                startActivityForResult(takePictureIntent, contCnt)
-                                // result is null, if it really failed we'll catch an exception below
-                                val result = suspendCoroutine<Uri?> {
-                                    activityResultContinuation[contCnt] = it
-                                    contCnt++
-                                }
-                                try {
-                                    applyPhotoFile(p, photoFile)
-                                } catch (ex: Exception) {
+                        }
+                    }
+                    if(permissionGranted) {
+                        Intent(MediaStore.ACTION_IMAGE_CAPTURE).also { takePictureIntent ->
+                            // Ensure that there's a camera activity to handle the intent
+                            takePictureIntent.resolveActivity(activity!!.packageManager)?.also {
+                                // Create the File where the photo should go
+                                val photoFile: File? = try {
+                                    createImageFile()
+                                } catch (ex: IOException) {
                                     val toast = Toast.makeText(activity, "Konnte Datei für Foto nicht erstellen", Toast.LENGTH_LONG)
                                     toast.show()
+                                    null
                                 }
+                                // Continue only if the File was successfully created
+                                photoFile?.also { photoFile ->
+                                    val photoURI: Uri =
+                                        FileProvider.getUriForFile(activity!!.applicationContext, "com.stemaker.arbeitsbericht.fileprovider", photoFile)
+                                    takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
+                                    startActivityForResult(takePictureIntent, contCnt)
+                                    // result is null, if it really failed we'll catch an exception below
+                                    val result = suspendCoroutine<Uri?> {
+                                        activityResultContinuation[contCnt] = it
+                                        contCnt++
+                                    }
+                                    try {
+                                        applyPhotoFile(p, photoFile)
+                                    } catch (ex: Exception) {
+                                        val toast = Toast.makeText(activity, "Konnte Datei für Foto nicht erstellen", Toast.LENGTH_LONG)
+                                        toast.show()
+                                    }
+                                }
+                            } ?: run {
+                                val toast = Toast.makeText(activity, "Konnte keine Kamera-App starten", Toast.LENGTH_LONG)
+                                toast.show()
                             }
-                        }?:run {
-                            val toast = Toast.makeText(activity, "Konnte keine Kamera-App starten", Toast.LENGTH_LONG)
-                            toast.show()
                         }
                     }
                 }
@@ -250,5 +288,9 @@ class PhotoEditorFragment : ReportEditorSectionFragment() {
                 activityResultContinuation.remove(requestCode)
             }
         }
+    }
+
+    companion object {
+        const val REQUEST_CODE_CAMERA_PERMISSION = 1
     }
 }

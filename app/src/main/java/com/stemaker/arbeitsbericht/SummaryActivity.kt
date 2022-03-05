@@ -2,6 +2,7 @@ package com.stemaker.arbeitsbericht
 
 import android.Manifest
 import android.content.ClipData
+import android.content.Context
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
@@ -46,7 +47,7 @@ class SummaryActivity : AppCompatActivity() {
         binding = DataBindingUtil.setContentView(this, R.layout.activity_summary)
         binding.lifecycleOwner = this
 
-        val storageInitJob = storageHandler().initialize()
+        val storageInitJob = storageHandler().initialize(this as Context)
 
         GlobalScope.launch(Dispatchers.Main) {
             storageInitJob?.let {
@@ -123,6 +124,7 @@ class SummaryActivity : AppCompatActivity() {
         }
         // In landscape limiting the width of the signature pad to the max width possible in portrait,
         // to make sure the same area is accessible in both
+        // @TODO getRealSize was deprecated in Android12, need to find the correct way to handle this
         val size = Point()
         display?.getRealSize(size)
         if(size.x > size.y) {

@@ -1,6 +1,7 @@
 package com.stemaker.arbeitsbericht
 
 import android.Manifest
+import android.content.Context
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
@@ -46,7 +47,7 @@ class ConfigurationActivity : AppCompatActivity() {
 
         setContentView(R.layout.activity_configuration)
 
-        val storageInitJob = storageHandler().initialize()
+        val storageInitJob = storageHandler().initialize(this as Context)
 
         GlobalScope.launch(Dispatchers.Main) {
             storageInitJob?.let {

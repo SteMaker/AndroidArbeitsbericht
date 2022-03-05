@@ -1,5 +1,6 @@
 package com.stemaker.arbeitsbericht
 
+import android.content.Context
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
@@ -29,7 +30,7 @@ class ReportEditorActivity() : AppCompatActivity(),
     /*****************/
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        storageInitJob = storageHandler().initialize()
+        storageInitJob = storageHandler().initialize(this as Context)
         topBinding = DataBindingUtil.setContentView(this, R.layout.activity_report_editor)
 
         window.setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)

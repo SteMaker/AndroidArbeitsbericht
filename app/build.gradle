@@ -9,7 +9,6 @@ plugins {
 
 android {
     compileSdkVersion 31
-    buildToolsVersion "30.0.2"
     defaultConfig {
         applicationId "com.stemaker.arbeitsbericht"
         minSdkVersion 23
@@ -30,7 +29,9 @@ android {
         viewBinding true
     }
     packagingOptions {
-        exclude 'META-INF/DEPENDENCIES'
+        resources {
+            excludes += ['META-INF/DEPENDENCIES']
+        }
     }
 }
 

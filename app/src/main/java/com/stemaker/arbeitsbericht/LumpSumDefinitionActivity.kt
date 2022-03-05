@@ -38,7 +38,7 @@ class LumpSumDefinitionActivity : AppCompatActivity() {
         binding = ActivityLumpSumDefinitionBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val storageInitJob = storageHandler().initialize()
+        val storageInitJob = storageHandler().initialize(this as Context)
 
         GlobalScope.launch(Dispatchers.Main) {
             storageInitJob?.let {

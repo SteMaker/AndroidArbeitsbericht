@@ -1,5 +1,6 @@
 package com.stemaker.arbeitsbericht
 
+import android.content.Context
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import androidx.appcompat.app.AppCompatActivity
@@ -29,7 +30,7 @@ class ClientListActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val storageInitJob = storageHandler().initialize()
+        val storageInitJob = storageHandler().initialize(this as Context)
         binding = DataBindingUtil.setContentView(this, R.layout.activity_client_list)
         binding.lifecycleOwner = this
 

@@ -1,7 +1,9 @@
 package com.stemaker.arbeitsbericht
 
+import android.app.AlertDialog
 import android.content.Context
 import android.content.Context.MODE_PRIVATE
+import android.content.DialogInterface
 import android.util.Log
 import androidx.lifecycle.Observer
 import androidx.room.Room
@@ -53,7 +55,7 @@ object StorageHandler {
 
     var reportListObservers = mutableListOf<ReportListObserver>()
 
-    fun initialize(): Job? {
+    fun initialize(activityContext: Context): Job? {
         if (inited.compareAndSet(false, true)) {
             initJob = GlobalScope.launch(Dispatchers.Main) {
                 Log.d(TAG, "initializing storage")
@@ -78,6 +80,8 @@ object StorageHandler {
                 }
                 visReportCnts.addAll(cnts)
 
+                checkAndRepairCurrentIdConsistency(activityContext)
+
                 // Now we should be ready to do more
                 if (configuration().activeReportId != -1) {
                     if (visReportCnts.contains(configuration().activeReportId)) {
@@ -95,6 +99,22 @@ object StorageHandler {
         }
         // Activities need to wait for this initJob before they are allowed to access the storageHandler()
         return initJob
+    }
+
+    private suspend fun checkAndRepairCurrentIdConsistency(activityContext: Context) {
+        val usedIds = db.reportDao().getReportCnts()
+        val maxId = usedIds.maxOrNull() ?:0 // If file didn't exist yet, initial value will be 1
+        if(maxId >= configuration().currentId) {
+            Log.e(TAG, "currentId of configuration is less than max Report ID (cnt). Seems the configuration was lost.")
+            configuration().currentId = maxId+1
+            configuration().save()
+            Log.e(TAG, "Setting currentId to ${configuration().currentId} as minimum repair mechanism")
+            AlertDialog.Builder(activityContext)
+                .setCancelable(false)
+                .setMessage("Entschuldigung, es wurde eine Dateninkonsistenz in den Einstellungen festgestellt. Bitte prüfen Sie die Einstellungen in der App.")
+                .setPositiveButton("OK") { dialog, _ -> dialog.cancel() }
+                .show()
+        }
     }
 
     private fun fetchAllCntsFromDb() {
@@ -328,7 +348,7 @@ object StorageHandler {
             Configuration.reportIdPattern.value = Configuration.store.reportIdPattern
             // TODO: Load filter from configuration
         }
-        catch (e: FileNotFoundException){
+        catch (e: Exception){
             Configuration.store = ConfigurationStore()
             configuration().save()
         }

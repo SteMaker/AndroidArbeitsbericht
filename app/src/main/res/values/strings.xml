@@ -86,7 +86,7 @@
     <string name="sort">Sortieren</string>
     <string name="add_employee">Mitarbeiter hinzufügen</string>
     <string name="filter_reports">Berichtsfilter einstellen</string>
-    <string name="screen_orientation_info">Die App unterstützt den Berichtseditor jetzt auch im Querformat. Dies kann hier oder in den Einstellungen deaktiviert werden.</string>
+    <string name="screen_orientation_info">Die App unterstützt die Benutzung jetzt auch im Querformat. Dies kann hier oder in den Einstellungen deaktiviert werden.</string>
     <string name="apply">Anwenden</string>
     <string name="auto_use">Automatisch übernehmen</string>
     <string name="client_list">Kunde auswählen</string>

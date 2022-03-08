@@ -18,9 +18,11 @@ import androidx.cardview.widget.CardView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.google.android.material.appbar.MaterialToolbar
+import com.google.android.material.button.MaterialButtonToggleGroup
 import com.google.android.material.slider.Slider
 import com.google.android.material.switchmaterial.SwitchMaterial
 import com.google.firebase.crashlytics.FirebaseCrashlytics
+import com.stemaker.arbeitsbericht.data.Configuration
 import com.stemaker.arbeitsbericht.data.configuration
 import com.stemaker.arbeitsbericht.helpers.SftpProvider
 import com.stemaker.arbeitsbericht.helpers.showInfoDialog
@@ -121,6 +123,17 @@ class ConfigurationActivity : AppCompatActivity() {
             pdfFooterWidthSlider.addOnChangeListener { _, value, _ ->
                 pdfFooterWidthText.text = "Breite ${value.toInt().toString()}%"
             }
+
+            findViewById<MaterialButtonToggleGroup>(R.id.logo_alignment_group).check(when(configuration().pdfLogoAlignment) {
+                Configuration.Alignment.CENTER -> R.id.logo_alignment_center
+                Configuration.Alignment.RIGHT -> R.id.logo_alignment_right
+                else -> R.id.logo_alignment_left
+            })
+            findViewById<MaterialButtonToggleGroup>(R.id.footer_alignment_group).check(when(configuration().pdfFooterAlignment) {
+                Configuration.Alignment.CENTER -> R.id.footer_alignment_center
+                Configuration.Alignment.RIGHT -> R.id.footer_alignment_right
+                else -> R.id.footer_alignment_left
+            })
 
             val radioGroup = findViewById<RadioGroup>(R.id.output_type_select_radiogroup)
             radioGroup.setOnCheckedChangeListener { _, checkedId ->
@@ -346,6 +359,16 @@ class ConfigurationActivity : AppCompatActivity() {
         configuration().scalePhotos = findViewById<SwitchMaterial>(R.id.scale_photos).isChecked
         configuration().pdfLogoWidthPercent = findViewById<Slider>(R.id.pdf_logo_width_slider).value.toInt()
         configuration().pdfFooterWidthPercent = findViewById<Slider>(R.id.pdf_footer_width_slider).value.toInt()
+        configuration().pdfLogoAlignment = when(findViewById<MaterialButtonToggleGroup>(R.id.logo_alignment_group).checkedButtonId) {
+            R.id.logo_alignment_center -> Configuration.Alignment.CENTER
+            R.id.logo_alignment_right -> Configuration.Alignment.RIGHT
+            else -> Configuration.Alignment.LEFT
+        }
+        configuration().pdfFooterAlignment = when(findViewById<MaterialButtonToggleGroup>(R.id.footer_alignment_group).checkedButtonId) {
+            R.id.footer_alignment_center -> Configuration.Alignment.CENTER
+            R.id.footer_alignment_right -> Configuration.Alignment.RIGHT
+            else -> Configuration.Alignment.LEFT
+        }
         configuration().save()
 
         findViewById<ProgressBar>(R.id.sftp_progress).visibility = View.GONE

@@ -50,6 +50,15 @@
         <item name="android:layout_margin">5dp</item>
         <item name="colorControlNormal">@color/primary</item>
     </style>
+    <style name="ArbeitsberichtAppTheme.IconGroupButtons" parent="Widget.MaterialComponents.Button.OutlinedButton">
+        <item name="colorControlNormal">@color/primary</item>
+        <item name="iconPadding">0dp</item>
+        <item name="android:insetLeft">0dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetRight">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="iconGravity">textStart</item>
+    </style>
 
     <style name="ArbeitsberichtAppTheme.HelperButtons" parent="Widget.MaterialComponents.Button.OutlinedButton">
         <item name="android:layout_margin">5dp</item>

@@ -68,11 +68,39 @@
                 android:stepSize="1"
                 app:labelBehavior="gone"
                 />
+        <com.google.android.material.button.MaterialButtonToggleGroup
+                android:id="@+id/logo_alignment_group"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintTop_toBottomOf="@id/pdf_logo_width_slider"
+                app:layout_constraintRight_toRightOf="parent"
+                app:singleSelection="true"
+                app:selectionRequired="true">
+            <com.google.android.material.button.MaterialButton
+                    android:id="@+id/logo_alignment_left"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    style="@style/ArbeitsberichtAppTheme.IconGroupButtons"
+                    app:icon="@drawable/ic_baseline_format_align_left_24"/>
+            <com.google.android.material.button.MaterialButton
+                    android:id="@+id/logo_alignment_center"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    style="@style/ArbeitsberichtAppTheme.IconGroupButtons"
+                    app:icon="@drawable/ic_baseline_format_align_center_24"/>
+            <com.google.android.material.button.MaterialButton
+                    android:id="@+id/logo_alignment_right"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    style="@style/ArbeitsberichtAppTheme.IconGroupButtons"
+                    app:icon="@drawable/ic_baseline_format_align_right_24"/>
+        </com.google.android.material.button.MaterialButtonToggleGroup>
         <com.google.android.material.divider.MaterialDivider
                 android:id="@+id/divider2"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:layout_constraintTop_toBottomOf="@id/pdf_logo_width_slider"
+                android:layout_marginTop="10dp"
+                app:layout_constraintTop_toBottomOf="@id/logo_alignment_group"
                 app:layout_constraintLeft_toLeftOf="parent"
                 />
         <TextView
@@ -89,9 +117,8 @@
                 android:id="@+id/pdf_use_footer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
                 android:layout_marginBottom="20dp"
-                app:layout_constraintTop_toBottomOf="@id/pdf_logo_width_slider"
+                app:layout_constraintTop_toBottomOf="@id/pdf_footer_text"
                 app:layout_constraintLeft_toLeftOf="parent"
                 android:text="@string/use"/>
         <TextView
@@ -115,11 +142,39 @@
                 android:stepSize="1"
                 app:labelBehavior="gone"
                 />
+        <com.google.android.material.button.MaterialButtonToggleGroup
+                android:id="@+id/footer_alignment_group"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintTop_toBottomOf="@id/pdf_footer_width_slider"
+                app:layout_constraintRight_toRightOf="parent"
+                app:singleSelection="true"
+                app:selectionRequired="true">
+            <com.google.android.material.button.MaterialButton
+                    android:id="@+id/footer_alignment_left"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    style="@style/ArbeitsberichtAppTheme.IconGroupButtons"
+                    app:icon="@drawable/ic_baseline_format_align_left_24"/>
+            <com.google.android.material.button.MaterialButton
+                    android:id="@+id/footer_alignment_center"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    style="@style/ArbeitsberichtAppTheme.IconGroupButtons"
+                    app:icon="@drawable/ic_baseline_format_align_center_24"/>
+            <com.google.android.material.button.MaterialButton
+                    android:id="@+id/footer_alignment_right"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    style="@style/ArbeitsberichtAppTheme.IconGroupButtons"
+                    app:icon="@drawable/ic_baseline_format_align_right_24"/>
+        </com.google.android.material.button.MaterialButtonToggleGroup>
         <com.google.android.material.divider.MaterialDivider
                 android:id="@+id/divider3"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:layout_constraintTop_toBottomOf="@id/pdf_footer_width_slider"
+                android:layout_marginTop="10dp"
+                app:layout_constraintTop_toBottomOf="@id/footer_alignment_group"
                 app:layout_constraintLeft_toLeftOf="parent"
                 />
         <TextView

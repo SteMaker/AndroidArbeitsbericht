@@ -2,6 +2,7 @@ package com.stemaker.arbeitsbericht
 
 import android.Manifest
 import android.content.ClipData
+import android.content.Context
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
@@ -30,6 +31,7 @@ import com.stemaker.arbeitsbericht.helpers.*
 import com.stemaker.arbeitsbericht.output.OdfGenerator
 import kotlinx.coroutines.*
 import java.io.File
+import java.lang.Exception
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
@@ -46,7 +48,7 @@ class SummaryActivity : AppCompatActivity() {
         binding = DataBindingUtil.setContentView(this, R.layout.activity_summary)
         binding.lifecycleOwner = this
 
-        val storageInitJob = storageHandler().initialize()
+        val storageInitJob = storageHandler().initialize(this as Context)
 
         GlobalScope.launch(Dispatchers.Main) {
             storageInitJob?.let {
@@ -123,6 +125,7 @@ class SummaryActivity : AppCompatActivity() {
         }
         // In landscape limiting the width of the signature pad to the max width possible in portrait,
         // to make sure the same area is accessible in both
+        // @TODO getRealSize was deprecated in Android12, need to find the correct way to handle this
         val size = Point()
         display?.getRealSize(size)
         if(size.x > size.y) {
@@ -376,9 +379,9 @@ class SummaryActivity : AppCompatActivity() {
         val extension = MimeTypeMap.getFileExtensionFromUrl(file.toString())
         val mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension)
         intent.setDataAndType(uri, mimeType)
-        if (intent.resolveActivity(packageManager) != null) {
+        try {
             startActivity(intent)
-        } else {
+        } catch (e: Exception) {
             GlobalScope.launch(Dispatchers.Main) {
                 showInfoDialog(getString(R.string.no_xdf_viewer, extension.capitalize()), this@SummaryActivity)
             }

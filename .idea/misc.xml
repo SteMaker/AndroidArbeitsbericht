@@ -23,8 +23,13 @@
         <entry key="app/src/main/res/layout/client_card_layout.xml" value="0.33" />
         <entry key="app/src/main/res/layout/client_select_dialog.xml" value="0.2774774774774775" />
         <entry key="app/src/main/res/layout/client_select_layout.xml" value="0.2774774774774775" />
-        <entry key="app/src/main/res/layout/config_general.xml" value="0.5354166666666667" />
+        <entry key="app/src/main/res/layout/config_excel.xml" value="0.33229166666666665" />
+        <entry key="app/src/main/res/layout/config_general.xml" value="0.33" />
+        <entry key="app/src/main/res/layout/config_odt.xml" value="0.3020833333333333" />
+        <entry key="app/src/main/res/layout/config_output.xml" value="0.3020833333333333" />
         <entry key="app/src/main/res/layout/config_pdf.xml" value="0.3182291666666667" />
+        <entry key="app/src/main/res/layout/config_photo.xml" value="0.3020833333333333" />
+        <entry key="app/src/main/res/layout/config_sftp.xml" value="0.3020833333333333" />
         <entry key="app/src/main/res/layout/fragment_about_dialog.xml" value="0.5354166666666667" />
         <entry key="app/src/main/res/layout/fragment_bill_editor.xml" value="0.5058876811594203" />
         <entry key="app/src/main/res/layout/fragment_helper_dialog.xml" value="0.3109375" />

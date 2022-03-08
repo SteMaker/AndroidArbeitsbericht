@@ -15,7 +15,8 @@
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 android:text="Fotos"
-                android:textSize="24sp"
+                android:textStyle="bold"
+                android:textSize="21sp"
                 />
         <com.google.android.material.switchmaterial.SwitchMaterial
                 android:id="@+id/scale_photos"

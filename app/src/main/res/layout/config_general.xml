@@ -21,7 +21,8 @@
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintLeft_toLeftOf="parent"
                     android:text="Allgemein"
-                    android:textSize="24sp"
+                    android:textStyle="bold"
+                    android:textSize="21sp"
                     />
             <com.stemaker.arbeitsbericht.helpers.InfoButton
                     android:layout_width="wrap_content"

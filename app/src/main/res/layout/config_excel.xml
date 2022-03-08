@@ -19,13 +19,30 @@
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintLeft_toLeftOf="parent"
                 android:text="Excel"
-                android:textSize="24sp"
+                android:textStyle="bold"
+                android:textSize="21sp"
+                />
+        <com.google.android.material.divider.MaterialDivider
+                android:id="@+id/divider1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:layout_constraintTop_toBottomOf="@id/xlsx_setting_text"
+                app:layout_constraintLeft_toLeftOf="parent"
+                />
+        <TextView
+                android:id="@+id/xlsx_logo_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:layout_constraintTop_toBottomOf="@id/divider1"
+                app:layout_constraintLeft_toLeftOf="parent"
+                android:text="@string/logo"
+                android:textSize="17sp"
                 />
         <com.google.android.material.switchmaterial.SwitchMaterial
                 android:id="@+id/xlsx_use_logo"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:layout_constraintTop_toBottomOf="@id/xlsx_setting_text"
+                app:layout_constraintTop_toBottomOf="@id/xlsx_logo_text"
                 app:layout_constraintLeft_toLeftOf="parent"
                 android:text="@string/use_logo"/>
         <com.google.android.material.textfield.TextInputLayout
@@ -53,18 +70,28 @@
                 android:stepSize="1"
                 app:labelBehavior="gone"
                 />
-        <TableRow
-                android:id="@+id/logo_footer_separator"
+        <com.google.android.material.divider.MaterialDivider
+                android:id="@+id/divider2"
                 android:layout_width="match_parent"
-                android:layout_height="1dp"
-                app:layout_constraintLeft_toLeftOf="parent"
+                android:layout_height="wrap_content"
                 app:layout_constraintTop_toBottomOf="@id/xlsx_logo_width_slider"
-                android:background="#444"/>
+                app:layout_constraintLeft_toLeftOf="parent"
+                />
+        <TextView
+                android:id="@+id/xlsx_footer_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="10dp"
+                app:layout_constraintTop_toBottomOf="@id/divider2"
+                app:layout_constraintLeft_toLeftOf="parent"
+                android:text="@string/footer"
+                android:textSize="17sp"
+                />
         <com.google.android.material.switchmaterial.SwitchMaterial
                 android:id="@+id/xlsx_use_footer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:layout_constraintTop_toBottomOf="@id/logo_footer_separator"
+                app:layout_constraintTop_toBottomOf="@id/xlsx_footer_text"
                 app:layout_constraintLeft_toLeftOf="parent"
                 android:text="@string/use_footer"/>
         <com.google.android.material.textfield.TextInputLayout

@@ -18,8 +18,25 @@
                 android:layout_height="wrap_content"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintLeft_toLeftOf="parent"
+                android:textStyle="bold"
                 android:text="PDF"
-                android:textSize="24sp"
+                android:textSize="21sp"
+                />
+        <com.google.android.material.divider.MaterialDivider
+                android:id="@+id/divider1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:layout_constraintTop_toBottomOf="@id/pdf_setting_text"
+                app:layout_constraintLeft_toLeftOf="parent"
+            />
+        <TextView
+                android:id="@+id/pdf_logo_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:layout_constraintTop_toBottomOf="@id/divider1"
+                app:layout_constraintLeft_toLeftOf="parent"
+                android:text="@string/logo"
+                android:textSize="17sp"
                 />
         <com.google.android.material.switchmaterial.SwitchMaterial
                 android:id="@+id/pdf_use_logo"
@@ -29,30 +46,97 @@
                 android:layout_marginBottom="20dp"
                 app:layout_constraintTop_toBottomOf="@id/pdf_setting_text"
                 app:layout_constraintLeft_toLeftOf="parent"
-                android:text="@string/use_logo"/>
+                android:text="@string/use"/>
+        <TextView
+                android:id="@+id/pdf_logo_width_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintTop_toTopOf="@id/pdf_logo_width_slider"
+                app:layout_constraintBottom_toBottomOf="@id/pdf_logo_width_slider"
+                app:layout_constraintLeft_toLeftOf="parent"
+                android:text="Breite 100%"
+                />
+        <com.google.android.material.slider.Slider
+                android:id="@+id/pdf_logo_width_slider"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                app:layout_constraintTop_toBottomOf="@id/pdf_use_logo"
+                app:layout_constraintLeft_toRightOf="@id/pdf_logo_width_text"
+                app:layout_constraintRight_toRightOf="parent"
+                android:valueFrom="1"
+                android:valueTo="100"
+                android:stepSize="1"
+                app:labelBehavior="gone"
+                />
+        <com.google.android.material.divider.MaterialDivider
+                android:id="@+id/divider2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:layout_constraintTop_toBottomOf="@id/pdf_logo_width_slider"
+                app:layout_constraintLeft_toLeftOf="parent"
+                />
+        <TextView
+                android:id="@+id/pdf_footer_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="10dp"
+                app:layout_constraintTop_toBottomOf="@id/divider2"
+                app:layout_constraintLeft_toLeftOf="parent"
+                android:text="@string/footer"
+                android:textSize="17sp"
+                />
         <com.google.android.material.switchmaterial.SwitchMaterial
                 android:id="@+id/pdf_use_footer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
                 android:layout_marginBottom="20dp"
-                app:layout_constraintTop_toBottomOf="@id/pdf_use_logo"
+                app:layout_constraintTop_toBottomOf="@id/pdf_logo_width_slider"
                 app:layout_constraintLeft_toLeftOf="parent"
-                android:text="@string/use_footer"/>
-        <com.google.android.material.switchmaterial.SwitchMaterial
-                android:id="@+id/pdf_use_internal"
+                android:text="@string/use"/>
+        <TextView
+                android:id="@+id/pdf_footer_width_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintTop_toTopOf="@id/pdf_footer_width_slider"
+                app:layout_constraintBottom_toBottomOf="@id/pdf_footer_width_slider"
+                app:layout_constraintLeft_toLeftOf="parent"
+                android:text="Breite 100%"
+                />
+        <com.google.android.material.slider.Slider
+                android:id="@+id/pdf_footer_width_slider"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                app:layout_constraintTop_toBottomOf="@id/pdf_use_footer"
+                app:layout_constraintLeft_toRightOf="@id/pdf_footer_width_text"
+                app:layout_constraintRight_toRightOf="parent"
+                android:valueFrom="1"
+                android:valueTo="100"
+                android:stepSize="1"
+                app:labelBehavior="gone"
+                />
+        <com.google.android.material.divider.MaterialDivider
+                android:id="@+id/divider3"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:layout_marginBottom="20dp"
-                app:layout_constraintTop_toBottomOf="@id/pdf_use_footer"
+                app:layout_constraintTop_toBottomOf="@id/pdf_footer_width_slider"
                 app:layout_constraintLeft_toLeftOf="parent"
-                android:text="@string/use_internal_pdf"/>
+                />
+        <TextView
+                android:id="@+id/pdf_font_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="10dp"
+                app:layout_constraintTop_toBottomOf="@id/divider3"
+                app:layout_constraintLeft_toLeftOf="parent"
+                android:text="@string/font"
+                android:textSize="17sp"
+                />
         <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/fontsize_text_layout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:layout_constraintTop_toBottomOf="@id/pdf_use_internal"
+                app:layout_constraintTop_toBottomOf="@id/pdf_font_text"
                 app:layout_constraintLeft_toLeftOf="parent" >
             <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/fontsize_text"
@@ -74,5 +158,31 @@
                 android:stepSize="1"
                 app:labelBehavior="gone"
                 />
+        <com.google.android.material.divider.MaterialDivider
+                android:id="@+id/divider4"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:layout_constraintTop_toBottomOf="@id/fontsize_slider"
+                app:layout_constraintLeft_toLeftOf="parent"
+                />
+        <TextView
+                android:id="@+id/pdf_other_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="10dp"
+                app:layout_constraintTop_toBottomOf="@id/divider4"
+                app:layout_constraintLeft_toLeftOf="parent"
+                android:text="@string/other"
+                android:textSize="17sp"
+                />
+        <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/pdf_use_internal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:layout_marginBottom="20dp"
+                app:layout_constraintTop_toBottomOf="@id/pdf_other_text"
+                app:layout_constraintLeft_toLeftOf="parent"
+                android:text="@string/use_internal_pdf"/>
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.cardview.widget.CardView>

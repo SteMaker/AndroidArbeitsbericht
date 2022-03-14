@@ -22,11 +22,15 @@ import com.stemaker.arbeitsbericht.helpers.showConfirmationDialog
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import java.io.BufferedReader
+import java.io.File
+import java.io.FileInputStream
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.suspendCoroutine
 
 private const val TAG = "LumpSumDefinitionAct"
 private const val PERMISSION_CODE_REQUEST_INTERNET = 1
+private const val REQUEST_LOAD_LUMP_SUM = 2
 
 class LumpSumDefinitionActivity : AppCompatActivity() {
     private var internetPermissionContinuation: Continuation<Boolean>? = null
@@ -133,7 +137,56 @@ class LumpSumDefinitionActivity : AppCompatActivity() {
         }
     }
 
+    private suspend fun loadLumpSums(lumpSumsFileContent: String) {
+        val lumpSums = lumpSumsFileContent.lines()
+        val filtered = mutableListOf<String>()
+        for (e in lumpSums)
+            if (e != "")
+                filtered.add(e)
+        if (filtered.size == 0) {
+            val answer = showConfirmationDialog(getString(R.string.no_lump_sums_found), this@LumpSumDefinitionActivity)
+            if (answer == AlertDialog.BUTTON_POSITIVE) {
+                binding.lumpSumsContainer.removeAllViews()
+            }
+        } else {
+            val answer = showConfirmationDialog(getString(R.string.lump_sums_found, filtered.size), this@LumpSumDefinitionActivity)
+            if (answer == AlertDialog.BUTTON_POSITIVE) {
+                binding.lumpSumsContainer.removeAllViews()
+                for (line in filtered)
+                    addLumpSumView(line)
+            }
+        }
+    }
+
     fun onClickLoad(btn: View) {
+        val mimetypes = arrayOf("text/plain")
+        val intent = Intent()
+            .setType("*/*")
+            .putExtra(Intent.EXTRA_MIME_TYPES, mimetypes)
+            .setAction(Intent.ACTION_GET_CONTENT)
+        startActivityForResult(Intent.createChooser(intent, getString(R.string.lump_sum_file_choose)), REQUEST_LOAD_LUMP_SUM)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if(requestCode == REQUEST_LOAD_LUMP_SUM && resultCode == RESULT_OK) {
+            data?.data?.also { fileUri ->
+                try {
+                    contentResolver.openInputStream(fileUri)?.also { istream ->
+                        val lumpSumsFileContent = istream.bufferedReader().use { it.readText() }
+                        GlobalScope.launch(Dispatchers.Main) {
+                            loadLumpSums(lumpSumsFileContent)
+                        }
+                    }
+                } catch (e: Exception) {
+                    val toast = Toast.makeText(this@LumpSumDefinitionActivity, "Fehler beim Lesen der Pauschalen: ${e.message}", Toast.LENGTH_LONG)
+                    toast.show()
+                }
+            }
+        }
+    }
+
+    fun onClickSftpLoad(btn: View) {
         GlobalScope.launch(Dispatchers.Main) {
             if(checkAndObtainInternetPermission()) {
                 findViewById<ProgressBar>(R.id.load_progress).visibility = View.VISIBLE
@@ -147,24 +200,7 @@ class LumpSumDefinitionActivity : AppCompatActivity() {
                     sftpProvider.connect(user, pwd, host, port)
                     Log.d(TAG, "Connection success")
                     val lumpSumsFileContent = sftpProvider.getFileContentAsString(path)
-                    val lumpSums = lumpSumsFileContent.lines()
-                    val filtered = mutableListOf<String>()
-                    for (e in lumpSums)
-                        if (e != "")
-                            filtered.add(e)
-                    if (filtered.size == 0) {
-                        val answer = showConfirmationDialog(getString(R.string.no_lump_sums_found), this@LumpSumDefinitionActivity)
-                        if (answer == AlertDialog.BUTTON_POSITIVE) {
-                            binding.lumpSumsContainer.removeAllViews()
-                        }
-                    } else {
-                        val answer = showConfirmationDialog(getString(R.string.lump_sums_found, filtered.size), this@LumpSumDefinitionActivity)
-                        if (answer == AlertDialog.BUTTON_POSITIVE) {
-                            binding.lumpSumsContainer.removeAllViews()
-                            for (line in filtered)
-                                addLumpSumView(line)
-                        }
-                    }
+                    loadLumpSums(lumpSumsFileContent)
                 } catch (e: Exception) {
                     val toast = Toast.makeText(this@LumpSumDefinitionActivity, e.message, Toast.LENGTH_LONG)
                     toast.show()

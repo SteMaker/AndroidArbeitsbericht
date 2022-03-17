@@ -38,46 +38,50 @@ class WorkTimeEditorFragment : ReportEditorSectionFragment() {
 
         dataBinding.lifecycleOwner =viewLifecycleOwner
         GlobalScope.launch(Dispatchers.Main) {
-            listener?.let {
-                val report = it.getReportData()
-                val workTimeContainerData = report.workTimeContainer
-                dataBinding.workTimeContainerData = workTimeContainerData
+            listener?.let { listener ->
+                val report = listener.getReportData()
+                report?.let { report ->
+                    val workTimeContainerData = report.workTimeContainer
+                    dataBinding.workTimeContainerData = workTimeContainerData
 
-                for (wt in workTimeContainerData.items) {
-                    addWorkTimeView(wt, workTimeContainerData)
-                }
-
-                dataBinding.workTimeAddButton.setOnClickListener {
-                    val wt = workTimeContainerData.addWorkTime(report.defaultValues)
-                    val text = when {
-                        report.defaultValues.useDefaultDriveTime && report.defaultValues.useDefaultDistance ->
-                            "Vorgabe für Fahrzeit (${report.defaultValues.defaultDriveTime}) und Entfernung (${report.defaultValues.defaultDistance}km) von Kundendaten übernommen"
-                        report.defaultValues.useDefaultDriveTime ->
-                            "Vorgabe für Fahrzeit (${report.defaultValues.defaultDriveTime}) von Kundendaten übernommen"
-                        report.defaultValues.useDefaultDistance ->
-                            "Vorgabe für Entfernung (${report.defaultValues.defaultDistance}km) von Kundendaten übernommen"
-                        else -> ""
-                    }
-                    if (text != "") {
-                        val toast = Toast.makeText(root.context, text, Toast.LENGTH_LONG)
-                        toast.show()
-                    }
-                    addWorkTimeView(wt, workTimeContainerData)
-                }
-
-                dataBinding.workTimeSortButton.setOnClickListener {
-                    val comparator = Comparator { a: WorkTimeData, b: WorkTimeData ->
-                        a.date.value?.let { ita -> b.date.value?.let { itb ->
-                            ita.time.compareTo(itb.time)
-                        } }?:0
-                    }
-                    workTimeContainerData.items.sortWith(comparator)
-                    val c = dataBinding.workTimeContentContainer
-                    for(v in workTimeViews)
-                        c.removeView(v)
-                    workTimeViews.clear()
                     for (wt in workTimeContainerData.items) {
                         addWorkTimeView(wt, workTimeContainerData)
+                    }
+
+                    dataBinding.workTimeAddButton.setOnClickListener {
+                        val wt = workTimeContainerData.addWorkTime(report.defaultValues)
+                        val text = when {
+                            report.defaultValues.useDefaultDriveTime && report.defaultValues.useDefaultDistance ->
+                                "Vorgabe für Fahrzeit (${report.defaultValues.defaultDriveTime}) und Entfernung (${report.defaultValues.defaultDistance}km) von Kundendaten übernommen"
+                            report.defaultValues.useDefaultDriveTime ->
+                                "Vorgabe für Fahrzeit (${report.defaultValues.defaultDriveTime}) von Kundendaten übernommen"
+                            report.defaultValues.useDefaultDistance ->
+                                "Vorgabe für Entfernung (${report.defaultValues.defaultDistance}km) von Kundendaten übernommen"
+                            else -> ""
+                        }
+                        if (text != "") {
+                            val toast = Toast.makeText(root.context, text, Toast.LENGTH_LONG)
+                            toast.show()
+                        }
+                        addWorkTimeView(wt, workTimeContainerData)
+                    }
+
+                    dataBinding.workTimeSortButton.setOnClickListener {
+                        val comparator = Comparator { a: WorkTimeData, b: WorkTimeData ->
+                            a.date.value?.let { ita ->
+                                b.date.value?.let { itb ->
+                                    ita.time.compareTo(itb.time)
+                                }
+                            } ?: 0
+                        }
+                        workTimeContainerData.items.sortWith(comparator)
+                        val c = dataBinding.workTimeContentContainer
+                        for (v in workTimeViews)
+                            c.removeView(v)
+                        workTimeViews.clear()
+                        for (wt in workTimeContainerData.items) {
+                            addWorkTimeView(wt, workTimeContainerData)
+                        }
                     }
                 }
             }

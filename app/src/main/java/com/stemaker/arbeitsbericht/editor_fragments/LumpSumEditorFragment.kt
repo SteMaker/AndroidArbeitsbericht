@@ -38,20 +38,23 @@ class LumpSumEditorFragment : ReportEditorSectionFragment() {
 
         dataBinding.lifecycleOwner = viewLifecycleOwner
         GlobalScope.launch(Dispatchers.Main) {
-            listener?.let {
-                val lumpSumContainerData = it.getReportData().lumpSumContainer
-                dataBinding.lumpSumContainerData = lumpSumContainerData
+            listener?.let { listener ->
+                val report = listener.getReportData()
+                report?.let { report ->
+                    val lumpSumContainerData = report.lumpSumContainer
+                    dataBinding.lumpSumContainerData = lumpSumContainerData
 
-                for (ls in lumpSumContainerData.items) {
-                    addLumpSumView(ls, lumpSumContainerData)
-                }
-
-                dataBinding.lumpSumAddButton.setOnClickListener(object : View.OnClickListener {
-                    override fun onClick(btn: View) {
-                        val ls = lumpSumContainerData.addLumpSum()
+                    for (ls in lumpSumContainerData.items) {
                         addLumpSumView(ls, lumpSumContainerData)
                     }
-                })
+
+                    dataBinding.lumpSumAddButton.setOnClickListener(object : View.OnClickListener {
+                        override fun onClick(btn: View) {
+                            val ls = lumpSumContainerData.addLumpSum()
+                            addLumpSumView(ls, lumpSumContainerData)
+                        }
+                    })
+                }
             }
         }
 

@@ -15,6 +15,7 @@ import com.stemaker.arbeitsbericht.databinding.ActivityReportEditorBinding
 import com.stemaker.arbeitsbericht.editor_fragments.*
 import com.stemaker.arbeitsbericht.helpers.OrientationNotificationDialogFragment
 import kotlinx.coroutines.*
+import kotlin.random.Random
 
 private const val TAG = "ReportEditorActivity"
 
@@ -101,17 +102,16 @@ class ReportEditorActivity() : AppCompatActivity(),
         }
     }
 
-    override suspend fun getReportData(): ReportData {
+    override suspend fun getReportData(): ReportData? {
         waitForStorageHandler()
-        var cnt = 3
-        var report: ReportData?
-        do {
-            report = storageHandler().getReport()
-            if (report == null) {
-                delay(2000)
-            }
-            cnt--
-        } while(report == null && cnt > 0)
-        return report!!
+        val report = storageHandler().getReport()
+        // It is not clear how we can get into that situation, but I got several
+        // crash reports that report can be null here
+        // Since we do not know which report was active, we go back to main
+        if (report == null) {
+            val intent = Intent(this@ReportEditorActivity, MainActivity::class.java).apply {}
+            startActivity(intent)
+        }
+        return report
     }
 }

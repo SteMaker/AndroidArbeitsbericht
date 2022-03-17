@@ -22,6 +22,7 @@ import com.stemaker.arbeitsbericht.helpers.showConfirmationDialog
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import java.lang.IllegalStateException
 
 private const val TAG = "MainActivity"
 
@@ -70,7 +71,9 @@ class MainActivity : AppCompatActivity(), ReportCardInterface {
             window.clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
             if (configuration().appUpdateWasDone) {
                 val versionDialog = VersionDialogFragment()
-                versionDialog.show(supportFragmentManager, "VersionDialog")
+                try {
+                    versionDialog.show(supportFragmentManager, "VersionDialog")
+                } catch (e: IllegalStateException) {}
             }
         }
         binding.mainActivityToolbar.setOnMenuItemClickListener { item ->

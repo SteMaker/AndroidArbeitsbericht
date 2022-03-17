@@ -40,9 +40,12 @@ class ProjectEditorFragment : ReportEditorSectionFragment() {
         dataBinding.lifecycleOwner =viewLifecycleOwner
 
         GlobalScope.launch(Dispatchers.Main) {
-            listener?.let {
+            listener?.let { listener ->
                 // There can be a race with onDetach so that the listener is already null
-                dataBinding.projectData = it.getReportData().project
+                val report = listener.getReportData()
+                report?.let { report ->
+                    dataBinding.projectData = report.project
+                }
             }
         }
         return root

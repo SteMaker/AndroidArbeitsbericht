@@ -599,6 +599,8 @@ class ConfigurationActivity : AppCompatActivity() {
     }
 
     private suspend fun checkAndObtainInternetPermission(): Boolean {
+        // TODO: This seems to be buggy and just works because Android
+        // removed the need to request internet permissions
         var internetPermissionGranted = true
         if (ContextCompat.checkSelfPermission(
                 this,

@@ -36,20 +36,23 @@ class MaterialEditorFragment : ReportEditorSectionFragment() {
 
         dataBinding.lifecycleOwner = viewLifecycleOwner
         GlobalScope.launch(Dispatchers.Main) {
-            listener?.let {
-                val materialContainerData = it.getReportData().materialContainer
-                dataBinding.materialContainerData = materialContainerData
+            listener?.let { listener ->
+                val report = listener.getReportData()
+                report?.let { report ->
+                    val materialContainerData = report.materialContainer
+                    dataBinding.materialContainerData = materialContainerData
 
-                for (wt in materialContainerData.items) {
-                    addMaterialView(wt, materialContainerData)
-                }
-
-                dataBinding.materialAddButton.setOnClickListener(object : View.OnClickListener {
-                    override fun onClick(btn: View) {
-                        val wi = materialContainerData.addMaterial()
-                        addMaterialView(wi, materialContainerData)
+                    for (wt in materialContainerData.items) {
+                        addMaterialView(wt, materialContainerData)
                     }
-                })
+
+                    dataBinding.materialAddButton.setOnClickListener(object : View.OnClickListener {
+                        override fun onClick(btn: View) {
+                            val wi = materialContainerData.addMaterial()
+                            addMaterialView(wi, materialContainerData)
+                        }
+                    })
+                }
             }
         }
 

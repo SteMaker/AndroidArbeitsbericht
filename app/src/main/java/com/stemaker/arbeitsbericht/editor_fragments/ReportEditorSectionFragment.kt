@@ -75,6 +75,6 @@ abstract class ReportEditorSectionFragment : Fragment() {
     abstract fun getVisibility(): Boolean
 
     interface OnReportEditorInteractionListener {
-        suspend fun getReportData(): ReportData
+        suspend fun getReportData(): ReportData?
     }
 }

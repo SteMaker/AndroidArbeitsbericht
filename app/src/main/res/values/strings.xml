@@ -96,7 +96,7 @@
     <string name="reportid_change_conf">Die laufende Nummer wurde geändert</string>
     <string name="reportid_change_conf_detail">Das kann zu doppelter Vergabe von Berichtsnummern führen, sind Sie sich sicher?</string>
     <string name="report_id_pattern">Vorlage Berichtsnummer</string>
-    <string name="lump_sum_load">Pauschalen aus entfernter Datei laden</string>
+    <string name="lump_sum_load">Pauschalen aus Datei laden</string>
     <string name="only_jpeg_supported">Es werden nur JPEG (.jpg oder .jpeg) Dateien unterstützt</string>
     <string name="other">Weiteres</string>
     <string name="font">Schrift</string>
@@ -131,6 +131,7 @@
     <string name="getfile_error">Fehler beim Laden der Datei</string>
     <string name="odf_file_choose">ODF Vorlage auswählen</string>
     <string name="logo_file_choose">Logo auswählen</string>
+    <string name="lump_sum_file_choose">Pauschalendatei auswählen</string>
     <string name="footer_file_choose">Fusszeile auswählen</string>
     <string name="num_pixel">Anzahl Pixel kürzere Seite</string>
     <string name="width_mm">Breite [mm]</string>

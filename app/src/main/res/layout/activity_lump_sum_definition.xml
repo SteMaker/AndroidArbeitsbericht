@@ -41,19 +41,24 @@
                         android:layout_height="wrap_content"
                         style="@style/ArbeitsberichtAppTheme.CardLevel1"
                         android:clickable="false">
-                    <LinearLayout
+                    <androidx.constraintlayout.widget.ConstraintLayout
                             android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical">
+                            android:layout_height="wrap_content">
                         <TextView
+                                android:id="@+id/lump_sum_head"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
+                                app:layout_constraintTop_toTopOf="parent"
+                                app:layout_constraintLeft_toLeftOf="parent"
                                 android:text="@string/lump_sum_load"
                                 android:textSize="24sp"
                                 />
                         <com.google.android.material.textfield.TextInputLayout
+                                android:id="@+id/lump_sum_ftp_path_container"
                                 android:layout_width="match_parent"
-                                android:layout_height="wrap_content">
+                                android:layout_height="wrap_content"
+                                app:layout_constraintTop_toBottomOf="@id/lump_sum_head"
+                                app:layout_constraintLeft_toLeftOf="parent">
                             <com.google.android.material.textfield.TextInputEditText
                                     android:id="@+id/lump_sum_ftp_path"
                                     android:layout_width="match_parent"
@@ -63,15 +68,28 @@
                                     />
                         </com.google.android.material.textfield.TextInputLayout>
                         <Button
+                                android:id="@+id/lump_sum_sftp_load_button"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                app:layout_constraintTop_toBottomOf="@id/lump_sum_ftp_path_container"
+                                app:layout_constraintLeft_toLeftOf="parent"
+                                app:layout_constraintRight_toLeftOf="@id/lump_sum_load_button"
+                                android:text="@string/sftp_file_load"
+                                android:onClick="onClickSftpLoad"
+                                style="@style/ArbeitsberichtAppTheme.TextButtons"
+                                />
+                        <Button
                                 android:id="@+id/lump_sum_load_button"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_gravity="right"
-                                android:text="@string/sftp_file_load"
+                                app:layout_constraintTop_toBottomOf="@id/lump_sum_ftp_path_container"
+                                app:layout_constraintRight_toRightOf="parent"
+                                app:layout_constraintLeft_toRightOf="@id/lump_sum_sftp_load_button"
+                                android:text="@string/file_load"
                                 android:onClick="onClickLoad"
                                 style="@style/ArbeitsberichtAppTheme.TextButtons"
                                 />
-                    </LinearLayout>
+                    </androidx.constraintlayout.widget.ConstraintLayout>
                 </androidx.cardview.widget.CardView>
 
                 <androidx.cardview.widget.CardView

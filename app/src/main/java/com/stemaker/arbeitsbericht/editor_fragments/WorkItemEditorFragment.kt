@@ -34,20 +34,23 @@ class WorkItemEditorFragment : ReportEditorSectionFragment() {
 
         dataBinding.lifecycleOwner = viewLifecycleOwner
         GlobalScope.launch(Dispatchers.Main) {
-            listener?.let {
-                val workItemContainerData = it.getReportData().workItemContainer
-                dataBinding.workItemContainerData = workItemContainerData
+            listener?.let { listener ->
+                val report = listener.getReportData()
+                report?.let { report ->
+                    val workItemContainerData = report.workItemContainer
+                    dataBinding.workItemContainerData = workItemContainerData
 
-                for (wi in workItemContainerData.items) {
-                    addWorkItemView(wi, workItemContainerData)
-                }
-
-                dataBinding.workItemAddButton.setOnClickListener(object : View.OnClickListener {
-                    override fun onClick(btn: View) {
-                        val wi = workItemContainerData.addWorkItem()
+                    for (wi in workItemContainerData.items) {
                         addWorkItemView(wi, workItemContainerData)
                     }
-                })
+
+                    dataBinding.workItemAddButton.setOnClickListener(object : View.OnClickListener {
+                        override fun onClick(btn: View) {
+                            val wi = workItemContainerData.addWorkItem()
+                            addWorkItemView(wi, workItemContainerData)
+                        }
+                    })
+                }
             }
         }
         return root

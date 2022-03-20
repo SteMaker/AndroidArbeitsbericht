@@ -66,20 +66,23 @@ class PhotoEditorFragment : ReportEditorSectionFragment() {
 
         dataBinding.lifecycleOwner = viewLifecycleOwner
         GlobalScope.launch(Dispatchers.Main) {
-            listener?.let {
-                val photoContainerData = it.getReportData().photoContainer
-                dataBinding.photoContainerData = photoContainerData
+            listener?.let { listener ->
+                val report = listener.getReportData()
+                report?.let { report ->
+                    val photoContainerData = report.photoContainer
+                    dataBinding.photoContainerData = photoContainerData
 
-                for (p in photoContainerData.items) {
-                    addPhotoView(p, photoContainerData)
-                }
-
-                dataBinding.photoAddButton.setOnClickListener(object : View.OnClickListener {
-                    override fun onClick(btn: View) {
-                        val p = photoContainerData.addPhoto()
+                    for (p in photoContainerData.items) {
                         addPhotoView(p, photoContainerData)
                     }
-                })
+
+                    dataBinding.photoAddButton.setOnClickListener(object : View.OnClickListener {
+                        override fun onClick(btn: View) {
+                            val p = photoContainerData.addPhoto()
+                            addPhotoView(p, photoContainerData)
+                        }
+                    })
+                }
             }
         }
 
@@ -102,12 +105,12 @@ class PhotoEditorFragment : ReportEditorSectionFragment() {
         if(requestCode == REQUEST_CODE_CAMERA_PERMISSION) {
             if(grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 Log.d(TAG, "Access to camera granted")
-                cameraPermissionContinuation!!.resume(true)
+                cameraPermissionContinuation?.resume(true)
             } else {
                 Log.d(TAG, "Access to camera denied")
                 val toast = Toast.makeText(this.activity, "Berechtigungen abgelehnt, Foto kann nicht erstellt werden", Toast.LENGTH_LONG)
                 toast.show()
-                cameraPermissionContinuation!!.resume(false)
+                cameraPermissionContinuation?.resume(false)
             }
         }
     }

@@ -362,12 +362,12 @@ class SummaryActivity : AppCompatActivity() {
         if(requestCode == REQUEST_CODE_WRITE_EXTERNAL_STORAGE_PERMISSION) {
             if(grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 Log.d(TAG, "Access to external storage granted")
-                writePermissionContinuation!!.resume(true)
+                writePermissionContinuation?.resume(true)
             } else {
                 Log.d(TAG, "Access to external storage denied")
                 val toast = Toast.makeText(this, "Berechtigungen abgelehnt, PDF Bericht kann nicht erstellt werden", Toast.LENGTH_LONG)
                 toast.show()
-                writePermissionContinuation!!.resume(false)
+                writePermissionContinuation?.resume(false)
             }
         }
     }

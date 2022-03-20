@@ -37,34 +37,36 @@ class BillEditorFragment : ReportEditorSectionFragment() {
         dataBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_bill_editor, null, false)
         root!!.findViewById<LinearLayout>(R.id.section_container).addView(dataBinding.root)
         GlobalScope.launch(Dispatchers.Main) {
-            listener?.let {
-                val report = it.getReportData()
-                dataBinding.billData = report.bill
-                ClientRepository.initJob.join()
-                dataBinding.clientSelectButton.setOnClickListener {
-                    val clientSelectDialog = ClientSelectDialog()
-                    if (ClientRepository.clients.isEmpty()) {
-                        val toast = Toast.makeText(root.context, "Es sind keine Kunden definiert", Toast.LENGTH_LONG)
-                        toast.show()
-                    } else {
-                        clientSelectDialog.setOnSelectListener { client ->
-                            dataBinding.billData?.name?.value = client.name.value
-                            dataBinding.billData?.street?.value = client.street.value
-                            dataBinding.billData?.zip?.value = client.zip.value
-                            dataBinding.billData?.city?.value = client.city.value
-                            report.defaultValues.useDefaultDistance = client.useDistance.value ?: false
-                            report.defaultValues.useDefaultDriveTime = client.useDriveTime.value ?: false
-                            report.defaultValues.defaultDriveTime = client.driveTime.value ?: "00:00"
-                            report.defaultValues.defaultDistance = client.distance.value ?: 0
-                            report.project.clientId = client.id
-                            if (client.useDriveTime.value == true || client.useDistance.value == true) {
-                                val toast = Toast.makeText(root.context, R.string.presets_active_notification, Toast.LENGTH_LONG)
-                                toast.show()
-                            }
-                            if (report.project.name.value == "") report.project.name.value = client.name.value
+            listener?.let { listener ->
+                val report = listener.getReportData()
+                report?.let { report ->
+                    dataBinding.billData = report.bill
+                    ClientRepository.initJob.join()
+                    dataBinding.clientSelectButton.setOnClickListener {
+                        val clientSelectDialog = ClientSelectDialog()
+                        if (ClientRepository.clients.isEmpty()) {
+                            val toast = Toast.makeText(root.context, "Es sind keine Kunden definiert", Toast.LENGTH_LONG)
+                            toast.show()
+                        } else {
+                            clientSelectDialog.setOnSelectListener { client ->
+                                dataBinding.billData?.name?.value = client.name.value
+                                dataBinding.billData?.street?.value = client.street.value
+                                dataBinding.billData?.zip?.value = client.zip.value
+                                dataBinding.billData?.city?.value = client.city.value
+                                report.defaultValues.useDefaultDistance = client.useDistance.value ?: false
+                                report.defaultValues.useDefaultDriveTime = client.useDriveTime.value ?: false
+                                report.defaultValues.defaultDriveTime = client.driveTime.value ?: "00:00"
+                                report.defaultValues.defaultDistance = client.distance.value ?: 0
+                                report.project.clientId = client.id
+                                if (client.useDriveTime.value == true || client.useDistance.value == true) {
+                                    val toast = Toast.makeText(root.context, R.string.presets_active_notification, Toast.LENGTH_LONG)
+                                    toast.show()
+                                }
+                                if (report.project.name.value == "") report.project.name.value = client.name.value
 
+                            }
+                            clientSelectDialog.show(childFragmentManager, "ClientSelectDialog")
                         }
-                        clientSelectDialog.show(childFragmentManager, "ClientSelectDialog")
                     }
                 }
             }

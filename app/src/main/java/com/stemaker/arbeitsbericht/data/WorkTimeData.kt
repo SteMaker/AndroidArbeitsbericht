@@ -90,6 +90,15 @@ class WorkTimeData: ViewModel() {
                 m += 60
                 h--
             }
+            // multiply by amount of employees
+            if(employees.size > 1) {
+                m *= employees.size
+                h *= employees.size
+                if(m >= 60) {
+                    m -= 60
+                    h++
+                }
+            }
         } catch(e: Exception) {
             return "00:00"
         }
@@ -109,11 +118,13 @@ class WorkTimeData: ViewModel() {
     fun addEmployee(): MutableLiveData<String> {
         val emp = MutableLiveData<String>().apply { value = configuration().employeeName }
         employees.add(emp)
+        workDuration.value = calcWorkDuration()
         return emp
     }
 
     fun removeEmployee(emp: MutableLiveData<String>) {
         employees.remove(emp)
+        workDuration.value = calcWorkDuration()
     }
 
     fun copyFromSerialized(w: WorkTimeDataSerialized) {

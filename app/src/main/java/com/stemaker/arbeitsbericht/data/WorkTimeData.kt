@@ -94,7 +94,7 @@ class WorkTimeData: ViewModel() {
             if(employees.size > 1) {
                 m *= employees.size
                 h *= employees.size
-                if(m >= 60) {
+                while(m >= 60) {
                     m -= 60
                     h++
                 }

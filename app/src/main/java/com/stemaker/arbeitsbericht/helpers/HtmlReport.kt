@@ -82,7 +82,7 @@ object HtmlReport {
                     "<table style=\"border: 2px solid black;border-collapse: collapse;\">" +
                     "<tr>" +
                         "<th style=\"padding: 15px;$fs;text-align:left;border: 2px solid black;border-collapse: collapse;\">Kunde / Projekt</th>" +
-                        "<th style=\"padding: 15px;$fs;text-align:left;border: 2px solid black;border-collapse: collapse;\">Rechnungsaddresse</th>" +
+                        "<th style=\"padding: 15px;$fs;text-align:left;border: 2px solid black;border-collapse: collapse;\">Rechnungsadresse</th>" +
                     "</tr>" +
                     "<tr>" +
                         "<td style=\"padding: 10px;$fs;border: 2px solid black;border-collapse: collapse;\"> ${rep.project.name.value}</td>" +

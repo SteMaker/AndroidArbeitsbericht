@@ -67,7 +67,7 @@ class ProjectBillEditorFragment  : ReportEditorSectionFragment() {
                 }
             }
         }
-        setHeadline("Projekt / Kunde / Rechnungsaddresse")
+        setHeadline("Projekt / Kunde / Rechnungsadresse")
 
         dataBinding.lifecycleOwner = viewLifecycleOwner
 

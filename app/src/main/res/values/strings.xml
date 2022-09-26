@@ -79,6 +79,7 @@
     <string name="set_done">Auf Erledigt setzen</string>
     <string name="set_on_hold">Auf Unterbrochen setzen</string>
     <string name="archive">Archivieren</string>
+    <string name="duplicate">Duplizieren</string>
     <string name="db_loading">Berichte werden geladen</string>
     <string name="select_photo">Foto auswählen</string>
     <string name="scale_photo">Fotos skalieren (reduziert Dateigröße des Berichts)</string>

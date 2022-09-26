@@ -18,7 +18,7 @@ import com.stemaker.arbeitsbericht.storageHandler
 
 private const val TAG = "ReportListAdapter"
 
-class ReportListAdapter(val reportCardInterface: ReportCardInterface, val activity: AppCompatActivity) :
+class ReportListAdapter(private val reportCardInterface: ReportCardInterface, val activity: AppCompatActivity) :
     RecyclerView.Adapter<ReportListAdapter.ReportViewHolder>(),
     ReportListObserver {
 
@@ -85,6 +85,10 @@ class ReportListAdapter(val reportCardInterface: ReportCardInterface, val activi
                             }
                             R.id.status_archived -> {
                                 reportCardInterface.onSetReportState(report, position, ReportData.ReportState.ARCHIVED)
+                                true
+                            }
+                            R.id.duplicate-> {
+                                reportCardInterface.onClickDuplicateReport(report)
                                 true
                             }
                             else -> false

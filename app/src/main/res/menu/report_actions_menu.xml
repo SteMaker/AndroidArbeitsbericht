@@ -29,4 +29,10 @@
             android:visible="true"
             android:title="@string/archive">
     </item>
+    <item
+            android:id="@+id/duplicate"
+            android:icon="@drawable/ic_baseline_control_point_duplicate_24"
+            android:visible="true"
+            android:title="@string/duplicate">
+    </item>
 </menu>

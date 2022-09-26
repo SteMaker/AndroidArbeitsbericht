@@ -30,6 +30,7 @@ interface ReportCardInterface {
     fun onClickReport(cnt: Int)
     fun onClickDeleteReport(report: ReportData)
     fun onSetReportState(report: ReportData, pos: Int, state: ReportData.ReportState)
+    fun onClickDuplicateReport(report:ReportData)
     /* This is only for test purposes to create many reports. All are marked with MANY_REPORTS */
     /*fun onCopyReport(report: ReportData)*/
 }
@@ -162,6 +163,13 @@ class MainActivity : AppCompatActivity(), ReportCardInterface {
         }
     }
 
+    override fun onClickDuplicateReport(report:ReportData) {
+        //GlobalScope.launch(Dispatchers.Main) {
+        //    storageHandler().selectReportByCnt(cnt)
+        //    val intent = Intent(this@MainActivity, ReportEditorActivity::class.java).apply {}
+        //    startActivity(intent)
+        //}
+    }
     /* This is only for test purposes to create many reports. All are marked with MANY_REPORTS */
     /*
     override fun onCopyReport(report: ReportData) {

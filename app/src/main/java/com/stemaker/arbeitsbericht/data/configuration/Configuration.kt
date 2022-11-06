@@ -1,4 +1,4 @@
-package com.stemaker.arbeitsbericht.data
+package com.stemaker.arbeitsbericht.data.configuration
 
 import android.graphics.BitmapFactory
 import android.security.keystore.KeyGenParameterSpec
@@ -9,6 +9,7 @@ import androidx.lifecycle.MutableLiveData
 import com.bumptech.glide.load.resource.bitmap.CenterCrop
 import com.stemaker.arbeitsbericht.ArbeitsberichtApp
 import com.stemaker.arbeitsbericht.StorageHandler
+import com.stemaker.arbeitsbericht.data.report.ReportData
 import com.stemaker.arbeitsbericht.helpers.ReportFilter
 import com.stemaker.arbeitsbericht.storageHandler
 import kotlinx.coroutines.sync.Mutex
@@ -160,10 +161,15 @@ object Configuration {
         set(value) {
             store.employeeName = value}
 
-    var currentId: Int
+    private var currentId: Int
         get(): Int = store.currentId
         set(value) {
             store.currentId = value}
+    fun allocateId() : Int {
+        val id = store.currentId
+        store.currentId++
+        return id
+    }
 
     var deviceName: String
         get(): String = store.deviceName

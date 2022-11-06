@@ -1,0 +1,9 @@
+@startuml
+
+class ClientDao
+class ClientDb
+class ClientRepository
+ClientRepository -down-> ClientDao
+ClientDao -down-> ClientDb
+
+@enduml

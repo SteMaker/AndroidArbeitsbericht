@@ -16,7 +16,6 @@
             <option value="$PROJECT_DIR$/poi-android-fat" />
           </set>
         </option>
-        <option name="resolveModulePerSourceSet" value="false" />
       </GradleProjectSettings>
     </option>
   </component>

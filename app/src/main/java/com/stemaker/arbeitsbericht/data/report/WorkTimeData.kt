@@ -1,13 +1,21 @@
-package com.stemaker.arbeitsbericht.data
+package com.stemaker.arbeitsbericht.data.report
 
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
+import com.stemaker.arbeitsbericht.data.base.DataContainer
+import com.stemaker.arbeitsbericht.data.base.DataObject
+import com.stemaker.arbeitsbericht.data.base.DataSimple
+import com.stemaker.arbeitsbericht.data.base.DataSimpleList
+import com.stemaker.arbeitsbericht.data.configuration.configuration
+import com.stemaker.arbeitsbericht.data.dateStringToCalendar
 import java.util.*
 
-class WorkTimeContainerData(): ViewModel() {
-    val items = mutableListOf<WorkTimeData>()
-    val visibility = MutableLiveData<Boolean>().apply { value = false }
+const val WORK_TIME_CONTAINER_VISIBILITY = "wtcVis"
+const val WORK_TIME_CONTAINER = "wtc"
+class WorkTimeContainerData():
+    DataContainer<WorkTimeData>(WORK_TIME_CONTAINER) {
+    /* @TODO this is not available as event right now, except when directly registering on the member */
+    val visibility = DataSimple<Boolean>(false, WORK_TIME_CONTAINER_VISIBILITY)
 
     fun copyFromSerialized(w: WorkTimeContainerDataSerialized) {
         visibility.value = w.visibility
@@ -34,7 +42,7 @@ class WorkTimeContainerData(): ViewModel() {
         if(ref != null) {
             wt.clone(ref)
         }
-        items.add(wt)
+        add(wt)
         return wt
     }
 
@@ -42,29 +50,48 @@ class WorkTimeContainerData(): ViewModel() {
         val wt = WorkTimeData()
         if(def.useDefaultDistance) wt.distance.value = def.defaultDistance
         if(def.useDefaultDriveTime) wt.driveTime.value = def.defaultDriveTime
-        items.add(wt)
+        add(wt)
         return wt
     }
 
     fun removeWorkTime(wt: WorkTimeData) {
-        items.remove(wt)
+        remove(wt)
     }
 }
 
-class WorkTimeData: ViewModel() {
-    val date = MutableLiveData<Calendar>().apply { value =  Calendar.getInstance() }
+const val WORK_TIME_DATE = "wtDate"
+const val WORK_TIME_EMPLOYEES = "wtEmployees"
+const val WORK_TIME_EMPLOYEE = "wtEmployee"
+const val WORK_TIME_START_TIME = "wtStartTime"
+const val WORK_TIME_END_TIME = "wtEndTime"
+const val WORK_TIME_PAUSE_DURATION = "wtPauseDuration"
+const val WORK_TIME_DRIVE_TIME = "wtDriveTime"
+const val WORK_TIME_DISTANCE = "wtDistance"
+const val WORK_TIME = "workTime"
+class WorkTimeData(): DataObject(WORK_TIME)  {
 
-    val employees = mutableListOf<MutableLiveData<String>>().apply { add(MutableLiveData<String>().apply { value = configuration().employeeName } ) }
+    val date = DataSimple<Calendar>(Calendar.getInstance(), WORK_TIME_DATE)
+    val employees = DataSimpleList<DataSimple<String>>(WORK_TIME_EMPLOYEES).apply { add(DataSimple<String>(configuration().employeeName, WORK_TIME_EMPLOYEE)) }
+    // Empty string as startTime will lead to pre-setting current time when clicking the edit button
+    val startTime = DataSimple<String>("", WORK_TIME_START_TIME)
+    // Empty string in endTime will lead to pre-setting current time when clicking the edit button
+    val endTime = DataSimple<String>("", WORK_TIME_END_TIME)
+    val pauseDuration = DataSimple<String>("00:00", WORK_TIME_PAUSE_DURATION)
+    val driveTime = DataSimple<String>("00:00", WORK_TIME_DRIVE_TIME)
+    var distance = DataSimple<Int>(0, WORK_TIME_DISTANCE)
 
-    val startTime = MutableLiveData<String>().apply { value =  ""} // Empty string will lead to pre-setting current time when clicking the edit button
-
-    val endTime = MutableLiveData<String>().apply { value =  ""} // Empty string will lead to pre-setting current time when clicking the edit button
-
-    val pauseDuration = MutableLiveData<String>().apply { value =  "00:00"}
-
+    init {
+        registerElement(date)
+        registerElement(employees)
+        registerElement(startTime)
+        registerElement(endTime)
+        registerElement(pauseDuration)
+        registerElement(driveTime)
+        registerElement(distance)
+    }
     // Will be reworked as part of the "Stundenbericht" to use jodatime for all time objects
     // As a quick fix we'll do this ugly stuff
-    val workDuration = MediatorLiveData<String>()
+    private val workDuration = MediatorLiveData<String>()
 
     fun calcWorkDuration(): String {
         var h: Int
@@ -111,18 +138,15 @@ class WorkTimeData: ViewModel() {
         workDuration.addSource(pauseDuration) { workDuration.value = calcWorkDuration() }
     }
 
-    val driveTime = MutableLiveData<String>().apply { value =  "00:00"}
 
-    var distance = MutableLiveData<Int>().apply { value = 0 }
-
-    fun addEmployee(): MutableLiveData<String> {
-        val emp = MutableLiveData<String>().apply { value = configuration().employeeName }
+    fun addEmployee(): DataSimple<String> {
+        val emp = DataSimple<String>(configuration().employeeName, WORK_TIME_EMPLOYEE)
         employees.add(emp)
         workDuration.value = calcWorkDuration()
         return emp
     }
 
-    fun removeEmployee(emp: MutableLiveData<String>) {
+    fun removeEmployee(emp: DataSimple<String>) {
         employees.remove(emp)
         workDuration.value = calcWorkDuration()
     }
@@ -131,7 +155,7 @@ class WorkTimeData: ViewModel() {
         date.value = dateStringToCalendar(w.date)
         employees.clear()
         for(empSer in w.employees) {
-            val emp = MutableLiveData<String>().apply { value = empSer }
+            val emp = DataSimple<String>(empSer, WORK_TIME_EMPLOYEE)
             employees.add(emp)
         }
         startTime.value = w.startTime
@@ -145,7 +169,7 @@ class WorkTimeData: ViewModel() {
         date.value = dateStringToCalendar(w.wtDate)
         employees.clear()
         for(empSer in w.wtEmployees) {
-            val emp = MutableLiveData<String>().apply { value = empSer }
+            val emp = DataSimple<String>(empSer, WORK_TIME_EMPLOYEE)
             employees.add(emp)
         }
         startTime.value = w.wtStartTime
@@ -173,7 +197,7 @@ class WorkTimeData: ViewModel() {
         date.value  = incDateByOneWeekday(w.date.value!!)
         employees.clear()
         for(empRef in w.employees) {
-            val emp = MutableLiveData<String>().apply { value = empRef.value!! }
+            val emp = DataSimple<String>(empRef.value!!, WORK_TIME_EMPLOYEE)
             employees.add(emp)
         }
         startTime.value = w.startTime.value!!

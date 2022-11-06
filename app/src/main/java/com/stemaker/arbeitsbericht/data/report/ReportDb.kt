@@ -1,10 +1,8 @@
-package com.stemaker.arbeitsbericht.data
+package com.stemaker.arbeitsbericht.data.report
 
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.room.*
-import androidx.room.migration.Migration
-import androidx.sqlite.db.SupportSQLiteDatabase
+import com.stemaker.arbeitsbericht.data.calendarToDateString
 import com.stemaker.arbeitsbericht.helpers.ReportFilter
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.cbor.Cbor
@@ -301,58 +299,4 @@ data class DefaultValuesDb(
         fun fromReport(d: DefaultValues) = DefaultValuesDb(d.defaultDriveTime, d.useDefaultDriveTime, d.defaultDistance, d.useDefaultDistance)
     }
 }
-@Dao
-interface ClientDao {
-    @Query("SELECT * FROM ClientDb ORDER BY name ASC")
-    suspend fun getClients(): List<ClientDb>
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(clientDb: ClientDb)
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun update(clientDb: ClientDb)
-
-    @Query("DELETE FROM ClientDb")
-    fun deleteTable()
-
-    @Query("DELETE FROM ClientDb WHERE id = :id")
-    suspend fun deleteById(id: Int)
-}
-
-@Entity
-data class ClientDb(
-    @PrimaryKey val id: Int,
-    var name: String = "",
-    var street: String = "",
-    var zip: String = "",
-    var city: String = "",
-    var distance: Int = 0,
-    var useDistance: Boolean = false,
-    var driveTime: String = "00:00",
-    var useDriveTime: Boolean = false,
-    var notes: String = ""
-) {
-}
-
-@Database(entities = [ReportDb::class, ClientDb::class], version = 3)
-@TypeConverters(Converters::class)
-abstract class ReportDatabase : RoomDatabase() {
-    abstract fun reportDao(): ReportDao
-    abstract fun clientDao(): ClientDao
-    companion object {
-        val migr_2_3 = object: Migration(2, 3) {
-            override fun migrate(database: SupportSQLiteDatabase) {
-                // V2 -V3 added ClientDb table and add default values to ReportDb
-                database.execSQL("CREATE TABLE IF NOT EXISTS `ClientDb` (`id` INTEGER NOT NULL, `name` TEXT NOT NULL, `street` TEXT NOT NULL, `zip` TEXT NOT NULL, " +
-                        "`city` TEXT NOT NULL, `distance` INTEGER NOT NULL, `useDistance` INTEGER NOT NULL, `driveTime` TEXT NOT NULL, " +
-                        "`useDriveTime` INTEGER NOT NULL, `notes` TEXT NOT NULL, PRIMARY KEY(`id`))")
-                // V2 - V3 added 4 new default elements that are taken from a client but not directly taken from there
-                database.execSQL("ALTER TABLE ReportDb ADD defaultDriveTime TEXT NOT NULL DEFAULT `00:00`")
-                database.execSQL("ALTER TABLE ReportDb ADD useDefaultDriveTime INTEGER NOT NULL DEFAULT 0")
-                database.execSQL("ALTER TABLE ReportDb ADD defaultDistance INTEGER NOT NULL DEFAULT 0")
-                database.execSQL("ALTER TABLE ReportDb ADD useDefaultDistance INTEGER NOT NULL DEFAULT 0")
-                database.execSQL("ALTER TABLE ReportDb ADD clientId INTEGER NOT NULL DEFAULT ${Int.MAX_VALUE}")
-            }
-        }
-    }
-}

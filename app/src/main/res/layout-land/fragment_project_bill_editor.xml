@@ -4,8 +4,8 @@
         xmlns:app="http://schemas.android.com/apk/res-auto"
         tools:context=".editor_fragments.BillEditorFragment">
     <data>
-        <variable name="bill_data" type="com.stemaker.arbeitsbericht.data.BillData"/>
-        <variable name="project_data" type="com.stemaker.arbeitsbericht.data.ProjectData"/>
+        <variable name="bill_data" type="com.stemaker.arbeitsbericht.data.report.BillData"/>
+        <variable name="project_data" type="com.stemaker.arbeitsbericht.data.report.ProjectData"/>
     </data>
 
     <com.stemaker.arbeitsbericht.helpers.ConstraintLayoutVisListener

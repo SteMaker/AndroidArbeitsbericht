@@ -1,6 +1,5 @@
 package com.stemaker.arbeitsbericht.editor_fragments
 
-import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -9,12 +8,9 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.databinding.DataBindingUtil
-import com.stemaker.arbeitsbericht.AboutDialogFragment
 import com.stemaker.arbeitsbericht.ClientRepository
 import com.stemaker.arbeitsbericht.ClientSelectDialog
 import com.stemaker.arbeitsbericht.R
-import com.stemaker.arbeitsbericht.data.BillData
-import com.stemaker.arbeitsbericht.data.ReportData
 import com.stemaker.arbeitsbericht.databinding.FragmentBillEditorBinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope

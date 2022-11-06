@@ -1,10 +1,10 @@
-package com.stemaker.arbeitsbericht.data
+package com.stemaker.arbeitsbericht.data.report
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
+import com.stemaker.arbeitsbericht.data.configuration.configuration
 
-class LumpSumContainerData(): ViewModel() {
+class LumpSumContainerData {
     val items = mutableListOf<LumpSumData>()
     /* The list below won't go into the json / serialized data */
     private var _list = MutableLiveData<Set<String>>().apply { value = configuration().lumpSums.toSet() }
@@ -46,7 +46,7 @@ class LumpSumContainerData(): ViewModel() {
     }
 }
 
-class LumpSumData(): ViewModel() {
+class LumpSumData {
     var item = MutableLiveData<String>().apply { value = "" }
     var amount = MutableLiveData<Int>().apply { value = 0 }
     var comment = MutableLiveData<String>().apply { value = "" }

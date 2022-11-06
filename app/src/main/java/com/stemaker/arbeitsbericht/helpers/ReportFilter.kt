@@ -4,8 +4,16 @@ import androidx.databinding.Observable
 import androidx.lifecycle.*
 import com.stemaker.arbeitsbericht.data.ReportData
 import com.stemaker.arbeitsbericht.data.configuration
+import com.stemaker.arbeitsbericht.data.report.ReportData
+import com.stemaker.arbeitsbericht.data.report.ReportListChangeEvent
+import java.beans.PropertyChangeEvent
+import java.beans.PropertyChangeListener
+import java.beans.PropertyChangeSupport
 
-class ReportFilter: Observable, ViewModel() {
+class ReportFilterChangeEvent(): PropertyChangeEvent() {
+}
+
+class ReportFilter() {
     var projectName = ""
     var projectExtra = ""
     val remainingStates = mutableSetOf<Int>()
@@ -36,7 +44,13 @@ class ReportFilter: Observable, ViewModel() {
         }
 
     // observers
-    private val observers = mutableListOf<Observable.OnPropertyChangedCallback>()
+    private val propCS = PropertyChangeSupport(this)
+    fun addReportFilterObserver(listener: PropertyChangeListener) {
+        propCS.addPropertyChangeListener(listener)
+    }
+    fun removeReportFilterObserver(listener: PropertyChangeListener) {
+        propCS.removePropertyChangeListener(listener)
+    }
 
     fun isFiltered(r: ReportData): Boolean {
         if(!remainingStates.contains(ReportData.ReportState.toInt(r.state.value!!)))
@@ -48,18 +62,8 @@ class ReportFilter: Observable, ViewModel() {
         return false
     }
 
-    override fun addOnPropertyChangedCallback(observer: Observable.OnPropertyChangedCallback?) {
-        observer?.let { observers.add(it) }
-    }
-
-    override fun removeOnPropertyChangedCallback(observer: Observable.OnPropertyChangedCallback?) {
-        observer?.let { observers.remove(it) }
-    }
-
     fun update() {
-        observers.forEach {
-            it.onPropertyChanged(this, 0)
-        }
+        propCS.firePropertyChange(ReportFilterChangeEvent())
     }
 
     fun fromStore(pN: String, pE: String, states: Int) {

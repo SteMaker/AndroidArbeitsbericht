@@ -1,0 +1,64 @@
+@startuml
+!pragma teoz true
+
+' Report related
+class ReportDb
+
+class ReportDao
+
+class ReportRepository {
+    -reports MutableMapOf<Int, ReportData>: reports
+    -activeReport: ReportData
+    -reportCnts: MutableList<Int>
+    +amountOfReports: Int
+    +getReportByCnt(cnt: Int): ReportData
+    +getReportByIndex(idx: Int): ReportData
+    +activeReport: ReportData
+    +setActiveReport(cnt: Int): void
+    +createReport(): ReportData
+    +deleteReport(r: ReportData): void
+    +addReportListObserver(listener: PropertyChangeListener)
+    +removeReportListObserver(listener: PropertyChangeListener)
+}
+
+interface ReportListObserver {
+    +notifyReportAdded(cnt: Int)
+    +notifyReportRemoved(cnt: Int)
+    +notifyReportListChanged(cnts: List<Int>)
+}
+
+class ReportListViewModel {
+    +getAmountOfReports(): Int
+    +getReportByIndex(idx: Int): ReportData
+    +getIndexOfReport(report: ReportData): Int
+    +selectReport(report: ReportData)
+    +deleteReport(report:ReportData)
+    +setReportState(report: ReportData, state:ReportData.ReportState)
+    +observeReportList(observer: ReportListObserver)
+}
+note top
+Created by Main activity, injected into ReportListAdapter
+end note
+note left of ReportListViewModel::deleteReport
+    Invokes confirmation dialog
+end note
+
+class ReportEditViewModel {
+    +saveReport(r: ReportData)
+    +getActiveReport(): ReportData
+}
+note top
+Used by ReportEditor and Summary activities
+end note
+
+class ReportListAdapter
+
+ReportListAdapter -down-> ReportListViewModel
+ReportListViewModel -down-> ReportRepository
+ReportEditViewModel -down-> ReportRepository
+ReportRepository -down-> ReportDao
+ReportDao -down-> ReportDb
+
+
+
+@enduml

@@ -44,62 +44,12 @@ object StorageHandler {
     val workItemDictionary: Set<String>
         get() = _workItemDictionary
 
-    val db = Room.databaseBuilder(
-        ArbeitsberichtApp.appContext,
-        ReportDatabase::class.java, "Arbeitsbericht-Reports"
-    ).fallbackToDestructiveMigration().addMigrations(ReportDatabase.migr_2_3).build()
 
     private val inited = AtomicBoolean(false)
-    var initJob: Job? = null
     val mutex = Mutex()
 
     var reportListObservers = mutableListOf<ReportListObserver>()
 
-    fun initialize(activityContext: Context): Job? {
-        if (inited.compareAndSet(false, true)) {
-            initJob = GlobalScope.launch(Dispatchers.Main) {
-                Log.d(TAG, "initializing storage")
-                val c: Context = ArbeitsberichtApp.appContext
-                // Read the configuration. This needs to be low level -> no configuration() invocation yet
-                loadConfigurationFromFile(c)
-
-                if (Configuration.store.vers <= 118) {
-                    withContext(Dispatchers.IO) {
-                        // TODO: Temp, add check and stop with notification that data might get lost
-                        db.reportDao().deleteTable()
-                    }
-                    migrateToDatabase()
-                    // This will update the version information and therefore there shouldn't be another migration
-                    configuration()
-                    configuration().activeReportId = -1
-                    deleteReportFilesAfterDbMigration()
-                }
-
-                val cnts = withContext(Dispatchers.IO) {
-                    db.reportDao().getFilteredReportIds(configuration().reportFilter)
-                }
-                visReportCnts.addAll(cnts)
-
-                checkAndRepairCurrentIdConsistency(activityContext)
-
-                // Now we should be ready to do more
-                if (configuration().activeReportId != -1) {
-                    if (visReportCnts.contains(configuration().activeReportId)) {
-                        selectReportByCnt(configuration().activeReportId)
-                    } else {
-                        configuration().activeReportId = -1
-                    }
-                }
-                configuration().reportFilter.addOnPropertyChangedCallback(object : androidx.databinding.Observable.OnPropertyChangedCallback() {
-                    override fun onPropertyChanged(sender: androidx.databinding.Observable?, propertyId: Int) {
-                        updateFilter()
-                    }
-                })
-            }
-        }
-        // Activities need to wait for this initJob before they are allowed to access the storageHandler()
-        return initJob
-    }
 
     private suspend fun checkAndRepairCurrentIdConsistency(activityContext: Context) {
         val usedIds = db.reportDao().getReportCnts()
@@ -128,35 +78,6 @@ object StorageHandler {
             }
             for (o in reportListObservers)
                 o.notifyReportListChanged(visReportCnts)
-        }
-    }
-
-    private suspend fun migrateToDatabase() {
-        val c: Context = ArbeitsberichtApp.appContext
-        val appFiles = c.fileList()
-        val reportDao = db.reportDao()
-
-        for (repFile in appFiles) {
-            val exp = Regex("report(.*).rpt")
-            if (exp.matches(repFile)) {
-                val report = readReportFromFile(repFile)
-                val r = ReportDb.fromReport(report)
-                withContext(Dispatchers.IO) {
-                    reportDao.insert(r)
-                }
-            }
-        }
-    }
-
-    private fun deleteReportFilesAfterDbMigration() {
-        val c: Context = ArbeitsberichtApp.appContext
-        val appFiles = c.fileList()
-        for (repFile in appFiles) {
-            val exp = Regex("report(.*).rpt")
-            if (exp.matches(repFile)) {
-                val filename = "${ArbeitsberichtApp.appContext.filesDir}/$repFile"
-                File(filename).delete()
-            }
         }
     }
 
@@ -339,7 +260,7 @@ object StorageHandler {
         activeReport?.let { saveReport(it) }
     }
 
-    private fun loadConfigurationFromFile(c: Context) {
+    fun loadConfigurationFromFile(c: Context) {
         try {
             val fIn = c.openFileInput("configuration.json")
             val isr = InputStreamReader(fIn)

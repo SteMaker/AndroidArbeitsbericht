@@ -1,5 +1,7 @@
-package com.stemaker.arbeitsbericht.data
+package com.stemaker.arbeitsbericht.data.report
 
+import com.stemaker.arbeitsbericht.data.calendarToDateString
+import com.stemaker.arbeitsbericht.data.configuration.configuration
 import kotlinx.serialization.Serializable
 
 @Serializable

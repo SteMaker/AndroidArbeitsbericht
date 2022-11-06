@@ -1,11 +1,10 @@
-package com.stemaker.arbeitsbericht.data
+package com.stemaker.arbeitsbericht.data.report
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
 import com.stemaker.arbeitsbericht.storageHandler
 
-class MaterialContainerData(): ViewModel() {
+class MaterialContainerData {
     val items = mutableListOf<MaterialData>()
     /* The list below won't go into the json / serialized data */
     private var _dictionary = MutableLiveData<Set<String>>().apply { value = storageHandler().materialDictionary }
@@ -54,7 +53,7 @@ class MaterialContainerData(): ViewModel() {
     }
 }
 
-class MaterialData(): ViewModel() {
+class MaterialData {
     var item = MutableLiveData<String>().apply { value = "" }
     var amount = MutableLiveData<Float>().apply { value = 0f }
     var unit = MutableLiveData<String>().apply { value = "" }

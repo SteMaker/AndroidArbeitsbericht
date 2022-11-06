@@ -1,19 +1,103 @@
-package com.stemaker.arbeitsbericht.data
+package com.stemaker.arbeitsbericht.data.report
 
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
 import com.stemaker.arbeitsbericht.R
+import com.stemaker.arbeitsbericht.data.configuration.configuration
 import kotlinx.serialization.json.Json
-import java.util.*
+import com.stemaker.arbeitsbericht.data.base.DataSimple
+import com.stemaker.arbeitsbericht.data.base.ElementChangeEvent
+import java.beans.PropertyChangeEvent
+import java.beans.PropertyChangeListener
 
 private const val TAG="ReportData"
+const val FILTER_IMPACTING_PROPERTY = 1
 
-class ReportData private constructor(var cnt: Int = 0): ViewModel() {
-    private var _id = MutableLiveData<String>()
+class ReportData private constructor(var cnt: Int = 0):
+    PropertyChangeListener
+{
+    // Purpose of this var is to remember if the report needs to be stored
+    private var modified: Boolean = false
 
+    private val _create_date = MutableLiveData<String>()
+    val create_date: LiveData<String>
+        get() = _create_date
+
+    enum class ReportState(v: Int) {
+        IN_WORK(0), ON_HOLD(1), DONE(2), ARCHIVED(3);
+
+        companion object {
+            fun fromInt(value: Int) = values().first() { it.ordinal == value }
+            fun toInt(s: ReportState) = s.ordinal
+            fun toStringId(s: ReportState): Int {
+                return when(s) {
+                    IN_WORK -> R.string.in_work
+                    ON_HOLD -> R.string.on_hold
+                    DONE -> R.string.done
+                    ARCHIVED -> R.string.archived
+                }
+            }
+        }
+    }
+    val state = DataSimple<ReportState>(ReportState.IN_WORK, "state")
+    var project = ProjectData()
+    var bill = BillData()
+    val workTimeContainer = WorkTimeContainerData()
+    val workItemContainer = WorkItemContainerData()
+    val materialContainer = MaterialContainerData()
+    val lumpSumContainer = LumpSumContainerData()
+    val photoContainer = PhotoContainerData()
+    val signatureData = SignatureData()
+    val defaultValues = DefaultValues()
+    val id = MediatorLiveData<String> ()
+    val filterMediator = MediatorLiveData<Boolean>()
+
+    override fun propertyChange(ev: PropertyChangeEvent) {
+        modified = true
+    }
+
+    init {
+        /* Build the observers that keep the ID up-to-date */
+        _create_date.value = getCurrentDate()
+        id.addSource(create_date) {
+            id.value = buildId()
+        }
+        id.addSource(project.name) {
+            id.value = buildId()
+        }
+        id.addSource(project.extra1) {
+            id.value = buildId()
+        }
+        id.addSource(configuration().reportIdPattern) {
+            id.value = buildId()
+        }
+
+        // Build the observers that impact the filter
+        filterMediator.addSource(project.name) {  update(FILTER_IMPACTING_PROPERTY) }
+        filterMediator.addSource(project.extra1) {  update(FILTER_IMPACTING_PROPERTY) }
+        filterMediator.addSource(state) {  update(FILTER_IMPACTING_PROPERTY) }
+
+        // Build the observers that inform about changes
+        project.addObserver(this)
+        bill.addObserver(this)
+        workTimeContainer.addObserver(this)
+    }
+
+    private val observers = mutableListOf<androidx.databinding.Observable.OnPropertyChangedCallback>()
+    override fun addOnPropertyChangedCallback(observer: androidx.databinding.Observable.OnPropertyChangedCallback?) {
+        observer?.let { observers.add(it) }
+    }
+
+    override fun removeOnPropertyChangedCallback(observer: androidx.databinding.Observable.OnPropertyChangedCallback?) {
+        observer?.let { observers.remove(it) }
+    }
+
+    fun update(propertyId: Int) {
+        observers.forEach {
+            it.onPropertyChanged(this, propertyId)
+        }
+    }
     private fun buildId(): String {
         var string = configuration().reportIdPattern.value?:""
         // Replace %<n>c -> running counter
@@ -47,59 +131,6 @@ class ReportData private constructor(var cnt: Int = 0): ViewModel() {
 
         return string
     }
-
-    private val _create_date = MutableLiveData<String>()
-    val create_date: LiveData<String>
-        get() = _create_date
-
-    enum class ReportState(v: Int) {
-        IN_WORK(0), ON_HOLD(1), DONE(2), ARCHIVED(3);
-
-        companion object {
-            fun fromInt(value: Int) = values().first() { it.ordinal == value }
-            fun toInt(s: ReportState) = s.ordinal
-            fun toStringId(s: ReportState): Int {
-                return when(s) {
-                    IN_WORK -> R.string.in_work
-                    ON_HOLD -> R.string.on_hold
-                    DONE -> R.string.done
-                    ARCHIVED -> R.string.archived
-                }
-            }
-        }
-    }
-    val state = MutableLiveData<ReportState>().apply { value = ReportState.IN_WORK }
-
-    var lastStoreHash: Int = 0
-
-    var project = ProjectData()
-    var bill = BillData()
-    val workTimeContainer = WorkTimeContainerData()
-    val workItemContainer = WorkItemContainerData()
-    val materialContainer = MaterialContainerData()
-    val lumpSumContainer = LumpSumContainerData()
-    val photoContainer = PhotoContainerData()
-    val signatureData = SignatureData()
-    val defaultValues = DefaultValues()
-    val id = MediatorLiveData<String> ()
-
-    init {
-        _create_date.value = getCurrentDate()
-
-        id.addSource(create_date) {
-            id.value = buildId()
-        }
-        id.addSource(project.name) {
-            id.value = buildId()
-        }
-        id.addSource(project.extra1) {
-            id.value = buildId()
-        }
-        id.addSource(configuration().reportIdPattern) {
-            id.value = buildId()
-        }
-    }
-
     private fun copyFromSerialized(r: ReportDataSerialized) {
         cnt = r.id
         _create_date.value = r.create_date
@@ -157,7 +188,9 @@ class ReportData private constructor(var cnt: Int = 0): ViewModel() {
         }
 
         fun createReport(cnt: Int): ReportData {
-            return ReportData(cnt)
+            val r = ReportData(cnt)
+            r.modified = true
+            return r
         }
     }
 }

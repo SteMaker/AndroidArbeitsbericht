@@ -33,6 +33,7 @@ android {
             excludes += ['META-INF/DEPENDENCIES']
         }
     }
+    namespace 'com.stemaker.arbeitsbericht'
 }
 
 dependencies {

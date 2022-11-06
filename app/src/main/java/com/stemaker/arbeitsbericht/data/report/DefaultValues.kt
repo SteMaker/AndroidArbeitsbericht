@@ -1,4 +1,4 @@
-package com.stemaker.arbeitsbericht.data
+package com.stemaker.arbeitsbericht.data.report
 
 class DefaultValues {
     var defaultDriveTime: String = "00:00"

@@ -1,9 +1,8 @@
-package com.stemaker.arbeitsbericht
+package com.stemaker.arbeitsbericht.data.client
 
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
-import com.stemaker.arbeitsbericht.data.ClientDb
-import com.stemaker.arbeitsbericht.data.configuration
+import com.stemaker.arbeitsbericht.data.configuration.configuration
 import com.stemaker.arbeitsbericht.helpers.ListObserver
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Mutex

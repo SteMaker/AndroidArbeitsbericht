@@ -1,4 +1,4 @@
-package com.stemaker.arbeitsbericht.data
+package com.stemaker.arbeitsbericht.data.report
 
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel

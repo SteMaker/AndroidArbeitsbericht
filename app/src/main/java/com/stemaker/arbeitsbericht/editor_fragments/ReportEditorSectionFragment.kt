@@ -11,8 +11,6 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import com.stemaker.arbeitsbericht.R
-import com.stemaker.arbeitsbericht.data.BillData
-import com.stemaker.arbeitsbericht.data.ProjectData
 import com.stemaker.arbeitsbericht.data.ReportData
 
 private const val TAG = "ReportEditSectFragment"

@@ -1,12 +1,11 @@
-package com.stemaker.arbeitsbericht.data
+package com.stemaker.arbeitsbericht.data.report
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
 
-class PhotoContainerData(): ViewModel() {
+class PhotoContainerData {
     val items = mutableListOf<PhotoData>()
     val visibility = MutableLiveData<Boolean>().apply { value = false }
 
@@ -45,7 +44,7 @@ class PhotoContainerData(): ViewModel() {
     }
 }
 
-class PhotoData: ViewModel() {
+class PhotoData {
     val file = MutableLiveData<String>().apply { value =  "" }
     val description = MutableLiveData<String>().apply { value = "" }
     var imageHeight = 0

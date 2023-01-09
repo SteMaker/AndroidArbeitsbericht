@@ -9,7 +9,7 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.ProgressBar
 import android.widget.TextView
-import com.stemaker.arbeitsbericht.data.ReportData
+import com.stemaker.arbeitsbericht.data.report.ReportData
 import com.stemaker.arbeitsbericht.helpers.HtmlReport
 import com.stemaker.arbeitsbericht.output.ReportGenerator
 import java.io.File

@@ -8,14 +8,20 @@ plugins {
 }
 
 android {
-    compileSdkVersion 31
+    compileSdkVersion 33
     defaultConfig {
         applicationId "com.stemaker.arbeitsbericht"
         minSdkVersion 23
-        targetSdkVersion 31
+        targetSdkVersion 33
         versionCode 31
         versionName "v2.20.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        javaCompileOptions {
+            annotationProcessorOptions {
+                // We store the schema as file in git, so we have a version history. Not a must to do
+                arguments += ["room.schemaLocation": "$projectDir/schemas".toString()]
+            }
+        }
     }
     buildTypes {
         release {
@@ -39,41 +45,43 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     //kotlin
-    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    //implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     implementation "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    //implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     //implementation "org.jetbrains.kotlinx:kotlinx-serialization-runtime:1.0.1"
     implementation "org.jetbrains.kotlinx:kotlinx-serialization-cbor:1.0.1"
     implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.0.1"
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.8'
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.1'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.1'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.1'
 
-    implementation 'androidx.appcompat:appcompat:1.2.0'
-    implementation 'androidx.core:core-ktx:1.3.2'
-    implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
+    implementation 'androidx.appcompat:appcompat:1.5.1'
+    implementation 'androidx.core:core-ktx:1.9.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation files('/home/stefan/workspace/android-signaturepad/signature-pad/build/outputs/aar/signature-pad-release.aar')
     testImplementation 'junit:junit:4.12'
-    implementation 'com.google.code.gson:gson:2.8.6'
-    implementation 'com.google.android.material:material:1.5.0'
+    implementation 'com.google.code.gson:gson:2.8.9'
+    implementation 'com.google.android.material:material:1.7.0'
     //implementation 'com.github.SteMaker:android-signature-pad:1.3.1'
     implementation 'com.caverock:androidsvg-aar:1.4'
-    implementation 'androidx.core:core-ktx:1.3.2'
+    implementation 'androidx.core:core-ktx:1.9.0'
     implementation 'androidx.legacy:legacy-support-core-utils:1.0.0'
     implementation 'com.github.bumptech.glide:glide:4.9.0'
     kapt 'com.github.bumptech.glide:compiler:4.9.0'
 //    implementation 'org.apache.directory.studio:org.apache.commons.io:2.4'
-    implementation 'androidx.lifecycle:lifecycle-extensions:2.2.0'
-    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.2.0'
+    //implementation 'androidx.lifecycle:lifecycle-extensions:2.2.0'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.5.1'
+    //implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version"
+    implementation "androidx.fragment:fragment-ktx:1.5.5"
     // JSCH library for SFTP support
     implementation 'com.jcraft:jsch:0.1.55'
     // ODF Toolkit
     implementation files('../odftoolkit-fat/build/libs/odftoolkit-fat-all.jar')
     // Google Analytics, crashlytics
-    implementation 'com.google.firebase:firebase-analytics-ktx:18.0.2'
-    implementation 'com.google.firebase:firebase-crashlytics-ktx:17.3.1'
+    implementation 'com.google.firebase:firebase-analytics-ktx:21.2.0'
+    implementation 'com.google.firebase:firebase-crashlytics-ktx:18.3.2'
     // Support for Room database
-    def room_version = "2.3.0"
+    def room_version = "2.4.3"
     implementation "androidx.room:room-runtime:$room_version"
     kapt "androidx.room:room-compiler:$room_version"
     implementation "androidx.room:room-ktx:$room_version"
@@ -82,9 +90,10 @@ dependencies {
     implementation files('../poi-android-fat/build/libs/poi-android-fat-all.jar')
 
     // Large tests using Espresso
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
-    androidTestImplementation 'androidx.test:runner:1.4.0'
-    androidTestImplementation 'androidx.test:rules:1.4.0'
-    androidTestImplementation 'androidx.test:core-ktx:1.4.0'
-    androidTestImplementation 'androidx.test.ext:junit-ktx:1.1.2'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.0'
+    androidTestImplementation 'androidx.test:runner:1.5.1'
+    androidTestImplementation 'androidx.test:rules:1.5.0'
+    androidTestImplementation 'androidx.test:core-ktx:1.5.0'
+    androidTestImplementation 'androidx.test.ext:junit-ktx:1.1.4'
+    androidTestImplementation 'androidx.test.espresso:espresso-intents:3.4.0'
 }

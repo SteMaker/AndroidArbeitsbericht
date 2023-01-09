@@ -2,7 +2,7 @@
 <layout xmlns:app="http://schemas.android.com/apk/res-auto"
         xmlns:android="http://schemas.android.com/apk/res/android">
     <data>
-        <variable name="work_time" type="com.stemaker.arbeitsbericht.data.WorkTimeData"/>
+        <variable name="view_model" type="com.stemaker.arbeitsbericht.view_models.WorkTimeViewModel"/>
     </data>
 
     <androidx.cardview.widget.CardView
@@ -64,7 +64,7 @@
                            app:layout_constraintTop_toBottomOf="@id/work_time_date_fixed"
                            android:paddingLeft="5dp"
                            android:textColor="@color/iconFillColor"
-                           app:dateString='@{work_time.date}'/>
+                           app:dateString='@{view_model.date}'/>
                    <ImageView
                            android:id="@+id/work_time_date_pic"
                            android:layout_width="wrap_content"
@@ -136,7 +136,7 @@
                             app:layout_constraintTop_toBottomOf="@id/work_time_work_start_fixed"
                             android:paddingLeft="5dp"
                             android:textColor="@color/iconFillColor"
-                            android:text='@{work_time.startTime}'/>
+                            android:text='@{view_model.startTime}'/>
                     <ImageView
                             android:id="@+id/work_time_start_pic"
                             android:layout_width="wrap_content"
@@ -182,7 +182,7 @@
                             app:layout_constraintTop_toBottomOf="@id/work_time_work_end_fixed"
                             android:paddingLeft="5dp"
                             android:textColor="@color/iconFillColor"
-                            android:text='@{work_time.endTime}'/>
+                            android:text='@{view_model.endTime}'/>
                     <ImageView
                             android:id="@+id/work_time_end_pic"
                             android:layout_width="wrap_content"
@@ -229,7 +229,7 @@
                             app:layout_constraintTop_toBottomOf="@id/pause_time_duration_fixed"
                             android:paddingLeft="5dp"
                             android:textColor="@color/iconFillColor"
-                            android:text='@{work_time.pauseDuration}'/>
+                            android:text='@{view_model.pauseDuration}'/>
                     <ImageView
                             android:id="@+id/work_time_pause_duration_pic"
                             android:layout_width="wrap_content"
@@ -275,7 +275,7 @@
                             app:layout_constraintTop_toBottomOf="@id/work_time_drive_duration_fixed"
                             android:paddingLeft="5dp"
                             android:textColor="@color/iconFillColor"
-                            android:text='@{work_time.driveTime}'/>
+                            android:text='@{view_model.driveTime}'/>
                     <ImageView
                             android:id="@+id/work_time_drive_duration_pic"
                             android:layout_width="wrap_content"
@@ -310,7 +310,7 @@
                             android:layout_height="wrap_content"
                             app:layout_constraintLeft_toLeftOf="parent"
                             app:layout_constraintTop_toBottomOf="@id/work_time_sum_fixed"
-                            android:text='@{work_time.workDuration}'/>
+                            android:text='@{view_model.workDuration}'/>
                 </androidx.constraintlayout.widget.ConstraintLayout>
                 <!-- Drive distance -->
                 <androidx.constraintlayout.widget.ConstraintLayout
@@ -335,7 +335,7 @@
                                 android:hint="@string/distance"
                                 android:inputType="numberDecimal"
                                 android:selectAllOnFocus="true"
-                        app:textInt="@={work_time.distance}"
+                        app:textInt="@={view_model.distance}"
                                 />
                     </com.google.android.material.textfield.TextInputLayout>
 

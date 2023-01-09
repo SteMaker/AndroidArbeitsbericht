@@ -2,8 +2,8 @@
 <layout xmlns:app="http://schemas.android.com/apk/res-auto"
         xmlns:android="http://schemas.android.com/apk/res/android">
     <data>
-        <variable name="work_item" type="com.stemaker.arbeitsbericht.data.WorkItemData"/>
-        <variable name="work_item_container" type="com.stemaker.arbeitsbericht.data.WorkItemContainerData"/>
+        <variable name="view_model" type="com.stemaker.arbeitsbericht.view_models.WorkItemViewModel"/>
+        <variable name="view_model_container" type="com.stemaker.arbeitsbericht.view_models.WorkItemContainerViewModel"/>
     </data>
 
     <androidx.cardview.widget.CardView
@@ -25,8 +25,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:inputType="textCapSentences"
-                        app:dictionary="@{work_item_container.dictionary}"
-                        android:text="@={work_item.item}"
+                        app:dictionary="@{view_model_container.dictionary}"
+                        android:text="@={view_model.item}"
                         android:hint="@string/work_item"
                         />
             </com.google.android.material.textfield.TextInputLayout>

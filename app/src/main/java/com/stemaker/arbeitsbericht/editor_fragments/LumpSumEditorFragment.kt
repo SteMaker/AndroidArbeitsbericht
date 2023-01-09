@@ -1,24 +1,25 @@
 package com.stemaker.arbeitsbericht.editor_fragments
 
-import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
 import android.widget.LinearLayout
 import androidx.appcompat.app.AlertDialog
+import androidx.lifecycle.ViewModelProvider
 import com.stemaker.arbeitsbericht.R
-import com.stemaker.arbeitsbericht.data.LumpSumContainerData
-import com.stemaker.arbeitsbericht.data.LumpSumData
+import com.stemaker.arbeitsbericht.data.report.ReportData
 import com.stemaker.arbeitsbericht.databinding.FragmentLumpSumEditorBinding
 import com.stemaker.arbeitsbericht.databinding.LumpSumEditLayoutBinding
 import com.stemaker.arbeitsbericht.helpers.showConfirmationDialog
+import com.stemaker.arbeitsbericht.view_models.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
-class LumpSumEditorFragment : ReportEditorSectionFragment() {
+class LumpSumEditorFragment(private val report: ReportData):
+    ReportEditorSectionFragment()
+{
     lateinit var dataBinding: FragmentLumpSumEditorBinding
 
     /* TODO: In case a lump sum has been deleted that is still used here we should
@@ -28,7 +29,7 @@ class LumpSumEditorFragment : ReportEditorSectionFragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         // Inflate the layout for this fragment
         val root = super.onCreateView(inflater, container, savedInstanceState)
         dataBinding = FragmentLumpSumEditorBinding.inflate(inflater, container,false)
@@ -37,25 +38,17 @@ class LumpSumEditorFragment : ReportEditorSectionFragment() {
         setHeadline(getString(R.string.lump_sum))
 
         dataBinding.lifecycleOwner = viewLifecycleOwner
-        GlobalScope.launch(Dispatchers.Main) {
-            listener?.let { listener ->
-                val report = listener.getReportData()
-                report?.let { report ->
-                    val lumpSumContainerData = report.lumpSumContainer
-                    dataBinding.lumpSumContainerData = lumpSumContainerData
+        val lumpSumContainerData = report.lumpSumContainer
+        val viewModelContainer = ViewModelProvider(this, LumpSumContainerViewModelFactory(viewLifecycleOwner, lumpSumContainerData)).get(LumpSumContainerViewModel::class.java)
+        dataBinding.viewModel = viewModelContainer
 
-                    for (ls in lumpSumContainerData.items) {
-                        addLumpSumView(ls, lumpSumContainerData)
-                    }
+        for (viewModel in viewModelContainer) {
+            addLumpSumView(viewModel, viewModelContainer)
+        }
 
-                    dataBinding.lumpSumAddButton.setOnClickListener(object : View.OnClickListener {
-                        override fun onClick(btn: View) {
-                            val ls = lumpSumContainerData.addLumpSum()
-                            addLumpSumView(ls, lumpSumContainerData)
-                        }
-                    })
-                }
-            }
+        dataBinding.lumpSumAddButton.setOnClickListener {
+            val viewModel = viewModelContainer.addLumpSum()
+            addLumpSumView(viewModel, viewModelContainer)
         }
 
         return root
@@ -72,28 +65,26 @@ class LumpSumEditorFragment : ReportEditorSectionFragment() {
         return dataBinding.lumpSumContentContainer.visibility != View.GONE
     }
 
-    fun addLumpSumView(ls: LumpSumData, lumpSumContainerData: LumpSumContainerData) {
+    private fun addLumpSumView(viewModel: LumpSumViewModel, viewModelContainer: LumpSumContainerViewModel) {
         val inflater = layoutInflater
         val container = dataBinding.lumpSumContentContainer
         val lumpSumDataBinding: LumpSumEditLayoutBinding = LumpSumEditLayoutBinding.inflate(inflater, null, false)
-        lumpSumDataBinding.lumpSum = ls
-        lumpSumDataBinding.lumpSumContainer = lumpSumContainerData
+        lumpSumDataBinding.viewModel = viewModel
+        lumpSumDataBinding.viewModelContainer = viewModelContainer
         lumpSumDataBinding.lifecycleOwner = activity
-        lumpSumDataBinding.lumpSumDelButton.setOnClickListener(object: View.OnClickListener {
-            override fun onClick(btn: View) {
-                GlobalScope.launch(Dispatchers.Main) {
-                    val answer =
-                        showConfirmationDialog(getString(R.string.del_confirmation), btn.context)
-                    if (answer == AlertDialog.BUTTON_POSITIVE) {
-                        container.removeView(lumpSumDataBinding.root)
-                        lumpSumContainerData.removeLumpSum(ls)
-                    } else {
-                    }
+        lumpSumDataBinding.lumpSumDelButton.setOnClickListener { btn ->
+            GlobalScope.launch(Dispatchers.Main) {
+                val answer =
+                    showConfirmationDialog(getString(R.string.del_confirmation), btn.context)
+                if (answer == AlertDialog.BUTTON_POSITIVE) {
+                    container.removeView(lumpSumDataBinding.root)
+                    viewModelContainer.removeLumpSum(viewModel)
+                } else {
                 }
             }
-        })
+        }
 
-        val pos = container.getChildCount()
+        val pos = container.childCount
         container.addView(lumpSumDataBinding.root, pos)
 
         // TODO: Scroll to new element. Should use ListView instead of LinearLayout

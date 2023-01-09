@@ -2,7 +2,7 @@
 <layout xmlns:app="http://schemas.android.com/apk/res-auto"
         xmlns:android="http://schemas.android.com/apk/res/android">
     <data>
-        <variable name="client" type="com.stemaker.arbeitsbericht.Client"/>
+        <variable name="client" type="com.stemaker.arbeitsbericht.data.client.Client"/>
     </data>
     <androidx.cardview.widget.CardView
             android:id="@+id/client_select_card_top"

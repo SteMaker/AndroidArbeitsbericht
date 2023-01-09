@@ -1,148 +1,247 @@
 package com.stemaker.arbeitsbericht.data.report
 
-import com.stemaker.arbeitsbericht.StorageHandler
-import com.stemaker.arbeitsbericht.data.ReportDatabase
-import com.stemaker.arbeitsbericht.data.configuration.Configuration
+import android.util.Log
+import android.util.LruCache
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Observer
+import com.stemaker.arbeitsbericht.data.configuration.configuration
 import com.stemaker.arbeitsbericht.helpers.ReportFilter
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
-import java.beans.PropertyChangeEvent
+import java.util.concurrent.atomic.AtomicInteger
 
+const val CACHE_SIZE = 10
+private const val TAG="ReportRepository"
 
-class ReportListChangeEvent(val event: Int, val index: Int): PropertyChangeEvent() {
-    const val NOTIFY_REPORT_ADDED = 1
-    const val NOTIFY_REPORT_REMOVED = 2
-    const val NOTIFY_REPORT_LIST_CHANGED = 3 // In this case index is irrelevant
-}
+class ReportRepository(private val reportDao: ReportDao) {
 
-class ReportRepository(val db: ReportDatabase, val cfg: Configuration, val filter: ReportFilter) :
-    PropertyChangeListener
-{
-    /* reports shall likely be extended as a cache, for now it is a map of reports, potentially growing until all reports have been fetched from DB */
-    private val reports: MutableMap<Int, ReportData> = mutableMapOf()
-
-    /* reportCnts always needs to be up-to-date with the list of report cnts that are not filtered. We need to update it when adding and deleting reports
-    *  as well as when the filter changes */
-    private val reportCnts = mutableListOf<Int>()
-
-    lateinit var initJob: Job
-
-    fun initialize() {
-        filter.addReportFilterObserver(this@ReportRepository)
-        initJob = getReportCntsFromDb()
+    class ReportListChangeEvent(val type: Type, val reportUid: Int = 0, val pos: Int = 0) {
+        enum class Type {
+            LIST_ADD, LIST_REMOVE, LIST_CHANGE
+        }
     }
 
-    ////////////////////////////////////////////////////
-    // Members regarding the class being an event source
-    ////////////////////////////////////////////////////
-    private val propCS = PropertyChangeSupport(this)
-    fun addReportListObserver(listener: PropertyChangeListener) {
-        propCS.addPropertyChangeListener(listener)
+    // The reports cache
+    private val reports = object : LruCache<Int, ReportData>(CACHE_SIZE) {
+        override fun entryRemoved(evicted: Boolean, key: Int?, oldValue: ReportData?, newValue: ReportData?) {
+            Log.d(TAG, "Report ${oldValue?.cnt} evicted")
+            if (oldValue?.modified != false) {
+                scope.launch {
+                    oldValue?.let {
+                        saveReport(it)
+                    } ?: also {
+                        Log.e(TAG, "Error: report evicted in cache, but no oldValue provided")
+                        key?.let {
+                            saveReport(getReportByUid(key))
+                        } ?: also {
+                            Log.e(TAG, "Error: And also no key is provided")
+                        }
+                    }
+                }
+                super.entryRemoved(evicted, key, oldValue, newValue)
+            }
+        }
     }
-    fun removeReportListObserver(listener: PropertyChangeListener) {
-        propCS.removePropertyChangeListener(listener)
+
+    /* reportUids always needs to be up-to-date with the list of report uids that are not filtered out. We need to update it when adding and deleting reports
+     * as well as when the filter changes. A user can register a listener to live and will then get informed about the report that was added /
+     * removed (the value of liveAdd / liveRemove) or the list being changed.
+     * Any modification of reportUids should be handled in scope+Main context, need to double check that this enforces serialization of the jobs. Reading shall be done
+     * in UI thread (Dispatchers.Main)
+     */
+    private val reportUids = mutableListOf<Int>()
+    private val reportUidsMutex = Mutex()
+
+    val scope = CoroutineScope(Dispatchers.Main)
+
+    private val _live = MutableLiveData<ReportListChangeEvent>()
+    val live
+        get() = _live
+
+    // Whenever the filter changes we read all the reportUids anew
+    private val filterObserver = Observer<Unit> { getReportUidsFromDb() }
+
+    var filter = ReportFilter.noneFilter
+        set(value) {
+            field.live.removeObserver(filterObserver)
+            field = value
+            field.live.observeForever(filterObserver)
+            getReportUidsFromDb()
+        }
+
+    private val runningJobs = AtomicInteger(0)
+    private fun launchAndMaintain(fct: suspend () -> Unit) {
+        scope.launch {
+            runningJobs.addAndGet(1)
+            fct()
+            runningJobs.decrementAndGet()
+        }
+    }
+    val isJobRunning = runningJobs.get()!=0
+
+    suspend fun getMaxUid(): Int {
+        var ret = 0
+        runBlocking {
+            scope.launch {
+                ret = withContext(Dispatchers.IO) {
+                    val usedIds = reportDao.getReportUids()
+                    usedIds.maxOrNull() ?: 0 // If file didn't exist yet, initial value will be 1
+                }
+            }
+        }
+        return ret
     }
 
     ////////////////////////////////////////////////////
     // Internal report list handling
     ////////////////////////////////////////////////////
-    private fun getReportCntsFromDb(): Job {
-        return GlobalScope.launch(Dispatchers.Main) {
-            val reportCnts = withContext(Dispatchers.IO) {
-                db.reportDao().getFilteredReportIds(filter)
+    private fun getReportUidsFromDb() {
+        scope.launch {
+            reportUidsMutex.lock()
+            val uids = withContext(Dispatchers.IO) {
+                reportDao.getFilteredReportIds(filter)
             }
-            propCS.firePropertyChange(ReportListChangeEvent(NOTIFY_REPORT_LIST_CHANGED, 0))
+            reportUids.clear()
+            reportUids.addAll(uids)
+            reportUidsMutex.unlock()
+            _live.value = ReportListChangeEvent(ReportListChangeEvent.Type.LIST_CHANGE)// Trigger event that list has been modified (not only single add / remove)
         }
     }
-    private fun _deleteReport(r: ReportData) {
-        reportCnts.remove(r.cnt)
-        reports.remove(r.cnt)
-        propCS.firePropertyChange(ReportListChangeEvent(NOTIFY_REPORT_REMOVED, r.cnt))
-        GlobalScope.launch(Dispatchers.IO) {
-            db.reportDao().deleteByCnt(cnt)
+    private fun _deleteReport(r: ReportData, onDeleted:((r: ReportData)->Unit)? = null) {
+        launchAndMaintain {
+            reportUidsMutex.lock()
+            reports.remove(r.cnt) // Remove from cache
+            val index = reportUids[r.cnt]
+            reportUids.remove(r.cnt) // Remove from report cnt list
+            reportUidsMutex.unlock()
+            withContext(Dispatchers.IO) {
+                reportDao.deleteByCnt(r.cnt) // Remove from DB
+            }
+            _live.value = ReportListChangeEvent(ReportListChangeEvent.Type.LIST_REMOVE, r.cnt, index) // Inform about removal
+            onDeleted?.let { it(r) }
         }
     }
-    private fun _addReport(r: ReportData) {
-        reportCnts.add(r.cnt)
-        reports[r.cnt] = r
-        propCS.firePropertyChange(ReportListChangeEvent(NOTIFY_REPORT_ADDED, r.cnt))
-        GlobalScope.launch(Dispatchers.IO) {
-            db.reportDao().insert(ReportDb.fromReport(r))
+    private fun _addReport(r: ReportData, onAdded:((r: ReportData)->Unit)? = null) {
+        launchAndMaintain {
+            reportUidsMutex.lock()
+            reports.put(r.cnt, r) // Add to cache
+            reportUids.add(0, r.cnt) // Add to report cnt list
+            reportUidsMutex.unlock()
+            withContext(Dispatchers.IO) {
+                reportDao.insert(ReportDb.fromReport(r)) // Add to DB
+            }
+            _live.value = ReportListChangeEvent(ReportListChangeEvent.Type.LIST_ADD, r.cnt, reportUids.indexOf(r.cnt))// Inform about addition
+            onAdded?.let { it(r) }
         }
     }
 
-    //////////////////////////////////////////////////////
-    // Members regarding the class being an event listener
-    //////////////////////////////////////////////////////
-    // @TODO: Move this to java beans events
-    override fun propertyChange(ev: PropertyChangeEvent) {
-        if(ev is ReportFilterChangeEvent) {
-            getReportCntsFromDb()
-        }
-    }
-    override fun onPropertyChanged(sender: Observable?, propertyId: Int) {
-        if(sender is ReportData && propertyId == FILTER_IMPACTING_PROPERTY) {
-            // Elements of the report changed that might change the filtered status
-            if (filter.isFiltered(sender) && reportCnts.contains(sender.cnt)) {
-                // New state is set to invisible and it is currently visible
-                hideReport(sender.cnt)
-                observers.forEach {
-                    it.onPropertyChanged(this, NOTIFY_REPORT_REMOVED)
-                }
-            }
-        }
-//TODO: We do not support changing visible from false to true, not a use case right now
-    }
-
+    ////////////////////////////////////////////////////
+    // Public API
+    ////////////////////////////////////////////////////
     val amountOfReports: Int
-        get() = reportCnts.size
+        get() = reportUids.size
 
-    var activeReport: ReportData? = null
+    lateinit var activeReport: ReportData
         private set
 
-    suspend fun getReportByCnt(cnt: Int): ReportData {
+    fun isReportVisible(uid: Int): Boolean {
+        return reportUids.contains(uid)
+    }
+
+    fun getReportByUid(cnt: Int, onLoaded:((r: ReportData)->Unit)? = null): ReportData {
         // If we have it in the cache, take if from there, else query the database and push it in the cache
-        return reports[cnt]?.let {
-            it
+        return reports.get(cnt)?.let { r ->
+            onLoaded?.let { it(r) }
+            r
         } ?: run {
+            // If we don't have it in the cache then create one and let it populate from the database
             val report = ReportData.createReport(cnt)
-            reports[cnt] = report
-            GlobalScope.launch(Dispatchers.Main) {
+            reports.put(cnt, report)
+            scope.launch {
                 val rDb = withContext(Dispatchers.IO) {
-                    db.reportDao().getReportByCnt(cnt)
+                    reportDao.getReportByCnt(cnt)
                 }
                 ReportData.getReportFromDb(rDb, report)
-                report.addOnPropertyChangedCallback(this@ReportRepository)
+                Log.d(TAG, "Loaded report ${report.cnt} with ${report.id.value} from database")
+                onLoaded?.let { it(report) }
             }
             return report
         }
     }
 
-    suspend fun getReportByIndex(idx: Int): ReportData {
-        return getReportByCnt(reportCnts[idx])
+    fun getReportByIndex(idx: Int, onLoaded:(r: ReportData)->Unit): ReportData {
+        return getReportByUid(reportUids[idx], onLoaded)
     }
 
-    suspend fun setActiveReport(cnt: Int) {
-        activeReport = getReportByCnt(cnt)
+    fun setActiveReport(cnt: Int, onActivated:((r: ReportData)->Unit)? = null) {
+        activeReport = getReportByUid(cnt, onActivated)
     }
 
-    fun createReport(): ReportData {
+    fun createReport(onCreated:((r: ReportData)->Unit)?): ReportData {
         val r = ReportData.createReport(configuration().allocateId())
         configuration().activeReportId = r.cnt
         configuration().save()
-        _addReport(r)
+        _addReport(r, onCreated)
         return r
     }
 
-    fun createReportAndActivate(): ReportData {
-        val r = createReport()
+    fun createReportAndActivate(onCreated:((r: ReportData)->Unit)?): ReportData {
+        val r = createReport(onCreated)
         activeReport = r
         return r
     }
 
     fun deleteReport(r: ReportData) {
-        // TODO: Remove observation?
         _deleteReport(r)
+    }
+
+    fun duplicateReport(origin: ReportData, onCreated:((r: ReportData)->Unit)?): ReportData {
+        val r = ReportData.createReport(configuration().allocateId())
+        configuration().activeReportId = r.cnt
+        configuration().save()
+        r.copy(origin, copyDate = false)
+        _addReport(r, onCreated)
+        return r
+    }
+
+    fun duplicateReportAndActivate(origin: ReportData, onCreated:((r: ReportData)->Unit)?): ReportData {
+        val r = duplicateReport(origin, onCreated)
+        activeReport = r
+        return r
+    }
+
+    private suspend fun saveReportFromScope(r: ReportData) {
+        withContext(Dispatchers.IO) {
+                reportDao.update(ReportDb.fromReport(r))
+        }
+        Log.d(TAG, "Saved report ${r.cnt} to database")
+        r.modified = false
+    }
+
+    fun saveReport(r: ReportData) {
+        if(!r.modified) {
+            Log.w(TAG, "Warning: Saving a report which is not marked as modified")
+        }
+        launchAndMaintain {
+            saveReportFromScope(r)
+        }
+    }
+
+    fun saveReports() {
+        val cacheSnapshot = reports.snapshot()
+        launchAndMaintain {
+            cacheSnapshot.forEach { report ->
+                if(report.value.modified) {
+                    saveReportFromScope(report.value)
+                }
+            }
+        }
+    }
+    // @TODO: Make lump sums in configuration LiveData to sync automatically
+    fun updateLumpSums() {
+        val cacheSnapshot = reports.snapshot()
+        cacheSnapshot.forEach { report ->
+            report.value.lumpSumContainer.updateLumpSums()
+        }
     }
 }

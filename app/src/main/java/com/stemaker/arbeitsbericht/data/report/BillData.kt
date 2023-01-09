@@ -1,7 +1,8 @@
 package com.stemaker.arbeitsbericht.data.report
 
+import com.stemaker.arbeitsbericht.data.base.DataBasicIf
 import com.stemaker.arbeitsbericht.data.base.DataObject
-import com.stemaker.arbeitsbericht.data.base.DataSimple
+import com.stemaker.arbeitsbericht.data.base.DataElement
 
 const val BILL_NAME = "billName"
 const val BILL_STREET = "billStreet"
@@ -9,21 +10,17 @@ const val BILL_ZIP = "billZip"
 const val BILL_CITY = "billCity"
 const val BILL_VISIBILITY = "billVis"
 const val BILL = "bill"
-class BillData(): DataObject(BILL) {
+class BillData: DataObject(BILL) {
 
-    val name = DataSimple<String>("", BILL_NAME)
-    val street = DataSimple<String>("", BILL_STREET)
-    val zip = DataSimple<String>("", BILL_ZIP)
-    val city = DataSimple<String>("", BILL_CITY)
-    val visibility = DataSimple<Boolean>(false, BILL_VISIBILITY)
+    val name = DataElement<String>(BILL_NAME) { "" }
+    val street = DataElement<String>(BILL_STREET) { "" }
+    val zip = DataElement<String>(BILL_ZIP) { "" }
+    val city = DataElement<String>(BILL_CITY) { "" }
+    val visibility = DataElement<Boolean>(BILL_VISIBILITY) { false }
 
-    init {
-        registerElement(name)
-        registerElement(street)
-        registerElement(zip)
-        registerElement(city)
-        registerElement(visibility)
-    }
+    override val elements = listOf<DataBasicIf>(
+        name, street, zip, city, visibility
+    )
 
     fun copyFromSerialized(b: BillDataSerialized) {
         name.value = b.name
@@ -39,5 +36,13 @@ class BillData(): DataObject(BILL) {
         zip.value = b.zip
         city.value = b.city
         visibility.value = b.billVisibility
+    }
+
+    fun copy(b: BillData) {
+        name.copy(b.name)
+        street.copy(b.street)
+        zip.copy(b.zip)
+        city.copy(b.city)
+        visibility.copy(b.visibility)
     }
 }

@@ -1,39 +1,44 @@
 package com.stemaker.arbeitsbericht.data.report
 
 import androidx.lifecycle.MediatorLiveData
-import androidx.lifecycle.MutableLiveData
-import com.stemaker.arbeitsbericht.data.base.DataContainer
-import com.stemaker.arbeitsbericht.data.base.DataObject
-import com.stemaker.arbeitsbericht.data.base.DataSimple
-import com.stemaker.arbeitsbericht.data.base.DataSimpleList
+import com.stemaker.arbeitsbericht.data.base.*
 import com.stemaker.arbeitsbericht.data.configuration.configuration
 import com.stemaker.arbeitsbericht.data.dateStringToCalendar
 import java.util.*
 
 const val WORK_TIME_CONTAINER_VISIBILITY = "wtcVis"
 const val WORK_TIME_CONTAINER = "wtc"
-class WorkTimeContainerData():
+class WorkTimeContainerData:
     DataContainer<WorkTimeData>(WORK_TIME_CONTAINER) {
-    /* @TODO this is not available as event right now, except when directly registering on the member */
-    val visibility = DataSimple<Boolean>(false, WORK_TIME_CONTAINER_VISIBILITY)
+    val visibility = DataElement<Boolean>(WORK_TIME_CONTAINER_VISIBILITY) { false }
 
     fun copyFromSerialized(w: WorkTimeContainerDataSerialized) {
         visibility.value = w.visibility
-        items.clear()
+        clear()
         for(i in 0 until w.items.size) {
             val item = WorkTimeData()
             item.copyFromSerialized(w.items[i])
-            items.add(item)
+            add(item)
         }
     }
 
     fun copyFromDb(w: WorkTimeContainerDb) {
         visibility.value = w.wtVisibility
-        items.clear()
+        clear()
         for(element in w.wtItems) {
             val item = WorkTimeData()
             item.copyFromDb(element)
-            items.add(item)
+            add(item)
+        }
+    }
+
+    fun copy(w: WorkTimeContainerData) {
+        visibility.value = w.visibility.value
+        clear()
+        for(element in w.items) {
+            val item = WorkTimeData()
+            item.copy(element)
+            add(item)
         }
     }
 
@@ -42,7 +47,7 @@ class WorkTimeContainerData():
         if(ref != null) {
             wt.clone(ref)
         }
-        add(wt)
+        add(wt) // triggers LiveData update
         return wt
     }
 
@@ -50,12 +55,12 @@ class WorkTimeContainerData():
         val wt = WorkTimeData()
         if(def.useDefaultDistance) wt.distance.value = def.defaultDistance
         if(def.useDefaultDriveTime) wt.driveTime.value = def.defaultDriveTime
-        add(wt)
+        add(wt) // triggers LiveData update
         return wt
     }
 
     fun removeWorkTime(wt: WorkTimeData) {
-        remove(wt)
+        remove(wt) // triggers LiveData update
     }
 }
 
@@ -67,33 +72,30 @@ const val WORK_TIME_END_TIME = "wtEndTime"
 const val WORK_TIME_PAUSE_DURATION = "wtPauseDuration"
 const val WORK_TIME_DRIVE_TIME = "wtDriveTime"
 const val WORK_TIME_DISTANCE = "wtDistance"
-const val WORK_TIME = "workTime"
-class WorkTimeData(): DataObject(WORK_TIME)  {
+const val WORK_TIME_DATA = "workTimeData"
+class WorkTimeData: DataObject(WORK_TIME_DATA) {
 
-    val date = DataSimple<Calendar>(Calendar.getInstance(), WORK_TIME_DATE)
-    val employees = DataSimpleList<DataSimple<String>>(WORK_TIME_EMPLOYEES).apply { add(DataSimple<String>(configuration().employeeName, WORK_TIME_EMPLOYEE)) }
-    // Empty string as startTime will lead to pre-setting current time when clicking the edit button
-    val startTime = DataSimple<String>("", WORK_TIME_START_TIME)
-    // Empty string in endTime will lead to pre-setting current time when clicking the edit button
-    val endTime = DataSimple<String>("", WORK_TIME_END_TIME)
-    val pauseDuration = DataSimple<String>("00:00", WORK_TIME_PAUSE_DURATION)
-    val driveTime = DataSimple<String>("00:00", WORK_TIME_DRIVE_TIME)
-    var distance = DataSimple<Int>(0, WORK_TIME_DISTANCE)
-
-    init {
-        registerElement(date)
-        registerElement(employees)
-        registerElement(startTime)
-        registerElement(endTime)
-        registerElement(pauseDuration)
-        registerElement(driveTime)
-        registerElement(distance)
+    val date = DataElement<Calendar>(WORK_TIME_DATE) { Calendar.getInstance() }
+    val employees = DataContainer<DataElement<String>>(WORK_TIME_EMPLOYEES).apply {
+        add(DataElement<String>(WORK_TIME_EMPLOYEE) { configuration().employeeName })
     }
+    // Empty string as startTime will lead to pre-setting current time when clicking the edit button
+    val startTime = DataElement<String>(WORK_TIME_START_TIME) { "" }
+    // Empty string in endTime will lead to pre-setting current time when clicking the edit button
+    val endTime = DataElement<String>(WORK_TIME_END_TIME) { "" }
+    val pauseDuration = DataElement<String>( WORK_TIME_PAUSE_DURATION) { "00:00" }
+    val driveTime = DataElement<String>( WORK_TIME_DRIVE_TIME) { "00:00" }
+    var distance = DataElement<Int>( WORK_TIME_DISTANCE) { 0 }
+
+    override val elements = listOf<DataBasicIf>(
+        date, employees, startTime, endTime, pauseDuration, driveTime, distance
+    )
+
     // Will be reworked as part of the "Stundenbericht" to use jodatime for all time objects
     // As a quick fix we'll do this ugly stuff
-    private val workDuration = MediatorLiveData<String>()
+    val workDuration = MediatorLiveData<String>()
 
-    fun calcWorkDuration(): String {
+    private fun calcWorkDuration(): String {
         var h: Int
         var m: Int
         try {
@@ -136,26 +138,25 @@ class WorkTimeData(): DataObject(WORK_TIME)  {
         workDuration.addSource(startTime) { workDuration.value = calcWorkDuration() }
         workDuration.addSource(endTime) { workDuration.value = calcWorkDuration() }
         workDuration.addSource(pauseDuration) { workDuration.value = calcWorkDuration() }
+        workDuration.addSource(employees.containerModificationEvent) { workDuration.value = calcWorkDuration() }
     }
 
 
-    fun addEmployee(): DataSimple<String> {
-        val emp = DataSimple<String>(configuration().employeeName, WORK_TIME_EMPLOYEE)
+    fun addEmployee(): DataElement<String> {
+        val emp = DataElement<String>(WORK_TIME_EMPLOYEE) { configuration().employeeName }
         employees.add(emp)
-        workDuration.value = calcWorkDuration()
         return emp
     }
 
-    fun removeEmployee(emp: DataSimple<String>) {
+    fun removeEmployee(emp: DataElement<String>) {
         employees.remove(emp)
-        workDuration.value = calcWorkDuration()
     }
 
     fun copyFromSerialized(w: WorkTimeDataSerialized) {
         date.value = dateStringToCalendar(w.date)
         employees.clear()
         for(empSer in w.employees) {
-            val emp = DataSimple<String>(empSer, WORK_TIME_EMPLOYEE)
+            val emp = DataElement<String>(WORK_TIME_EMPLOYEE) { empSer }
             employees.add(emp)
         }
         startTime.value = w.startTime
@@ -169,7 +170,7 @@ class WorkTimeData(): DataObject(WORK_TIME)  {
         date.value = dateStringToCalendar(w.wtDate)
         employees.clear()
         for(empSer in w.wtEmployees) {
-            val emp = DataSimple<String>(empSer, WORK_TIME_EMPLOYEE)
+            val emp = DataElement<String>(WORK_TIME_EMPLOYEE) { empSer }
             employees.add(emp)
         }
         startTime.value = w.wtStartTime
@@ -177,6 +178,20 @@ class WorkTimeData(): DataObject(WORK_TIME)  {
         pauseDuration.value = w.wtPauseDuration
         driveTime.value = w.wtDriveTime
         distance.value = w.wtDistance
+    }
+
+    fun copy(w: WorkTimeData) {
+        date.copy(w.date)
+        employees.clear()
+        for(empSer in w.employees) {
+            val emp = DataElement<String>(WORK_TIME_EMPLOYEE) { empSer.value?:"" }
+            employees.add(emp)
+        }
+        startTime.copy(w.startTime)
+        endTime.copy(w.endTime)
+        pauseDuration.copy(w.pauseDuration)
+        driveTime.copy(w.driveTime)
+        distance.copy(w.distance)
     }
 
     private fun incDateByOneWeekday(dateIn: Calendar): Calendar {
@@ -196,8 +211,8 @@ class WorkTimeData(): DataObject(WORK_TIME)  {
     fun clone(w: WorkTimeData) {
         date.value  = incDateByOneWeekday(w.date.value!!)
         employees.clear()
-        for(empRef in w.employees) {
-            val emp = DataSimple<String>(empRef.value!!, WORK_TIME_EMPLOYEE)
+        for(empRef in w.employees.items) {
+            val emp = DataElement<String>(WORK_TIME_EMPLOYEE) { empRef.value!! }
             employees.add(emp)
         }
         startTime.value = w.startTime.value!!

@@ -4,7 +4,7 @@
         xmlns:app="http://schemas.android.com/apk/res-auto"
         tools:context=".editor_fragments.BillEditorFragment">
     <data>
-        <variable name="bill_data" type="com.stemaker.arbeitsbericht.data.report.BillData"/>
+        <variable name="view_model" type="com.stemaker.arbeitsbericht.view_models.BillViewModel"/>
     </data>
 
     <com.stemaker.arbeitsbericht.helpers.LinearLayoutVisListener
@@ -12,7 +12,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        app:visibility="@={bill_data.visibility}">
+        app:visibility="@={view_model.visibility}">
         <Button
                 android:id="@+id/client_select_button"
                 android:layout_width="wrap_content"
@@ -31,7 +31,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="textPersonName|textCapWords"
-                android:text="@={bill_data.name}"
+                android:text="@={view_model.name}"
                 android:hint="@string/name"/>
         </com.google.android.material.textfield.TextInputLayout>
         <com.google.android.material.textfield.TextInputLayout
@@ -43,7 +43,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="textCapWords"
-                android:text="@={bill_data.street}"
+                android:text="@={view_model.street}"
                 android:hint="@string/street"/>
         </com.google.android.material.textfield.TextInputLayout>
         <LinearLayout
@@ -60,7 +60,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="number"
-                    android:text="@={bill_data.zip}"
+                    android:text="@={view_model.zip}"
                     android:hint="@string/zip"/>
             </com.google.android.material.textfield.TextInputLayout>
             <com.google.android.material.textfield.TextInputLayout
@@ -72,7 +72,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="textCapWords"
-                    android:text="@={bill_data.city}"
+                    android:text="@={view_model.city}"
                     android:hint="@string/city"/>
             </com.google.android.material.textfield.TextInputLayout>
         </LinearLayout> <!-- End of plz_ort_container-->

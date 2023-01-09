@@ -1,26 +1,21 @@
 package com.stemaker.arbeitsbericht
 
-//import kotlinx.android.synthetic.main.activity_main.*
-import android.content.Context
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.os.Bundle
-import android.os.Handler
-import android.util.Log
 import android.view.*
 import androidx.appcompat.app.AlertDialog
-import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.stemaker.arbeitsbericht.data.ReportData
-import com.stemaker.arbeitsbericht.data.configuration
+import com.stemaker.arbeitsbericht.data.configuration.configuration
+import com.stemaker.arbeitsbericht.data.report.ReportData
 import com.stemaker.arbeitsbericht.databinding.ActivityMainBinding
 import com.stemaker.arbeitsbericht.helpers.ReportFilterDialog
 import com.stemaker.arbeitsbericht.helpers.ReportListAdapter
 import com.stemaker.arbeitsbericht.helpers.VersionDialogFragment
 import com.stemaker.arbeitsbericht.helpers.showConfirmationDialog
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.lang.IllegalStateException
 
@@ -37,45 +32,40 @@ interface ReportCardInterface {
 fun Boolean.toInt() = if (this) 1 else 0
 
 
-class MainActivity : AppCompatActivity(), ReportCardInterface {
+class MainActivity:
+    ArbeitsberichtActivity(),
+    ReportCardInterface
+{
     lateinit var binding: ActivityMainBinding
     lateinit var adapter: ReportListAdapter
+    private val scope = CoroutineScope(Dispatchers.Main)
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+        if(!onCreateWrapper(savedInstanceState))
+            return
 
-        val storageInitJob = storageHandler().initialize(this as Context)
+        // Here we expect that the app initialization is done
+        super.onCreate(savedInstanceState)
 
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
         binding.lifecycleOwner = this
 
         val layoutManager = LinearLayoutManager(this)
-        adapter = ReportListAdapter(this, this)
+        adapter = ReportListAdapter(this, app.reportRepo, this)
         val recyclerView = binding.reportListRv
         recyclerView.layoutManager = layoutManager
         recyclerView.adapter = adapter
 
-        window.setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
+        requestedOrientation = when(configuration().lockScreenOrientation) {
+            true -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
+            else -> ActivityInfo.SCREEN_ORIENTATION_FULL_USER
+        }
 
-        GlobalScope.launch(Dispatchers.Main) {
-            binding.progressBar.visibility = View.VISIBLE
-            binding.initNotify.visibility = View.VISIBLE
-            storageInitJob?.join()
-            requestedOrientation = when(configuration().lockScreenOrientation) {
-                true -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
-                else -> ActivityInfo.SCREEN_ORIENTATION_FULL_USER
-            }
-            binding.progressBar.visibility = View.GONE
-            binding.initNotify.visibility = View.GONE
-            adapter.registerReportListObserver()
-
-            window.clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
-            if (configuration().appUpdateWasDone) {
-                val versionDialog = VersionDialogFragment()
-                try {
-                    versionDialog.show(supportFragmentManager, "VersionDialog")
-                } catch (e: IllegalStateException) {}
-            }
+        if (configuration().appUpdateWasDone) {
+            val versionDialog = VersionDialogFragment()
+            try {
+                versionDialog.show(supportFragmentManager, "VersionDialog")
+            } catch (e: IllegalStateException) {}
         }
         binding.mainActivityToolbar.setOnMenuItemClickListener { item ->
             when (item.itemId) {
@@ -119,20 +109,8 @@ class MainActivity : AppCompatActivity(), ReportCardInterface {
 
     private fun createNewReport() {
         // On creating a new report, we should make in work reports visible
-        // This is a really ugly workaround to overcome a race. reportFilter.update() causes reading from DB. This is typically finished only after
-        // the new report was created and added. Then the DB reading comes back without this new report and it is gone.
-        // What I need to do is to establish a ReportRepository that directly links with the filter and synchronizes additions, deletions, filtering
-        if(!configuration().reportFilter.inWork) {
-            configuration().reportFilter.inWork = true
-            configuration().reportFilter.update()
-            val handler = Handler()
-            handler.postDelayed(Runnable() {
-                storageHandler().createNewReportAndSelect()
-                val intent = Intent(this@MainActivity, ReportEditorActivity::class.java).apply {}
-                startActivity(intent)
-            }, 1000)
-        } else {
-            storageHandler().createNewReportAndSelect()
+        app.reportFilter.inWork = true
+        app.reportRepo.createReportAndActivate() {
             val intent = Intent(this@MainActivity, ReportEditorActivity::class.java).apply {}
             startActivity(intent)
         }
@@ -146,29 +124,28 @@ class MainActivity : AppCompatActivity(), ReportCardInterface {
         adapter.jumpTop()
     }
 
-    override fun onClickReport(cnt: Int) {
-        GlobalScope.launch(Dispatchers.Main) {
-            storageHandler().selectReportByCnt(cnt)
-            val intent = Intent(this@MainActivity, ReportEditorActivity::class.java).apply {}
-            startActivity(intent)
-        }
+    override fun onClickReport(uid: Int) {
+        app.reportRepo.setActiveReport(uid)
+        val intent = Intent(this@MainActivity, ReportEditorActivity::class.java).apply {}
+        startActivity(intent)
     }
 
     override fun onClickDeleteReport(report:ReportData) {
-        GlobalScope.launch(Dispatchers.Main) {
+        scope.launch {
             val answer = showConfirmationDialog(getString(R.string.del_confirmation), this@MainActivity)
             if (answer == AlertDialog.BUTTON_POSITIVE) {
-                storageHandler().deleteReport(report.cnt)
+                app.reportRepo.deleteReport(report)
             }
         }
     }
 
     override fun onClickDuplicateReport(report:ReportData) {
-        //GlobalScope.launch(Dispatchers.Main) {
-        //    storageHandler().selectReportByCnt(cnt)
-        //    val intent = Intent(this@MainActivity, ReportEditorActivity::class.java).apply {}
-        //    startActivity(intent)
-        //}
+        // On creating a new report, we should make in work reports visible
+        app.reportFilter.inWork = true
+        app.reportRepo.duplicateReportAndActivate(report) {
+            val intent = Intent(this@MainActivity, ReportEditorActivity::class.java).apply {}
+            startActivity(intent)
+        }
     }
     /* This is only for test purposes to create many reports. All are marked with MANY_REPORTS */
     /*
@@ -181,17 +158,14 @@ class MainActivity : AppCompatActivity(), ReportCardInterface {
 
     override fun onSetReportState(report: ReportData, pos: Int, state: ReportData.ReportState) {
         report.state.value = state
-        GlobalScope.launch(Dispatchers.Main) {
-            storageHandler().saveReport(report, true)
-        }
+        // Not clear why I'd have to save here
+        //GlobalScope.launch(Dispatchers.Main) {
+        //    storageHandler().saveReport(report, true)
+        //}
     }
 
     private fun showFilterDialog() {
         val dialog = ReportFilterDialog()
         dialog.show(supportFragmentManager, "Filter")
-    }
-
-    companion object {
-        const val STATE_FILTER = "stateFilter"
     }
 }

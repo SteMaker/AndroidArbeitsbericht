@@ -161,7 +161,7 @@ object Configuration {
         set(value) {
             store.employeeName = value}
 
-    private var currentId: Int
+    var currentId: Int
         get(): Int = store.currentId
         set(value) {
             store.currentId = value}

@@ -1,10 +1,10 @@
 package com.stemaker.arbeitsbericht.helpers
 
 import android.util.Base64
-import com.stemaker.arbeitsbericht.data.Configuration
-import com.stemaker.arbeitsbericht.data.ReportData
 import com.stemaker.arbeitsbericht.data.calendarToDateString
-import com.stemaker.arbeitsbericht.data.configuration
+import com.stemaker.arbeitsbericht.data.configuration.Configuration
+import com.stemaker.arbeitsbericht.data.configuration.configuration
+import com.stemaker.arbeitsbericht.data.report.ReportData
 import java.io.File
 import java.io.FileInputStream
 import java.io.IOException
@@ -208,7 +208,7 @@ object HtmlReport {
         if(rep.photoContainer.items.size != 0) {
             html += "<h2>Fotos</h2>"
             rep.photoContainer.items.forEach {
-                val fileName = File(it.file.value).name // old version stored full path
+                val fileName = File(it.file.value!!).name // old version stored full path
                 html += "<div class=\"nobreak\">"
                 html += "<img src=\"content://com.stemaker.arbeitsbericht.fileprovider/ArbeitsberichtPhotos/$fileName\" style=\"max-width:100%\">"
                 html += "${it.description.value}"

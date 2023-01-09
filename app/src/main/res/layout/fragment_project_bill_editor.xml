@@ -5,14 +5,14 @@
         xmlns:app="http://schemas.android.com/apk/res-auto"
         tools:context=".editor_fragments.BillEditorFragment">
     <data>
-        <variable name="bill_data" type="com.stemaker.arbeitsbericht.data.report.BillData"/>
-        <variable name="project_data" type="com.stemaker.arbeitsbericht.data.report.ProjectData"/>
+        <variable name="view_model_bill" type="com.stemaker.arbeitsbericht.view_models.BillViewModel"/>
+        <variable name="view_model_project" type="com.stemaker.arbeitsbericht.view_models.ProjectViewModel"/>
     </data>
     <com.stemaker.arbeitsbericht.helpers.ConstraintLayoutVisListener
             android:id="@+id/project_bill_content_container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            app:visibility="@={project_data.visibility}">
+            app:visibility="@={view_model_project.visibility}">
     </com.stemaker.arbeitsbericht.helpers.ConstraintLayoutVisListener>
 </layout>

@@ -1,30 +1,31 @@
 package com.stemaker.arbeitsbericht.editor_fragments
 
-import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
 import android.widget.LinearLayout
 import androidx.appcompat.app.AlertDialog
+import androidx.lifecycle.ViewModelProvider
 import com.stemaker.arbeitsbericht.R
-import com.stemaker.arbeitsbericht.data.WorkItemContainerData
-import com.stemaker.arbeitsbericht.data.WorkItemData
+import com.stemaker.arbeitsbericht.data.report.ReportData
 import com.stemaker.arbeitsbericht.databinding.FragmentWorkItemEditorBinding
 import com.stemaker.arbeitsbericht.databinding.WorkItemLayoutBinding
 import com.stemaker.arbeitsbericht.helpers.showConfirmationDialog
+import com.stemaker.arbeitsbericht.view_models.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
-class WorkItemEditorFragment : ReportEditorSectionFragment() {
+class WorkItemEditorFragment(private val report: ReportData):
+    ReportEditorSectionFragment()
+{
     lateinit var dataBinding: FragmentWorkItemEditorBinding
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         // Inflate the layout for this fragment
         val root = super.onCreateView(inflater, container, savedInstanceState)
         dataBinding = FragmentWorkItemEditorBinding.inflate(inflater, container,false)
@@ -33,25 +34,17 @@ class WorkItemEditorFragment : ReportEditorSectionFragment() {
         setHeadline(getString(R.string.workitems))
 
         dataBinding.lifecycleOwner = viewLifecycleOwner
-        GlobalScope.launch(Dispatchers.Main) {
-            listener?.let { listener ->
-                val report = listener.getReportData()
-                report?.let { report ->
-                    val workItemContainerData = report.workItemContainer
-                    dataBinding.workItemContainerData = workItemContainerData
+        val workItemContainerData = report.workItemContainer
+        val viewModelContainer = ViewModelProvider(this, WorkItemContainerViewModelFactory(viewLifecycleOwner, workItemContainerData)).get(WorkItemContainerViewModel::class.java)
+        dataBinding.viewModelContainer = viewModelContainer
 
-                    for (wi in workItemContainerData.items) {
-                        addWorkItemView(wi, workItemContainerData)
-                    }
+        for (viewModel in viewModelContainer) {
+            addWorkItemView(viewModel, viewModelContainer)
+        }
 
-                    dataBinding.workItemAddButton.setOnClickListener(object : View.OnClickListener {
-                        override fun onClick(btn: View) {
-                            val wi = workItemContainerData.addWorkItem()
-                            addWorkItemView(wi, workItemContainerData)
-                        }
-                    })
-                }
-            }
+        dataBinding.workItemAddButton.setOnClickListener {
+            val viewModel = viewModelContainer.addWorkItem()
+            addWorkItemView(viewModel, viewModelContainer)
         }
         return root
     }
@@ -67,28 +60,26 @@ class WorkItemEditorFragment : ReportEditorSectionFragment() {
         return dataBinding.workItemContentContainer.visibility != View.GONE
     }
 
-    fun addWorkItemView(wi: WorkItemData, workItemContainerData: WorkItemContainerData) {
+    private fun addWorkItemView(viewModel: WorkItemViewModel, viewModelContainer: WorkItemContainerViewModel) {
         val inflater = layoutInflater
         val container = dataBinding.workItemContentContainer
         val workItemDataBinding: WorkItemLayoutBinding = WorkItemLayoutBinding.inflate(inflater, null, false)
-        workItemDataBinding.workItem = wi
-        workItemDataBinding.workItemContainer = workItemContainerData
+        workItemDataBinding.viewModel = viewModel
+        workItemDataBinding.viewModelContainer = viewModelContainer
         workItemDataBinding.lifecycleOwner = activity
-        workItemDataBinding.workItemDelButton.setOnClickListener(object: View.OnClickListener {
-            override fun onClick(btn: View) {
-                GlobalScope.launch(Dispatchers.Main) {
-                    val answer =
-                        showConfirmationDialog(getString(R.string.del_confirmation), btn.context)
-                    if (answer == AlertDialog.BUTTON_POSITIVE) {
-                        container.removeView(workItemDataBinding.root)
-                        workItemContainerData.removeWorkItem(wi)
-                    } else {
-                    }
+        workItemDataBinding.workItemDelButton.setOnClickListener { btn ->
+            GlobalScope.launch(Dispatchers.Main) {
+                val answer =
+                    showConfirmationDialog(getString(R.string.del_confirmation), btn.context)
+                if (answer == AlertDialog.BUTTON_POSITIVE) {
+                    container.removeView(workItemDataBinding.root)
+                    viewModelContainer.removeWorkItem(viewModel)
+                } else {
                 }
             }
-        })
+        }
 
-        val pos = container.getChildCount()
+        val pos = container.childCount
         container.addView(workItemDataBinding.root, pos)
     }
 

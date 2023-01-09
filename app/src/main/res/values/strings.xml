@@ -92,6 +92,9 @@
     <string name="auto_use">Automatisch übernehmen</string>
     <string name="client_list">Kunde auswählen</string>
     <string name="presets_active_notification">Kundenvorgabewerte aktiv!!</string>
+    <string name="preset_used_drive_distance">"Vorgabe für Fahrzeit (%1$s) und Entfernung (%2$d km) von Kundendaten übernommen"</string>
+    <string name="preset_used_drive">"Vorgabe für Fahrzeit (%1$s) von Kundendaten übernommen"</string>
+    <string name="preset_used_distance">"Vorgabe für Entfernung (%1$d km) von Kundendaten übernommen"</string>
 
     <!-- Configuration -->
     <string name="reportid_change_conf">Die laufende Nummer wurde geändert</string>

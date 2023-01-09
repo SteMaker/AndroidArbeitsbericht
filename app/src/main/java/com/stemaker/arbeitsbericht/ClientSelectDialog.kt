@@ -1,8 +1,6 @@
 package com.stemaker.arbeitsbericht
 
-import android.content.DialogInterface
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,10 +8,12 @@ import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.stemaker.arbeitsbericht.data.client.Client
+import com.stemaker.arbeitsbericht.data.client.ClientRepository
 import com.stemaker.arbeitsbericht.databinding.ClientSelectDialogBinding
 import com.stemaker.arbeitsbericht.helpers.ClientSelectListAdapter
 
-class ClientSelectDialog : DialogFragment() {
+class ClientSelectDialog(private val clientRepository: ClientRepository) : DialogFragment() {
     lateinit var binding: ClientSelectDialogBinding
     private var clientViewModel: ClientViewModel? = null
     private var listener: (client: Client) ->Unit = {}
@@ -22,7 +22,7 @@ class ClientSelectDialog : DialogFragment() {
         binding.lifecycleOwner = this
 
         val recyclerView = binding.clientListRv
-        clientViewModel = ViewModelProvider(this, ClientViewModelFactory(ClientRepository)).get(ClientViewModel::class.java)
+        clientViewModel = ViewModelProvider(this, ClientViewModelFactory(clientRepository)).get(ClientViewModel::class.java)
         val adapter = ClientSelectListAdapter(this, clientViewModel!!)
         recyclerView.layoutManager = LinearLayoutManager(context)
         recyclerView.adapter = adapter

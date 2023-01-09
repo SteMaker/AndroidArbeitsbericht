@@ -4,7 +4,7 @@
         xmlns:app="http://schemas.android.com/apk/res-auto"
         tools:context=".editor_fragments.WorkItemEditorFragment">
     <data>
-        <variable name="work_item_container_data" type="com.stemaker.arbeitsbericht.data.WorkItemContainerData"/>
+        <variable name="view_model_container" type="com.stemaker.arbeitsbericht.view_models.WorkItemContainerViewModel"/>
     </data>
 
     <com.stemaker.arbeitsbericht.helpers.LinearLayoutVisListener
@@ -13,7 +13,7 @@
         android:layout_height="wrap_content"
         android:background="@color/cardview_light_background"
         android:orientation="vertical"
-        app:visibility="@={work_item_container_data.visibility}">
+        app:visibility="@={view_model_container.visibility}">
         <Button
             android:id="@+id/work_item_add_button"
             android:layout_width="wrap_content"

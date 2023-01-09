@@ -1,6 +1,5 @@
 package com.stemaker.arbeitsbericht.data.client
 
-import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import com.stemaker.arbeitsbericht.data.configuration.configuration
 import com.stemaker.arbeitsbericht.helpers.ListObserver
@@ -29,13 +28,13 @@ class Client(val id: Int, __name: String = "", __street: String = "", __zip: Str
     fun equal(other: Client): Boolean = other.id == id
 }
 
-object ClientRepository {
+class ClientRepository(private val dao: ClientDao) {
     private val observers = mutableListOf<ListObserver<Client>>()
     val clients = mutableListOf<Client>()
     private val addedClients = mutableListOf<Client>()
     private val removedClients = mutableListOf<Client>()
-    private val dao = storageHandler().db.clientDao()
-    val initJob: Job = GlobalScope.launch(Dispatchers.Main) {
+
+    suspend fun initialize() {
         val clientsDb = withContext(Dispatchers.IO) { dao.getClients() }
         for (cDb in clientsDb) {
             val c = Client(cDb.id, cDb.name, cDb.street, cDb.zip, cDb.city, cDb.distance, cDb.useDistance, cDb.driveTime, cDb.useDriveTime, cDb.notes)
@@ -55,33 +54,27 @@ object ClientRepository {
     }
 
     fun addClient() {
-        if (initJob.isCompleted) {
-            val c = Client(configuration().currentClientId)
-            c.visible = true
-            configuration().currentClientId += 1
-            configuration().save()
-            clients.add(c)
-            for (obs in observers)
-                obs.elementAdded(c, clients.size - 1)
-            addedClients.add(c)
-        }
+        val c = Client(configuration().currentClientId)
+        c.visible = true
+        configuration().currentClientId += 1
+        configuration().save()
+        clients.add(c)
+        for (obs in observers)
+            obs.elementAdded(c, clients.size - 1)
+        addedClients.add(c)
     }
 
     fun removeClient(c: Client) {
-        if (initJob.isCompleted) {
-            val idx = clients.indexOfFirst { it.equal(c) }
-            if (idx == -1) return
-            clients.remove(c)
-            for (obs in observers)
-                obs.elementRemoved(c, idx)
-            removedClients.add(c)
-        }
+        val idx = clients.indexOfFirst { it.equal(c) }
+        if (idx == -1) return
+        clients.remove(c)
+        for (obs in observers)
+            obs.elementRemoved(c, idx)
+        removedClients.add(c)
     }
 
     private val mutex = Mutex()
     suspend fun store() {
-        initJob.join()
-
         mutex.withLock {
             for (added in addedClients) {
                 dao.insert(added.createClientDb())

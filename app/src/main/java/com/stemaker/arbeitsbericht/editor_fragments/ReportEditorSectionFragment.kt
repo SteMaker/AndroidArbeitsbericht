@@ -11,7 +11,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import com.stemaker.arbeitsbericht.R
-import com.stemaker.arbeitsbericht.data.ReportData
+import com.stemaker.arbeitsbericht.data.report.ReportData
 
 private const val TAG = "ReportEditSectFragment"
 
@@ -27,11 +27,7 @@ abstract class ReportEditorSectionFragment : Fragment() {
         rootView = inflater.inflate(R.layout.fragment_report_editor_section, container, false)
         val pseudoBtn: LinearLayout = rootView.findViewById(R.id.resh_headline_container)
         val imgV: ImageView = rootView.findViewById(R.id.resh_expand_content_pic)
-        pseudoBtn.setOnClickListener(object: View.OnClickListener {
-            override fun onClick(cV: View) {
-                onClickExpandContentButton(imgV)
-            }
-        })
+        pseudoBtn.setOnClickListener { onClickExpandContentButton(imgV) }
         rootView.findViewById<TextView>(R.id.resh_headline_textview).textSize =
             when(resources.configuration.screenLayout and Configuration.SCREENLAYOUT_SIZE_MASK) {
             Configuration.SCREENLAYOUT_SIZE_NORMAL ->  20.toFloat()
@@ -73,6 +69,6 @@ abstract class ReportEditorSectionFragment : Fragment() {
     abstract fun getVisibility(): Boolean
 
     interface OnReportEditorInteractionListener {
-        suspend fun getReportData(): ReportData?
+        val report: ReportData
     }
 }

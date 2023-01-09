@@ -1,7 +1,8 @@
 package com.stemaker.arbeitsbericht.data.report
 
-import androidx.lifecycle.MutableLiveData
 import androidx.room.*
+import com.stemaker.arbeitsbericht.data.base.DataContainer
+import com.stemaker.arbeitsbericht.data.base.DataElement
 import com.stemaker.arbeitsbericht.data.calendarToDateString
 import com.stemaker.arbeitsbericht.helpers.ReportFilter
 import kotlinx.serialization.Serializable
@@ -18,14 +19,14 @@ interface ReportDao {
     suspend fun getReportByCnt(cnt: Int): ReportDb
 
     @Query("SELECT cnt FROM ReportDb ORDER BY cnt DESC")
-    suspend fun getReportCnts(): List<Int>
+    suspend fun getReportUids(): List<Int>
 
     @Query("SELECT cnt FROM ReportDb WHERE state IN (:stateFilter) AND UPPER(projectName) LIKE (:proj) AND UPPER(extra1) LIKE (:extra) ORDER BY cnt DESC")
     suspend fun getFilteredReportIdsString(stateFilter: Set<Int>, proj: String, extra: String): List<Int>
 
     suspend fun getFilteredReportIds(filter: ReportFilter): List<Int> {
-        return getFilteredReportIdsString(filter.remainingStates, "%${filter.projectName.toUpperCase()}%",
-            "%${filter.projectExtra.toUpperCase()}%")
+        return getFilteredReportIdsString(filter.remainingStates, "%${filter.projectName.uppercase()}%",
+            "%${filter.projectExtra.uppercase()}%")
     }
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
@@ -161,7 +162,7 @@ data class WorkTimeContainerDb (
     ) {
         companion object {
             fun fromReport(w: WorkTimeData): WorkTimeDb = WorkTimeDb(calendarToDateString(w.date.value), extractEmployees(w.employees), w.startTime.value!!, w.endTime.value!!, w.pauseDuration.value!!, w.driveTime.value!!, w.distance.value!!)
-            private fun extractEmployees(e: List<MutableLiveData<String>>): List<String> {
+            private fun extractEmployees(e: DataContainer<DataElement<String>>): List<String> {
                 val l = mutableListOf<String>()
                 for(s in e) {
                     l.add(s.value!!)
@@ -273,7 +274,7 @@ data class PhotoContainerDb(
         val pImageHeight: Int
     ) {
         companion object {
-            fun fromReport(p: PhotoData): PhotoDb = PhotoDb(p.file.value!!, p.description.value!!, p.imageWidth, p.imageHeight)
+            fun fromReport(p: PhotoData): PhotoDb = PhotoDb(p.file.value!!, p.description.value!!, p.imageWidth.value?:512, p.imageHeight.value?:512)
         }
     }
 

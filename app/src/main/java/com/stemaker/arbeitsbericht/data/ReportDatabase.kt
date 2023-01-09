@@ -24,7 +24,7 @@ abstract class ReportDatabase : RoomDatabase() {
                         "`city` TEXT NOT NULL, `distance` INTEGER NOT NULL, `useDistance` INTEGER NOT NULL, `driveTime` TEXT NOT NULL, " +
                         "`useDriveTime` INTEGER NOT NULL, `notes` TEXT NOT NULL, PRIMARY KEY(`id`))")
                 // V2 - V3 added 4 new default elements that are taken from a client but not directly taken from there
-                database.execSQL("ALTER TABLE ReportDb ADD defaultDriveTime TEXT NOT NULL DEFAULT `00:00`")
+                database.execSQL("ALTER TABLE ReportDb ADD defaultDriveTime TEXT NOT NULL DEFAULT \"00:00\"")
                 database.execSQL("ALTER TABLE ReportDb ADD useDefaultDriveTime INTEGER NOT NULL DEFAULT 0")
                 database.execSQL("ALTER TABLE ReportDb ADD defaultDistance INTEGER NOT NULL DEFAULT 0")
                 database.execSQL("ALTER TABLE ReportDb ADD useDefaultDistance INTEGER NOT NULL DEFAULT 0")

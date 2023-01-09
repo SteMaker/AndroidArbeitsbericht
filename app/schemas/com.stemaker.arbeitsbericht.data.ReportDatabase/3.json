@@ -1,0 +1,246 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 3,
+    "identityHash": "5c22d20ac5054bcfe94d32492a21d1ee",
+    "entities": [
+      {
+        "tableName": "ReportDb",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`cnt` INTEGER NOT NULL, `create_date` TEXT NOT NULL, `state` INTEGER NOT NULL, `change_date` TEXT NOT NULL, `workTimeContainer` BLOB NOT NULL, `workItemContainer` BLOB NOT NULL, `materialContainer` BLOB NOT NULL, `lumpSumContainer` BLOB NOT NULL, `photoContainer` BLOB NOT NULL, `projectName` TEXT NOT NULL, `extra1` TEXT NOT NULL, `projectVisibility` INTEGER NOT NULL, `clientId` INTEGER NOT NULL, `billName` TEXT NOT NULL, `street` TEXT NOT NULL, `zip` TEXT NOT NULL, `city` TEXT NOT NULL, `billVisibility` INTEGER NOT NULL, `employeeSignatureSvg` TEXT NOT NULL, `clientSignatureSvg` TEXT NOT NULL, `defaultDriveTime` TEXT NOT NULL, `useDefaultDriveTime` INTEGER NOT NULL, `defaultDistance` INTEGER NOT NULL, `useDefaultDistance` INTEGER NOT NULL, PRIMARY KEY(`cnt`))",
+        "fields": [
+          {
+            "fieldPath": "cnt",
+            "columnName": "cnt",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "create_date",
+            "columnName": "create_date",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "state",
+            "columnName": "state",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "change_date",
+            "columnName": "change_date",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "workTimeContainer",
+            "columnName": "workTimeContainer",
+            "affinity": "BLOB",
+            "notNull": true
+          },
+          {
+            "fieldPath": "workItemContainer",
+            "columnName": "workItemContainer",
+            "affinity": "BLOB",
+            "notNull": true
+          },
+          {
+            "fieldPath": "materialContainer",
+            "columnName": "materialContainer",
+            "affinity": "BLOB",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lumpSumContainer",
+            "columnName": "lumpSumContainer",
+            "affinity": "BLOB",
+            "notNull": true
+          },
+          {
+            "fieldPath": "photoContainer",
+            "columnName": "photoContainer",
+            "affinity": "BLOB",
+            "notNull": true
+          },
+          {
+            "fieldPath": "project.projectName",
+            "columnName": "projectName",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "project.extra1",
+            "columnName": "extra1",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "project.projectVisibility",
+            "columnName": "projectVisibility",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "project.clientId",
+            "columnName": "clientId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "bill.billName",
+            "columnName": "billName",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "bill.street",
+            "columnName": "street",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "bill.zip",
+            "columnName": "zip",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "bill.city",
+            "columnName": "city",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "bill.billVisibility",
+            "columnName": "billVisibility",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "signatures.employeeSignatureSvg",
+            "columnName": "employeeSignatureSvg",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "signatures.clientSignatureSvg",
+            "columnName": "clientSignatureSvg",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "defaultValues.defaultDriveTime",
+            "columnName": "defaultDriveTime",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "defaultValues.useDefaultDriveTime",
+            "columnName": "useDefaultDriveTime",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "defaultValues.defaultDistance",
+            "columnName": "defaultDistance",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "defaultValues.useDefaultDistance",
+            "columnName": "useDefaultDistance",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "cnt"
+          ],
+          "autoGenerate": false
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "ClientDb",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `name` TEXT NOT NULL, `street` TEXT NOT NULL, `zip` TEXT NOT NULL, `city` TEXT NOT NULL, `distance` INTEGER NOT NULL, `useDistance` INTEGER NOT NULL, `driveTime` TEXT NOT NULL, `useDriveTime` INTEGER NOT NULL, `notes` TEXT NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "street",
+            "columnName": "street",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "zip",
+            "columnName": "zip",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "city",
+            "columnName": "city",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "distance",
+            "columnName": "distance",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "useDistance",
+            "columnName": "useDistance",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "driveTime",
+            "columnName": "driveTime",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "useDriveTime",
+            "columnName": "useDriveTime",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "notes",
+            "columnName": "notes",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "id"
+          ],
+          "autoGenerate": false
+        },
+        "indices": [],
+        "foreignKeys": []
+      }
+    ],
+    "views": [],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '5c22d20ac5054bcfe94d32492a21d1ee')"
+    ]
+  }
+}

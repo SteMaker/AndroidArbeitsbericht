@@ -1,17 +1,15 @@
 package com.stemaker.arbeitsbericht.helpers
 
 import android.content.DialogInterface
-import android.content.pm.ActivityInfo
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.webkit.WebView
 import android.widget.Button
 import androidx.fragment.app.DialogFragment
 import com.google.android.material.switchmaterial.SwitchMaterial
 import com.stemaker.arbeitsbericht.R
-import com.stemaker.arbeitsbericht.data.configuration
+import com.stemaker.arbeitsbericht.data.configuration.configuration
 
 class OrientationNotificationDialogFragment: DialogFragment() {
     private var listener: ForcePortraitListener? = null

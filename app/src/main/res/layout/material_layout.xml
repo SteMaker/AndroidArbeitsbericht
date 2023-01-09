@@ -3,8 +3,8 @@
         xmlns:android="http://schemas.android.com/apk/res/android">
 
     <data>
-        <variable name="material" type="com.stemaker.arbeitsbericht.data.MaterialData"/>
-        <variable name="material_container" type="com.stemaker.arbeitsbericht.data.MaterialContainerData"/>
+        <variable name="view_model" type="com.stemaker.arbeitsbericht.view_models.MaterialViewModel"/>
+        <variable name="view_model_container" type="com.stemaker.arbeitsbericht.view_models.MaterialContainerViewModel"/>
     </data>
 
     <androidx.cardview.widget.CardView
@@ -29,8 +29,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:inputType="textCapSentences"
-                        app:dictionary="@{material_container.dictionary}"
-                        android:text="@={material.item}"
+                        app:dictionary="@{view_model_container.dictionary}"
+                        android:text="@={view_model.item}"
                         android:hint="@string/material"
                         />
             </com.google.android.material.textfield.TextInputLayout>
@@ -48,7 +48,7 @@
                         android:inputType="numberDecimal"
                         android:digits="0123456789.,"
                         android:selectAllOnFocus="true"
-                        app:textFloat="@={material.amount}"
+                        app:textFloat="@={view_model.amount}"
                         android:hint="@string/amount"
                         />
             </com.google.android.material.textfield.TextInputLayout>
@@ -65,8 +65,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:inputType="text"
-                        app:dictionary="@{material_container.units}"
-                        android:text="@={material.unit}"
+                        app:dictionary="@{view_model_container.units}"
+                        android:text="@={view_model.unit}"
                         android:hint="@string/unit"
                         />
             </com.google.android.material.textfield.TextInputLayout>

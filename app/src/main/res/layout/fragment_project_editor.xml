@@ -4,7 +4,7 @@
         xmlns:app="http://schemas.android.com/apk/res-auto"
         tools:context=".editor_fragments.ProjectEditorFragment">
     <data>
-        <variable name="project_data" type="com.stemaker.arbeitsbericht.data.report.ProjectData"/>
+        <variable name="view_model" type="com.stemaker.arbeitsbericht.view_models.ProjectViewModel"/>
     </data>
 
         <com.stemaker.arbeitsbericht.helpers.LinearLayoutVisListener
@@ -12,7 +12,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            app:visibility="@={project_data.visibility}">
+            app:visibility="@={view_model.visibility}">
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="395dp"
                 android:layout_height="wrap_content"
@@ -22,7 +22,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="textPersonName|textCapWords"
-                    android:text="@={project_data.name}"
+                    android:text="@={view_model.name}"
                     android:hint="@string/client_project"/>
             </com.google.android.material.textfield.TextInputLayout>
             <com.google.android.material.textfield.TextInputLayout
@@ -34,7 +34,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="textCapSentences"
-                    android:text="@={project_data.extra1}"
+                    android:text="@={view_model.extra1}"
                     android:hint="@string/extra"/>
             </com.google.android.material.textfield.TextInputLayout>
         </com.stemaker.arbeitsbericht.helpers.LinearLayoutVisListener> <!-- End of project_content_container -->

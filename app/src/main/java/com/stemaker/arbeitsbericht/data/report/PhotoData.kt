@@ -2,78 +2,87 @@ package com.stemaker.arbeitsbericht.data.report
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.util.Log
-import androidx.lifecycle.MutableLiveData
+import com.stemaker.arbeitsbericht.data.base.*
 
-class PhotoContainerData {
-    val items = mutableListOf<PhotoData>()
-    val visibility = MutableLiveData<Boolean>().apply { value = false }
+const val PHOTO_CONTAINER_VISIBILITY = "pcVis"
+const val PHOTO_CONTAINER = "pc"
+class PhotoContainerData: DataContainer<PhotoData>(PHOTO_CONTAINER) {
+    val visibility = DataElement<Boolean>(PHOTO_CONTAINER_VISIBILITY) { false }
 
     fun copyFromSerialized(p: PhotoContainerDataSerialized) {
         visibility.value = p.visibility
-        items.clear()
+        clear()
         for(i in 0 until p.items.size) {
             val item = PhotoData()
             item.copyFromSerialized(p.items[i])
-            items.add(item)
+            add(item)
         }
     }
 
     fun copyFromDb(w: PhotoContainerDb) {
         visibility.value = w.pVisibility
-        items.clear()
+        clear()
         for(element in w.pItems) {
             val item = PhotoData()
             item.copyFromDb(element)
-            items.add(item)
+            add(item)
         }
     }
 
+    fun copy(w: PhotoContainerData) {
+        // not copying photos
+    }
+
     fun addPhoto(): PhotoData {
-        Log.d("Arbeitsbericht.debug", "Adding photo, before: ${items.size}, object: ${this.toString()}")
         val p = PhotoData()
-        items.add(p)
-        Log.d("Arbeitsbericht.debug", "Adding photo, after: ${items.size}, object: ${this.toString()}")
+        add(p)
         return p
     }
 
     fun removePhoto(p: PhotoData) {
-        Log.d("Arbeitsbericht.debug", "Removing photo, before: ${items.size}, object: ${this.toString()}")
-        items.remove(p)
-        Log.d("Arbeitsbericht.debug", "Removing photo, after: ${items.size}, object: ${this.toString()}")
+        remove(p)
     }
 }
 
-class PhotoData {
-    val file = MutableLiveData<String>().apply { value =  "" }
-    val description = MutableLiveData<String>().apply { value = "" }
-    var imageHeight = 0
-    var imageWidth = 0
+const val PHOTO_DATA = "pData"
+const val PHOTO_FILE = "pFile"
+const val PHOTO_DESCRIPTION = "pDesc"
+const val PHOTO_HEIGHT = "pHeight"
+const val PHOTO_WIDTH = "pWidth"
+class PhotoData: DataObject(PHOTO_DATA) {
+
+    val file = DataElement<String>(PHOTO_FILE) { "" }
+    val description = DataElement<String>(PHOTO_DESCRIPTION) { "" }
+    val imageHeight = DataElement<Int>(PHOTO_HEIGHT) { 0 }
+    val imageWidth = DataElement<Int>(PHOTO_WIDTH) { 0 }
+
+    override val elements = listOf<DataBasicIf>(
+        file, description, imageHeight, imageWidth
+    )
 
     fun copyFromSerialized(p: PhotoDataSerialized) {
         file.value = p.file
         description.value = p.description
-        imageHeight = p.imageHeight
-        imageWidth = p.imageWidth
+        imageHeight.value = p.imageHeight
+        imageWidth.value = p.imageWidth
         // Normally this was already filled in at the time of taking the photo. But in case this was taken with an older app version, it might not
-        if(imageWidth <= 0 || imageHeight <= 0) {
+        if(imageWidth.value!! <= 0 || imageHeight.value!! <= 0) {
             val options = BitmapFactory.Options()
-            options.inPreferredConfig = Bitmap.Config.ARGB_8888;
+            options.inPreferredConfig = Bitmap.Config.ARGB_8888
             val bitmap = BitmapFactory.decodeFile(p.file, options)
-            Log.d("Arbeitsbericht.debug", "bitmap is ${bitmap}")
             if(bitmap != null) {
-                imageWidth = bitmap.width
-                imageHeight = bitmap.height
+                imageWidth.value = bitmap.width
+                imageHeight.value = bitmap.height
             } else { // image not found
-                imageWidth = 1
-                imageHeight = 1
+                imageWidth.value = 1
+                imageHeight.value = 1
             }
         }
     }
     fun copyFromDb(p: PhotoContainerDb.PhotoDb) {
         file.value = p.pFile
         description.value = p.pDescription
-        imageHeight = p.pImageHeight
-        imageWidth = p.pImageWidth
+        imageHeight.value = p.pImageHeight
+        imageWidth.value = p.pImageWidth
     }
 }

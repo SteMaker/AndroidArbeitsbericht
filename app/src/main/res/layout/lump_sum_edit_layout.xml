@@ -3,8 +3,8 @@
         xmlns:android="http://schemas.android.com/apk/res/android">
 
     <data>
-        <variable name="lump_sum" type="com.stemaker.arbeitsbericht.data.LumpSumData"/>
-        <variable name="lump_sum_container" type="com.stemaker.arbeitsbericht.data.LumpSumContainerData"/>
+        <variable name="view_model" type="com.stemaker.arbeitsbericht.view_models.LumpSumViewModel"/>
+        <variable name="view_model_container" type="com.stemaker.arbeitsbericht.view_models.LumpSumContainerViewModel"/>
     </data>
 
     <androidx.cardview.widget.CardView
@@ -34,8 +34,8 @@
                         android:focusableInTouchMode="false"
                         android:inputType="none|textNoSuggestions"
                         android:cursorVisible="false"
-                        app:dictionary="@{lump_sum_container.list}"
-                        android:text="@={lump_sum.item}"
+                        app:dictionary="@{view_model_container.lumpSumList}"
+                        android:text="@={view_model.item}"
                         android:hint="@string/lump_sum"
                         />
             </com.google.android.material.textfield.TextInputLayout>
@@ -54,7 +54,7 @@
                         android:layout_height="wrap_content"
                         android:inputType="numberDecimal"
                         android:selectAllOnFocus="true"
-                        app:textInt="@={lump_sum.amount}"
+                        app:textInt="@={view_model.amount}"
                         android:hint="@string/amount"
                         />
             </com.google.android.material.textfield.TextInputLayout>
@@ -71,7 +71,7 @@
                         android:id="@+id/lump_sum_comment"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="@={lump_sum.comment}"
+                        android:text="@={view_model.comment}"
                         android:hint="@string/comment"
                         />
             </com.google.android.material.textfield.TextInputLayout>

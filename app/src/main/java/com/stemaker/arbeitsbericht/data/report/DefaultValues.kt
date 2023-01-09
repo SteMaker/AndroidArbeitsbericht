@@ -12,4 +12,11 @@ class DefaultValues {
         defaultDistance = d.defaultDistance
         useDefaultDistance = d.useDefaultDistance
     }
+
+    fun copy(d: DefaultValues) {
+        defaultDriveTime = d.defaultDriveTime
+        useDefaultDriveTime = d.useDefaultDriveTime
+        defaultDistance = d.defaultDistance
+        useDefaultDistance = d.useDefaultDistance
+    }
 }

@@ -41,8 +41,8 @@ class PhotoDataSerialized() {
     fun copyFromData(p: PhotoData) {
         file = p.file.value!!
         description = p.description.value!!
-        imageWidth = p.imageWidth
-        imageHeight = p.imageHeight
+        imageWidth = p.imageWidth.value!!
+        imageHeight = p.imageHeight.value!!
     }
 }
 

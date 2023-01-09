@@ -4,8 +4,8 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.lifecycle.LifecycleOwner
 import androidx.recyclerview.widget.RecyclerView
-import com.stemaker.arbeitsbericht.Client
 import com.stemaker.arbeitsbericht.ClientViewModel
+import com.stemaker.arbeitsbericht.data.client.Client
 import com.stemaker.arbeitsbericht.databinding.ClientSelectLayoutBinding
 
 class ClientSelectListAdapter(val lcOwner: LifecycleOwner, private val clientViewModel: ClientViewModel):

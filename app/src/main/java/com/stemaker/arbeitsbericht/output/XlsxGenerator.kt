@@ -5,9 +5,9 @@ import android.os.Environment
 import android.util.Log
 import android.widget.ProgressBar
 import android.widget.TextView
-import com.stemaker.arbeitsbericht.data.ReportData
 import com.stemaker.arbeitsbericht.data.calendarToDateString
-import com.stemaker.arbeitsbericht.data.configuration
+import com.stemaker.arbeitsbericht.data.configuration.configuration
+import com.stemaker.arbeitsbericht.data.report.ReportData
 import com.stemaker.arbeitsbericht.output.ReportGenerator
 import org.apache.poi.ss.usermodel.*
 import org.apache.poi.ss.util.WorkbookUtil
@@ -48,9 +48,9 @@ class XlsxGenerator(activity: Activity, report: ReportData, progressBar: Progres
         val wb = XSSFWorkbook()
         createStyles(wb)
         val sheetNameGeneral = WorkbookUtil.createSafeSheetName("Allgemein")
-        val sheetGeneral = wb.createSheet(sheetNameGeneral);
+        val sheetGeneral = wb.createSheet(sheetNameGeneral)
         val sheetNameData = WorkbookUtil.createSafeSheetName("Daten")
-        val sheetData = wb.createSheet(sheetNameData);
+        val sheetData = wb.createSheet(sheetNameData)
         var rown = 0
         sheetGeneral.setColumnWidth(0, (12.5f*256).toInt())
 
@@ -619,7 +619,7 @@ class XlsxGenerator(activity: Activity, report: ReportData, progressBar: Progres
                     val drawing = sheet.createDrawingPatriarch()
 
                     var row = sheet.createRow(0)
-                    val ratio = photoData.imageHeight.toFloat() / photoData.imageWidth.toFloat()
+                    val ratio = photoData.imageHeight.value!!.toFloat() / photoData.imageWidth.value!!.toFloat()
                     sheet.setColumnWidth(0, 60*256)
                     val widthInPt = Units.columnWidthToEMU(60*256) / Units.EMU_PER_POINT
                     row.height = (widthInPt*ratio*20f).toInt().toShort()

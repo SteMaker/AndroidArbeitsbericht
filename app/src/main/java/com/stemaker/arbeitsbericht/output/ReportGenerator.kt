@@ -10,7 +10,7 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import com.stemaker.arbeitsbericht.R
-import com.stemaker.arbeitsbericht.data.ReportData
+import com.stemaker.arbeitsbericht.data.report.ReportData
 import com.stemaker.arbeitsbericht.helpers.showConfirmationDialog
 import com.stemaker.arbeitsbericht.helpers.showInfoDialog
 import java.io.File
@@ -93,8 +93,9 @@ abstract class ReportGenerator(val activity: Activity, val report: ReportData, p
         return docFiles.plus(clientSigFile).plus(employeeSigFile).toTypedArray()
     }
 
+    // TODO("Track required re-generation of reports
     fun isDocUpToDate(files: Array<File>): Boolean {
-        return getHash(files) == report.lastStoreHash.toString() && report.lastStoreHash != 0
+        return false
     }
 
     suspend fun create(files: Array<File>): Boolean {

@@ -3,6 +3,8 @@ package com.stemaker.arbeitsbericht
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.stemaker.arbeitsbericht.helpers.ListObserver
+import com.stemaker.arbeitsbericht.data.client.ClientRepository
+import com.stemaker.arbeitsbericht.data.client.Client
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch

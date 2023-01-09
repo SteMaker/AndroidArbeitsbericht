@@ -2,32 +2,31 @@ package com.stemaker.arbeitsbericht
 
 import android.Manifest
 import android.content.ClipData
-import android.content.Context
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.graphics.Point
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.print.*
 import android.util.Log
 import android.view.*
 import android.webkit.MimeTypeMap
-import android.webkit.WebView
 import android.widget.*
-import androidx.annotation.NonNull
 import androidx.appcompat.app.AlertDialog
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.databinding.DataBindingUtil
-import com.stemaker.arbeitsbericht.data.ReportData
-import com.stemaker.arbeitsbericht.data.report.SignatureData
-import com.stemaker.arbeitsbericht.data.configuration
+import androidx.lifecycle.ViewModelProvider
+import com.stemaker.arbeitsbericht.data.configuration.configuration
+import com.stemaker.arbeitsbericht.data.report.ReportData
 import com.stemaker.arbeitsbericht.databinding.ActivitySummaryBinding
 import com.stemaker.arbeitsbericht.helpers.*
 import com.stemaker.arbeitsbericht.output.OdfGenerator
+import com.stemaker.arbeitsbericht.view_models.SignatureViewModel
+import com.stemaker.arbeitsbericht.view_models.SignatureViewModelFactory
 import kotlinx.coroutines.*
 import java.io.File
 import java.lang.Exception
@@ -38,95 +37,84 @@ import kotlin.coroutines.suspendCoroutine
 private const val TAG = "SummaryActivity"
 
 
-class SummaryActivity : AppCompatActivity() {
+class SummaryActivity:
+    ArbeitsberichtActivity()
+{
     lateinit var binding: ActivitySummaryBinding
-    lateinit var signatureData: SignatureData
+    lateinit var viewModel: SignatureViewModel
+    lateinit var report: ReportData
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        if(!onCreateWrapper(savedInstanceState))
+            return
+
+        // Here we expect that the app initialization is done
         super.onCreate(savedInstanceState)
+        report = app.reportRepo.activeReport
         binding = DataBindingUtil.setContentView(this, R.layout.activity_summary)
         binding.lifecycleOwner = this
 
-        val storageInitJob = storageHandler().initialize(this as Context)
-
-        GlobalScope.launch(Dispatchers.Main) {
-            storageInitJob?.let {
-                if (!it.isCompleted) {
-                    binding.createReportProgressContainer.visibility = View.VISIBLE
-                    it.join()
-                    binding.createReportProgressContainer.visibility = View.GONE
-                }
-            } ?: run { Log.e(TAG, "storageHandler job was null :(") }
-
-            requestedOrientation = when(configuration().lockScreenOrientation) {
-                true -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
-                else -> ActivityInfo.SCREEN_ORIENTATION_FULL_USER
-            }
-            signatureData = storageHandler().getReport()!!.signatureData
-            binding.signature = signatureData
-
-            val eSigPad = findViewById<LockableSignaturePad>(R.id.employee_signature)
-            if (signatureData.employeeSignatureSvg.value!! != "") {
-                Log.d(TAG, "create eSig svg ${signatureData.employeeSignatureSvg.value!!.length}")
-                eSigPad.setSvg(signatureData.employeeSignatureSvg.value!!)
-                eSigPad.locked = true
-                val lockBtn = findViewById<Button>(R.id.lock_employee_signature_btn)
-                lockBtn!!.isEnabled = false
-            }
-            val cSigPad = findViewById<LockableSignaturePad>(R.id.client_signature)
-            if (signatureData.clientSignatureSvg.value!! != "") {
-                cSigPad.setSvg(signatureData.clientSignatureSvg.value!!)
-                cSigPad.locked = true
-                val lockBtn = findViewById<Button>(R.id.lock_client_signature_btn)
-                lockBtn!!.isEnabled = false
-            }
-            binding.summaryActivityToolbar.setOnMenuItemClickListener { item ->
-                when (item.itemId) {
-                    R.id.show_preview-> {
-                        prepareAndShare(false) {
-                                file, type -> file?.also { showReport(file, type) }
-                        }
-                        true
-                    }
-                    R.id.send_report -> {
-                        prepareAndShare(true) {
-                                file, _ -> sendMail(file, storageHandler().getReport()!!)
-                        }
-                        true
-                    }
-                    R.id.share_report -> {
-                        prepareAndShare(true) {
-                                file, _ ->
-                            if (file != null) {
-                                shareReport(file, storageHandler().getReport()!!)
-                            } else {
-                                val toast = Toast.makeText(applicationContext, R.string.send_fail, Toast.LENGTH_LONG)
-                                toast.show()
-                            }
-                        }
-                        true
-                    }
-                    else -> super.onOptionsItemSelected(item)
-                }
-            }
-            binding.summaryActivityToolbar.setNavigationOnClickListener {
-                onBackPressed()
-            }
-            /* Make headline text area of signature also clickable */
-            //val employeeSigText = findViewById<TextView>(R.id.employee_signature_text)
-            //employeeSigText!!.setOnClickListener { onClickHideEmployeeSignature(findViewById<Button>(R.id.hide_employee_signature_btn)) }
-            //val clientSigText = findViewById<TextView>(R.id.client_signature_text)
-            //clientSigText!!.setOnClickListener { onClickHideClientSignature(findViewById<Button>(R.id.hide_client_signature_btn)) }
-
-            val html = HtmlReport.encodeReport(storageHandler().getReport()!!, this@SummaryActivity.filesDir, false)
-            val wv = findViewById<WebView>(R.id.webview)
-            wv.loadDataWithBaseURL("", html, "text/html", "UTF-8", "")
+        requestedOrientation = when(configuration().lockScreenOrientation) {
+            true -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
+            else -> ActivityInfo.SCREEN_ORIENTATION_FULL_USER
         }
+        val signatureData = report.signatureData
+        viewModel = ViewModelProvider(this, SignatureViewModelFactory(this, signatureData)).get(SignatureViewModel::class.java)
+
+        val eSigPad = binding.employeeSignature
+        if (viewModel.isEmployeeSignatureDefined()) {
+            eSigPad.setSvg(viewModel.getEmployeeSignatureSvg())
+            eSigPad.locked = true
+            binding.lockEmployeeSignatureBtn.isEnabled = false
+        }
+
+        val cSigPad = binding.clientSignature
+        if (viewModel.isClientSignatureDefined()) {
+            cSigPad.setSvg(viewModel.getClientSignatureSvg())
+            cSigPad.locked = true
+            binding.lockClientSignatureBtn.isEnabled = false
+        }
+        binding.summaryActivityToolbar.setOnMenuItemClickListener { item ->
+            when (item.itemId) {
+                R.id.show_preview-> {
+                    prepareAndShare(false) {
+                            file, type -> file?.also { showReport(file, type) }
+                    }
+                    true
+                }
+                R.id.send_report -> {
+                    prepareAndShare(true) {
+                            file, _ -> sendMail(file, report)
+                    }
+                    true
+                }
+                R.id.share_report -> {
+                    prepareAndShare(true) {
+                            file, _ ->
+                        if (file != null) {
+                            shareReport(file, report)
+                        } else {
+                            val toast = Toast.makeText(applicationContext, R.string.send_fail, Toast.LENGTH_LONG)
+                            toast.show()
+                        }
+                    }
+                    true
+                }
+                else -> super.onOptionsItemSelected(item)
+            }
+        }
+        binding.summaryActivityToolbar.setNavigationOnClickListener {
+            onBackPressed()
+        }
+
+        val html = HtmlReport.encodeReport(report, this@SummaryActivity.filesDir, false)
+        binding.webview.loadDataWithBaseURL("", html, "text/html", "UTF-8", "")
+
         // In landscape limiting the width of the signature pad to the max width possible in portrait,
         // to make sure the same area is accessible in both
         // @TODO getRealSize was deprecated in Android12, need to find the correct way to handle this
         val size = Point()
-        display?.getRealSize(size)
+        getDisplaySize(size)
         if(size.x > size.y) {
             val percent = size.y.toFloat()/size.x.toFloat()
             binding.guidelineEmployeeSigpadWidth?.setGuidelinePercent(percent)
@@ -136,7 +124,6 @@ class SummaryActivity : AppCompatActivity() {
 
     override fun onBackPressed() {
         Log.d(TAG, "called")
-        val intent = Intent(this, ReportEditorActivity::class.java).apply {}
         GlobalScope.launch(Dispatchers.Main) {
             saveSignatures()
             super.onBackPressed()
@@ -150,10 +137,29 @@ class SummaryActivity : AppCompatActivity() {
         }
     }
 
+    private fun getDisplaySize(size: Point) {
+        val wm = this.getSystemService(WINDOW_SERVICE) as WindowManager
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            val windowMetrics = wm.currentWindowMetrics
+            val windowInsets: WindowInsets = windowMetrics.windowInsets
+
+            val insets = windowInsets.getInsetsIgnoringVisibility(
+                WindowInsets.Type.navigationBars() or WindowInsets.Type.displayCutout())
+            val insetsWidth = insets.right + insets.left
+            val insetsHeight = insets.top + insets.bottom
+
+            val b = windowMetrics.bounds
+            size.x = b.width() - insetsWidth
+            size.y = b.height() - insetsHeight
+        } else {
+            val display = wm.defaultDisplay // deprecated in API 30
+            display?.getSize(size) // deprecated in API 30
+        }
+    }
     fun onClickClearEmployeeSignature(@Suppress("UNUSED_PARAMETER") btn: View) {
         Log.d(TAG, "called")
-        val pad = findViewById<LockableSignaturePad>(R.id.employee_signature)
-        if(pad.isEmpty())
+        val pad = binding.employeeSignature
+        if(pad.isEmpty)
             return
         GlobalScope.launch(Dispatchers.Main) {
             val answer =
@@ -161,9 +167,8 @@ class SummaryActivity : AppCompatActivity() {
             if (answer == AlertDialog.BUTTON_POSITIVE) {
                 pad.clear()
                 pad.locked = false
-                val lockBtn = findViewById<Button>(R.id.lock_employee_signature_btn)
-                lockBtn!!.setEnabled(true)
-                signatureData.employeeSignatureSvg.value = ""
+                binding.lockEmployeeSignatureBtn.isEnabled = true
+                viewModel.clearEmployeeSignature()
             } else {
                 Log.d(TAG, "cancelled deleting")
             }
@@ -171,12 +176,11 @@ class SummaryActivity : AppCompatActivity() {
     }
 
     private fun lockEmployeeSignature() {
-        val pad = findViewById<LockableSignaturePad>(R.id.employee_signature)
+        val pad = binding.employeeSignature
         if(!pad.isEmpty && !pad.locked) {
-            signatureData.employeeSignatureSvg.value = pad.signatureSvg
-            pad.setSvg(signatureData.employeeSignatureSvg.value!!)
-            val lockBtn = findViewById<Button>(R.id.lock_employee_signature_btn)
-            lockBtn!!.setEnabled(false)
+            viewModel.setEmployeeSignatureSvg(pad.signatureSvg)
+            pad.setSvg(viewModel.getEmployeeSignatureSvg())
+            binding.lockEmployeeSignatureBtn.isEnabled = false
             pad.locked = true
         }
     }
@@ -200,8 +204,8 @@ class SummaryActivity : AppCompatActivity() {
 
     fun onClickClearClientSignature(@Suppress("UNUSED_PARAMETER") btn: View) {
         Log.d(TAG, "called")
-        val pad = findViewById<LockableSignaturePad>(R.id.client_signature)
-        if(pad.isEmpty())
+        val pad = binding.clientSignature
+        if(pad.isEmpty)
             return
         GlobalScope.launch(Dispatchers.Main) {
             val answer =
@@ -209,9 +213,8 @@ class SummaryActivity : AppCompatActivity() {
             if (answer == AlertDialog.BUTTON_POSITIVE) {
                 pad.clear()
                 pad.locked = false
-                val lockBtn = findViewById<Button>(R.id.lock_client_signature_btn)
-                lockBtn.setEnabled(true)
-                signatureData.clientSignatureSvg.value = ""
+                binding.lockClientSignatureBtn.isEnabled = true
+                viewModel.clearClientSignature()
             } else {
                 Log.d(TAG, "cancelled deleting")
             }
@@ -219,12 +222,11 @@ class SummaryActivity : AppCompatActivity() {
     }
 
     private fun lockClientSignature() {
-        val pad = findViewById<LockableSignaturePad>(R.id.client_signature)
+        val pad = binding.clientSignature
         if(!pad.isEmpty && !pad.locked) {
-            signatureData.clientSignatureSvg.value = pad.signatureSvg
-            pad.setSvg(signatureData.clientSignatureSvg.value!!)
-            val lockBtn = findViewById<Button>(R.id.lock_client_signature_btn)
-            lockBtn!!.setEnabled(false)
+            viewModel.setClientSignatureSvg(pad.signatureSvg)
+            pad.setSvg(viewModel.getClientSignatureSvg())
+            binding.lockClientSignatureBtn.isEnabled = false
             pad.locked = true
         }
     }
@@ -249,7 +251,7 @@ class SummaryActivity : AppCompatActivity() {
     private fun saveSignatures() {
         lockEmployeeSignature()
         lockClientSignature()
-        storageHandler().saveActiveReport()
+        app.reportRepo.saveReport(report)
     }
 
     var writePermissionContinuation: Continuation<Boolean>? = null
@@ -285,18 +287,17 @@ class SummaryActivity : AppCompatActivity() {
     }
 
     private suspend fun askAndSetDone() {
-        if(storageHandler().getReport()!!.state.value == ReportData.ReportState.DONE) return
+        if(report.state.value == ReportData.ReportState.DONE) return
         val answer =
             showConfirmationDialog("Soll der Bericht auf Erledigt gesetzt werden?", this@SummaryActivity)
         if(answer == AlertDialog.BUTTON_POSITIVE) {
-            storageHandler().getReport()!!.state.value = ReportData.ReportState.DONE
-            storageHandler().saveActiveReport()
+            report.state.value = ReportData.ReportState.DONE
+            app.reportRepo.saveReport(report)
         }
     }
 
     // TODO: Currently only supporting a single output file, currently no other use case
     private suspend fun createReport(): Pair<File?, OutputType> {
-        var file: File? = null
         val type = when {
             configuration().useXlsxOutput -> OutputType.XLSX
             configuration().useOdfOutput -> OutputType.ODT
@@ -306,7 +307,6 @@ class SummaryActivity : AppCompatActivity() {
         if(type == OutputType.UNKNOWN)
             return Pair(null, type)
 
-        val report = storageHandler().getReport() ?: return Pair(null, type)
         val generator = when(type) {
             // FIXME: Add support for select !!!!
             OutputType.XLSX -> XlsxGenerator(this@SummaryActivity, report, binding.createReportProgressbar,
@@ -317,7 +317,7 @@ class SummaryActivity : AppCompatActivity() {
                 binding.createReportProgressText)
         }
         val files = generator.getFilesForGeneration()
-        file = if(files != null) {
+        val file = if(files != null) {
             if(generator.isDocUpToDate(files)) {
                 files[0]
             } else {
@@ -326,12 +326,12 @@ class SummaryActivity : AppCompatActivity() {
                 report.signatureData.employeeSignaturePngFile = files[2]
                 createSigPngs(files[1], files[2])
                 window.setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
-                findViewById<LinearLayout>(R.id.create_report_progress_container).visibility = View.VISIBLE
+                binding.createReportProgressContainer.visibility = View.VISIBLE
                 if(!generator.create(files)) {
                     val toast = Toast.makeText(this, "Entschuldigung, es ist ein Fehler beim Erstellen des Berichts aufgetreten", Toast.LENGTH_LONG)
                     toast.show()
                 }
-                findViewById<LinearLayout>(R.id.create_report_progress_container).visibility = View.GONE
+                binding.createReportProgressContainer.visibility = View.GONE
                 window.clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
                 files[0]
             }
@@ -343,20 +343,20 @@ class SummaryActivity : AppCompatActivity() {
     }
 
     private fun createSigPngs(cSigFile: File, eSigFile: File) {
-        val sigPadC = findViewById<LockableSignaturePad>(R.id.client_signature)
-        val sigPadCV = sigPadC!!.visibility
+        val sigPadC = binding.clientSignature
+        val sigPadCV = sigPadC.visibility
         sigPadC.visibility = View.VISIBLE
-        binding.clientSignature.saveBitmapToFile(cSigFile)
+        sigPadC.saveBitmapToFile(cSigFile)
         sigPadC.visibility = sigPadCV
 
-        val sigPadE = findViewById<LockableSignaturePad>(R.id.employee_signature)
-        val sigPadEV = sigPadE!!.visibility
+        val sigPadE = binding.employeeSignature
+        val sigPadEV = sigPadE.visibility
         sigPadE.visibility = View.VISIBLE
-        binding.employeeSignature.saveBitmapToFile(eSigFile)
+        sigPadE.saveBitmapToFile(eSigFile)
         sigPadE.visibility = sigPadEV
     }
 
-    override fun onRequestPermissionsResult(requestCode: Int, @NonNull permissions: Array<String>, @NonNull grantResults: IntArray) {
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if(requestCode == REQUEST_CODE_WRITE_EXTERNAL_STORAGE_PERMISSION) {
             if(grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {

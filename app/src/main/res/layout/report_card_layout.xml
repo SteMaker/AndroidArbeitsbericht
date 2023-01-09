@@ -2,7 +2,7 @@
 <layout xmlns:app="http://schemas.android.com/apk/res-auto"
         xmlns:android="http://schemas.android.com/apk/res/android">
     <data>
-        <variable name="report_data" type="com.stemaker.arbeitsbericht.data.ReportData"/>
+        <variable name="report_data" type="com.stemaker.arbeitsbericht.data.report.ReportData"/>
     </data>
     <androidx.cardview.widget.CardView
             android:id="@+id/report_card_top"

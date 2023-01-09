@@ -3,7 +3,7 @@
         xmlns:android="http://schemas.android.com/apk/res/android">
 
     <data>
-        <variable name="photo" type="com.stemaker.arbeitsbericht.data.PhotoData"/>
+        <variable name="view_model" type="com.stemaker.arbeitsbericht.view_models.PhotoViewModel"/>
     </data>
 
     <androidx.cardview.widget.CardView
@@ -54,7 +54,7 @@
                     app:layout_constraintLeft_toRightOf="@id/photo_load_button"
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintBottom_toTopOf="@id/barrier"
-                    app:srcPhotoFile="@{photo.file}"
+                    app:srcPhotoFile="@{view_model.file}"
                     />
             <androidx.constraintlayout.widget.Barrier
                     android:id="@+id/barrier"
@@ -73,7 +73,7 @@
                         android:id="@+id/photo_description"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="@={photo.description}"
+                        android:text="@={view_model.description}"
                         android:hint="@string/description"
                         />
             </com.google.android.material.textfield.TextInputLayout>

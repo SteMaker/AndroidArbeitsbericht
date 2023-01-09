@@ -1,5 +1,6 @@
 package com.stemaker.arbeitsbericht.editor_fragments
 
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -8,27 +9,30 @@ import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModelProvider
 import com.stemaker.arbeitsbericht.R
-import com.stemaker.arbeitsbericht.data.WorkTimeContainerData
-import com.stemaker.arbeitsbericht.data.WorkTimeData
+import com.stemaker.arbeitsbericht.data.report.ReportData
 import com.stemaker.arbeitsbericht.databinding.EmployeeEntryLayoutBinding
 import com.stemaker.arbeitsbericht.databinding.FragmentWorkTimeEditorBinding
 import com.stemaker.arbeitsbericht.databinding.WorkTimeLayoutBinding
 import com.stemaker.arbeitsbericht.helpers.DatePickerFragment
 import com.stemaker.arbeitsbericht.helpers.TimePickerFragment
 import com.stemaker.arbeitsbericht.helpers.showConfirmationDialog
+import com.stemaker.arbeitsbericht.view_models.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
-class WorkTimeEditorFragment : ReportEditorSectionFragment() {
+class WorkTimeEditorFragment(private val report: ReportData):
+    ReportEditorSectionFragment()
+{
     lateinit var dataBinding: FragmentWorkTimeEditorBinding
-    val workTimeViews = mutableListOf<View>()
+    private val workTimeViews = mutableListOf<View>()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         // Inflate the layout for this fragment
         val root = super.onCreateView(inflater, container, savedInstanceState)
         dataBinding = FragmentWorkTimeEditorBinding.inflate(inflater, container,false)
@@ -37,56 +41,33 @@ class WorkTimeEditorFragment : ReportEditorSectionFragment() {
         setHeadline(getString(R.string.worktimes))
 
         dataBinding.lifecycleOwner =viewLifecycleOwner
-        GlobalScope.launch(Dispatchers.Main) {
-            listener?.let { listener ->
-                val report = listener.getReportData()
-                report?.let { report ->
-                    val workTimeContainerData = report.workTimeContainer
-                    dataBinding.workTimeContainerData = workTimeContainerData
+        val workTimeContainerData = report.workTimeContainer
+        val viewModelContainer = ViewModelProvider(this, WorkTimeContainerViewModelFactory(viewLifecycleOwner, workTimeContainerData, report.defaultValues)).get(WorkTimeContainerViewModel::class.java)
+        dataBinding.viewModelContainer = viewModelContainer
 
-                    for (wt in workTimeContainerData.items) {
-                        addWorkTimeView(wt, workTimeContainerData)
-                    }
-
-                    dataBinding.workTimeAddButton.setOnClickListener {
-                        val wt = workTimeContainerData.addWorkTime(report.defaultValues)
-                        val text = when {
-                            report.defaultValues.useDefaultDriveTime && report.defaultValues.useDefaultDistance ->
-                                "Vorgabe für Fahrzeit (${report.defaultValues.defaultDriveTime}) und Entfernung (${report.defaultValues.defaultDistance}km) von Kundendaten übernommen"
-                            report.defaultValues.useDefaultDriveTime ->
-                                "Vorgabe für Fahrzeit (${report.defaultValues.defaultDriveTime}) von Kundendaten übernommen"
-                            report.defaultValues.useDefaultDistance ->
-                                "Vorgabe für Entfernung (${report.defaultValues.defaultDistance}km) von Kundendaten übernommen"
-                            else -> ""
-                        }
-                        if (text != "") {
-                            val toast = Toast.makeText(root.context, text, Toast.LENGTH_LONG)
-                            toast.show()
-                        }
-                        addWorkTimeView(wt, workTimeContainerData)
-                    }
-
-                    dataBinding.workTimeSortButton.setOnClickListener {
-                        val comparator = Comparator { a: WorkTimeData, b: WorkTimeData ->
-                            a.date.value?.let { ita ->
-                                b.date.value?.let { itb ->
-                                    ita.time.compareTo(itb.time)
-                                }
-                            } ?: 0
-                        }
-                        workTimeContainerData.items.sortWith(comparator)
-                        val c = dataBinding.workTimeContentContainer
-                        for (v in workTimeViews)
-                            c.removeView(v)
-                        workTimeViews.clear()
-                        for (wt in workTimeContainerData.items) {
-                            addWorkTimeView(wt, workTimeContainerData)
-                        }
-                    }
-                }
-            }
+        for (viewModel in viewModelContainer) {
+            addWorkTimeView(viewModel, viewModelContainer)
         }
 
+        dataBinding.workTimeAddButton.setOnClickListener {
+            val ret = viewModelContainer.addWorkTime(requireActivity() as Context)
+            ret.first?.let {
+                val toast = Toast.makeText(root.context, it, Toast.LENGTH_LONG)
+                toast.show()
+            }
+            addWorkTimeView(ret.second, viewModelContainer)
+        }
+
+        dataBinding.workTimeSortButton.setOnClickListener {
+            viewModelContainer.sortByDate()
+            val c = dataBinding.workTimeContentContainer
+            for (v in workTimeViews)
+                c.removeView(v)
+            workTimeViews.clear()
+            for (viewModel in viewModelContainer) {
+                addWorkTimeView(viewModel, viewModelContainer)
+            }
+        }
         return root
     }
 
@@ -101,106 +82,88 @@ class WorkTimeEditorFragment : ReportEditorSectionFragment() {
         return dataBinding.workTimeContentContainer.visibility != View.GONE
     }
 
-    fun addWorkTimeView(wt: WorkTimeData, workTimeContainerData: WorkTimeContainerData) {
+    private fun addWorkTimeView(viewModel: WorkTimeViewModel, viewModelContainer: WorkTimeContainerViewModel) {
         val inflater = layoutInflater
         val container = dataBinding.workTimeContentContainer
         val workTimeDataBinding: WorkTimeLayoutBinding = WorkTimeLayoutBinding.inflate(inflater, null, false)
-        workTimeDataBinding.workTime = wt
+        workTimeDataBinding.viewModel = viewModel
         workTimeDataBinding.lifecycleOwner = activity
         workTimeViews.add(workTimeDataBinding.root)
 
-        for(empl in wt.employees) {
-            addEmployeeView(workTimeDataBinding.root, wt, empl)
+        for(employee in viewModel.employees) {
+            addEmployeeView(workTimeDataBinding.root, viewModel, employee)
         }
 
-        workTimeDataBinding.dateContainer.setOnClickListener(object: View.OnClickListener {
-            override fun onClick(btn: View) {
-                val newFragment = DatePickerFragment()
-                newFragment.date = wt.date
-                newFragment.show(parentFragmentManager, "datePicker")
-            }
-        })
-        workTimeDataBinding.startContainer.setOnClickListener(object: View.OnClickListener {
-            override fun onClick(btn: View) {
-                val newFragment = TimePickerFragment()
-                newFragment.timeString = wt.startTime
-                newFragment.show(parentFragmentManager, "startTimePicker")
-            }
-        })
-        workTimeDataBinding.endContainer.setOnClickListener(object: View.OnClickListener {
-            override fun onClick(btn: View) {
-                val newFragment = TimePickerFragment()
-                newFragment.timeString = wt.endTime
-                newFragment.show(parentFragmentManager, "endTimePicker")
-            }
-        })
-        workTimeDataBinding.pausetimeContainer.setOnClickListener(object: View.OnClickListener {
-            override fun onClick(btn: View) {
-                val newFragment = TimePickerFragment()
-                newFragment.timeString = wt.pauseDuration
-                newFragment.show(parentFragmentManager, "pauseTimePicker")
-            }
-        })
-        workTimeDataBinding.drivetimeContainer.setOnClickListener(object: View.OnClickListener {
-            override fun onClick(btn: View) {
-                val newFragment = TimePickerFragment()
-                newFragment.timeString = wt.driveTime
-                newFragment.show(parentFragmentManager, "driveTimePicker")
-            }
-        })
-        workTimeDataBinding.workTimeAddEmployee.setOnClickListener(object: View.OnClickListener {
-            override fun onClick(btn: View) {
-                val empl = wt.addEmployee()
-                addEmployeeView(workTimeDataBinding.root, wt, empl)
-            }
-        })
-        workTimeDataBinding.workTimeCopyButton.setOnClickListener(object: View.OnClickListener {
-            override fun onClick(btn: View) {
-                val wt2 = workTimeContainerData.addWorkTime(wt)
-                addWorkTimeView(wt2, workTimeContainerData)
-            }
-        })
-        workTimeDataBinding.workTimeDelButton.setOnClickListener(object: View.OnClickListener {
-            override fun onClick(btn: View) {
-                GlobalScope.launch(Dispatchers.Main) {
-                    val answer =
-                        showConfirmationDialog(getString(R.string.del_confirmation), btn.context)
-                    if (answer == AlertDialog.BUTTON_POSITIVE) {
-                        container.removeView(workTimeDataBinding.root)
-                        workTimeViews.remove(workTimeDataBinding)
-                        workTimeContainerData.removeWorkTime(wt)
-                    } else {
-                    }
+        workTimeDataBinding.dateContainer.setOnClickListener {
+            val newFragment = DatePickerFragment()
+            newFragment.date = viewModel.date
+            newFragment.show(parentFragmentManager, "datePicker")
+        }
+        workTimeDataBinding.startContainer.setOnClickListener {
+            val newFragment = TimePickerFragment()
+            newFragment.timeString = viewModel.startTime
+            newFragment.show(parentFragmentManager, "startTimePicker")
+        }
+        workTimeDataBinding.endContainer.setOnClickListener {
+            val newFragment = TimePickerFragment()
+            newFragment.timeString = viewModel.endTime
+            newFragment.show(parentFragmentManager, "endTimePicker")
+        }
+        workTimeDataBinding.pausetimeContainer.setOnClickListener {
+            val newFragment = TimePickerFragment()
+            newFragment.timeString = viewModel.pauseDuration
+            newFragment.show(parentFragmentManager, "pauseTimePicker")
+        }
+        workTimeDataBinding.drivetimeContainer.setOnClickListener {
+            val newFragment = TimePickerFragment()
+            newFragment.timeString = viewModel.driveTime
+            newFragment.show(parentFragmentManager, "driveTimePicker")
+        }
+        workTimeDataBinding.workTimeAddEmployee.setOnClickListener {
+            val employee = viewModel.addEmployee()
+            addEmployeeView(workTimeDataBinding.root, viewModel, employee)
+        }
+        workTimeDataBinding.workTimeCopyButton.setOnClickListener {
+            val clone = viewModelContainer.cloneWorkTime(viewModel)
+            addWorkTimeView(clone, viewModelContainer)
+        }
+        workTimeDataBinding.workTimeDelButton.setOnClickListener { btn ->
+            GlobalScope.launch(Dispatchers.Main) {
+                val answer =
+                    showConfirmationDialog(getString(R.string.del_confirmation), btn.context)
+                if (answer == AlertDialog.BUTTON_POSITIVE) {
+                    container.removeView(workTimeDataBinding.root)
+                    workTimeViews.remove(workTimeDataBinding.root)
+                    viewModelContainer.removeWorkTime(viewModel)
+                } else {
                 }
             }
-        })
+        }
 
-        val pos = container.getChildCount()
+        val pos = container.childCount
         container.addView(workTimeDataBinding.root, pos)
     }
 
-    fun addEmployeeView(root: View, wt: WorkTimeData, empl: MutableLiveData<String>) {
+    private fun addEmployeeView(root: View, viewModel: WorkTimeViewModel, employee: MutableLiveData<String>) {
         val inflater = layoutInflater
         val employeeDataBinding: EmployeeEntryLayoutBinding = EmployeeEntryLayoutBinding.inflate(inflater, null, false)
-        employeeDataBinding.employee = empl
+        employeeDataBinding.employee = employee
         employeeDataBinding.lifecycleOwner = activity
         val container = root.findViewById<LinearLayout>(R.id.work_time_container)
 
-        employeeDataBinding.workTimeDelEmployee.setOnClickListener(object: View.OnClickListener {
-            override fun onClick(btn: View) {
-                GlobalScope.launch(Dispatchers.Main) {
-                    val answer =
-                        showConfirmationDialog(getString(R.string.del_confirmation), btn.context)
-                    if (answer == AlertDialog.BUTTON_POSITIVE) {
-                        container.removeView(employeeDataBinding.root)
-                        wt.removeEmployee(empl)
-                    } else {
-                    }
+        employeeDataBinding.workTimeDelEmployee.setOnClickListener { btn ->
+            GlobalScope.launch(Dispatchers.Main) {
+                val answer =
+                    showConfirmationDialog(getString(R.string.del_confirmation), btn.context)
+                if (answer == AlertDialog.BUTTON_POSITIVE) {
+                    container.removeView(employeeDataBinding.root)
+                    viewModel.removeEmployee(employee)
+                } else {
                 }
             }
-        })
+        }
 
-        val pos = container.getChildCount()
+        val pos = container.childCount
         container.addView(employeeDataBinding.root, pos)
     }
 }

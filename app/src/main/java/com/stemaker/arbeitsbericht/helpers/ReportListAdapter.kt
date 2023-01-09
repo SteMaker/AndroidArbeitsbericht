@@ -1,7 +1,6 @@
 package com.stemaker.arbeitsbericht.helpers
 
 import android.content.res.Resources
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,25 +10,36 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.recyclerview.widget.RecyclerView
 import com.stemaker.arbeitsbericht.R
 import com.stemaker.arbeitsbericht.ReportCardInterface
-import com.stemaker.arbeitsbericht.ReportListObserver
-import com.stemaker.arbeitsbericht.data.ReportData
+import com.stemaker.arbeitsbericht.data.report.ReportData
+import com.stemaker.arbeitsbericht.data.report.ReportRepository
 import com.stemaker.arbeitsbericht.databinding.ReportCardLayoutBinding
-import com.stemaker.arbeitsbericht.storageHandler
 
 private const val TAG = "ReportListAdapter"
 
-class ReportListAdapter(private val reportCardInterface: ReportCardInterface, val activity: AppCompatActivity) :
-    RecyclerView.Adapter<ReportListAdapter.ReportViewHolder>(),
-    ReportListObserver {
+class ReportListAdapter(private val reportCardInterface: ReportCardInterface,
+                        private val reportRepository: ReportRepository,
+                        val activity: AppCompatActivity) :
+    RecyclerView.Adapter<ReportListAdapter.ReportViewHolder>() {
 
     private lateinit var recyclerView: RecyclerView
-    var reportCnts = mutableListOf<Int>()
 
     private val mapState2MenuItemId = mapOf(ReportData.ReportState.IN_WORK to R.id.status_in_work,
         ReportData.ReportState.ON_HOLD to R.id.status_on_hold,
         ReportData.ReportState.DONE to R.id.status_done,
         ReportData.ReportState.ARCHIVED to R.id.status_archived)
     private var bottomView: View? = null
+
+    init {
+        reportRepository.live.observe(activity) {
+            reportRepository.live.value?.let {
+                when (it.type) {
+                    ReportRepository.ReportListChangeEvent.Type.LIST_ADD -> notifyReportAdded(it.reportUid, it.pos)
+                    ReportRepository.ReportListChangeEvent.Type.LIST_REMOVE -> notifyReportRemoved(it.reportUid, it.pos)
+                    ReportRepository.ReportListChangeEvent.Type.LIST_CHANGE -> notifyReportListChanged()
+                }
+            }
+        }
+    }
 
     class ReportViewHolder(val binding: ReportCardLayoutBinding, private val lcOwner: LifecycleOwner) :
         RecyclerView.ViewHolder(binding.root) {
@@ -46,15 +56,12 @@ class ReportListAdapter(private val reportCardInterface: ReportCardInterface, va
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ReportViewHolder {
-        val layoutInflater = LayoutInflater.from(parent.context);
-        val itemBinding = ReportCardLayoutBinding.inflate(layoutInflater, parent, false);
-        return ReportViewHolder(itemBinding, activity as LifecycleOwner);
+        val layoutInflater = LayoutInflater.from(parent.context)
+        val itemBinding = ReportCardLayoutBinding.inflate(layoutInflater, parent, false)
+        return ReportViewHolder(itemBinding, activity as LifecycleOwner)
     }
 
     override fun onBindViewHolder(holder: ReportViewHolder, position: Int) {
-        // Bind data
-        val reportCnt = reportCnts[position]
-
         // We only register the on click listeners once the report was loaded from the database to make sure nothing can be done with it before we are ready
         val actionsOnReportLoaded = { report: ReportData ->
             // Bind to the event of clicking the report
@@ -101,52 +108,39 @@ class ReportListAdapter(private val reportCardInterface: ReportCardInterface, va
             }
         }
 
-        val report = storageHandler().getReportByCnt(reportCnt, actionsOnReportLoaded)
+        // Bind data
+        val report = reportRepository.getReportByIndex(position, actionsOnReportLoaded)
 
         holder.bind(report)
         // Ensure there is enough space so that Floating Action Button doesn't hide parts of the LAST report
         if (position + 1 == itemCount) {
-            setBottomMargin(holder.itemView, (100 * Resources.getSystem().displayMetrics.density).toInt());
+            setBottomMargin(holder.itemView, (100 * Resources.getSystem().displayMetrics.density).toInt())
             bottomView = holder.itemView
         } else {
-            setBottomMargin(holder.itemView, 0);
+            setBottomMargin(holder.itemView, 0)
         }
 
     }
 
-    // TODO: Reuse the object from storageHandler instead of establishing another one
-    override fun notifyReportAdded(cnt: Int) {
-        reportCnts.add(0, cnt)
-        notifyItemInserted(0)
-        recyclerView.scrollToPosition(0)
+    private fun notifyReportAdded(uid: Int, pos: Int) {
+        notifyItemInserted(pos)
+        recyclerView.scrollToPosition(pos)
     }
 
-    override fun notifyReportListChanged(cnts: List<Int>) {
-        reportCnts.clear()
-        reportCnts.addAll(cnts)
+    private fun notifyReportListChanged() {
         notifyDataSetChanged()
     }
 
-    override fun notifyReportRemoved(cnt: Int) {
-        val pos = reportCnts.indexOfFirst { it == cnt }
-        try {
-            reportCnts.removeAt(pos)
-            notifyItemRemoved(pos)
-        } catch (e: Exception) {
-            Log.e(TAG, "Tried to remove not existent report")
-        }
+    private fun notifyReportRemoved(uid: Int, pos: Int) {
+        notifyItemRemoved(pos)
     }
 
     private fun setBottomMargin(view: View, bottomMargin: Int) {
         if (view.layoutParams is ViewGroup.MarginLayoutParams) {
             val params = view.layoutParams as ViewGroup.MarginLayoutParams
-            params.setMargins(params.leftMargin, params.topMargin, params.rightMargin, bottomMargin);
-            view.requestLayout();
+            params.setMargins(params.leftMargin, params.topMargin, params.rightMargin, bottomMargin)
+            view.requestLayout()
         }
-    }
-
-    fun registerReportListObserver() {
-        storageHandler().addReportListObserver(this)
     }
 
     fun jumpTop() {
@@ -154,6 +148,6 @@ class ReportListAdapter(private val reportCardInterface: ReportCardInterface, va
     }
 
     override fun getItemCount(): Int {
-        return reportCnts.size
+        return reportRepository.amountOfReports
     }
 }

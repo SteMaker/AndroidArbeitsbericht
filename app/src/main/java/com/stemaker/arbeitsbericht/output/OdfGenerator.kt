@@ -6,9 +6,9 @@ import android.util.Log
 import android.widget.ProgressBar
 import android.widget.TextView
 import com.stemaker.arbeitsbericht.R
-import com.stemaker.arbeitsbericht.data.ReportData
 import com.stemaker.arbeitsbericht.data.calendarToDateString
-import com.stemaker.arbeitsbericht.data.configuration
+import com.stemaker.arbeitsbericht.data.configuration.configuration
+import com.stemaker.arbeitsbericht.data.report.ReportData
 import org.odftoolkit.odfdom.doc.OdfTextDocument
 import org.odftoolkit.odfdom.doc.table.OdfTable
 import org.odftoolkit.odfdom.dom.OdfContentDom
@@ -100,7 +100,8 @@ class OdfGenerator(activity: Activity, report: ReportData, progressBar: Progress
 
             // Create a checksum so that we can check later if the report has been changed compared to the ODF
             val parent = metaDom.xPath.evaluate("//office:document-meta/office:meta", metaDom, XPathConstants.NODE) as OfficeMetaElement
-            parent.newMetaUserDefinedElement("reportChksum", "string").newTextNode(report.lastStoreHash.toString())
+            // TODO("Track required re-generation of reports
+            parent.newMetaUserDefinedElement("reportChksum", "string").newTextNode("DUMMY")
 
             // Save document
             doc.save(odfFile)
@@ -122,7 +123,7 @@ class OdfGenerator(activity: Activity, report: ReportData, progressBar: Progress
             templateFile = activity.assets.open("output_template.ott")
 
         val pkg = OdfPackage.loadPackage(templateFile)
-        report.photoContainer.items.forEachIndexed { index, elem ->
+        report.photoContainer.forEachIndexed { index, elem ->
             val tmpFile = File(elem.file.value)
             val file = File(activity.getExternalFilesDir(Environment.DIRECTORY_PICTURES), tmpFile.name)
             if(file.exists()) {
@@ -374,7 +375,7 @@ class OdfGenerator(activity: Activity, report: ReportData, progressBar: Progress
             val innerDrawF = innerTextP.newDrawFrameElement() as OdfDrawFrame
             innerDrawF.svgWidthAttribute = "17cm"
             outerDrawF.svgWidthAttribute = "17cm"
-            val ratio = photoData.imageHeight.toFloat() / photoData.imageWidth.toFloat()
+            val ratio = photoData.imageHeight.value!!.toFloat() / photoData.imageWidth.value!!.toFloat()
             innerDrawF.svgHeightAttribute = "${17.0*ratio}cm"
             innerDrawF.textAnchorTypeAttribute = "as-char"
             outerDrawF.svgHeightAttribute = "${17.0*ratio}cm"

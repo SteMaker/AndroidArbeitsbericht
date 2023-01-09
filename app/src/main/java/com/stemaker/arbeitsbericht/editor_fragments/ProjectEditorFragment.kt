@@ -7,13 +7,16 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import androidx.databinding.DataBindingUtil
+import androidx.lifecycle.ViewModelProvider
 import com.stemaker.arbeitsbericht.R
+import com.stemaker.arbeitsbericht.data.report.ReportData
 import com.stemaker.arbeitsbericht.databinding.FragmentProjectEditorBinding
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import com.stemaker.arbeitsbericht.view_models.ProjectViewModel
+import com.stemaker.arbeitsbericht.view_models.ProjectViewModelFactory
 
-class ProjectEditorFragment : ReportEditorSectionFragment() {
+class ProjectEditorFragment(private val report: ReportData):
+    ReportEditorSectionFragment()
+{
     lateinit var dataBinding: FragmentProjectEditorBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -25,7 +28,7 @@ class ProjectEditorFragment : ReportEditorSectionFragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         // Inflate the layout for this fragment
         Log.d("Arbeitsbericht","ProjectEditorFragment.onCreateView called")
         val root = super.onCreateView(inflater, container, savedInstanceState)
@@ -34,17 +37,9 @@ class ProjectEditorFragment : ReportEditorSectionFragment() {
 
         setHeadline("Projekt / Kunde")
 
-        dataBinding.lifecycleOwner =viewLifecycleOwner
-
-        GlobalScope.launch(Dispatchers.Main) {
-            listener?.let { listener ->
-                // There can be a race with onDetach so that the listener is already null
-                val report = listener.getReportData()
-                report?.let { report ->
-                    dataBinding.projectData = report.project
-                }
-            }
-        }
+        dataBinding.lifecycleOwner = viewLifecycleOwner
+        val viewModel = ViewModelProvider(this, ProjectViewModelFactory(viewLifecycleOwner, report.project)).get(ProjectViewModel::class.java)
+        dataBinding.viewModel = viewModel
         return root
     }
 

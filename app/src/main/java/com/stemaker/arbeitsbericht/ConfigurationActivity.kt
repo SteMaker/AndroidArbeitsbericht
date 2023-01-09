@@ -13,7 +13,6 @@ import android.text.TextWatcher
 import android.util.Log
 import android.view.*
 import android.widget.*
-import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -22,8 +21,8 @@ import com.google.android.material.button.MaterialButtonToggleGroup
 import com.google.android.material.slider.Slider
 import com.google.android.material.switchmaterial.SwitchMaterial
 import com.google.firebase.crashlytics.FirebaseCrashlytics
-import com.stemaker.arbeitsbericht.data.Configuration
-import com.stemaker.arbeitsbericht.data.configuration
+import com.stemaker.arbeitsbericht.data.configuration.Configuration
+import com.stemaker.arbeitsbericht.data.configuration.configuration
 import com.stemaker.arbeitsbericht.helpers.SftpProvider
 import com.stemaker.arbeitsbericht.helpers.showInfoDialog
 import kotlinx.coroutines.Dispatchers
@@ -32,7 +31,6 @@ import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
 import kotlin.coroutines.Continuation
-import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
 private const val TAG = "ConfigurationActivity"
@@ -41,249 +39,243 @@ private const val REQUEST_LOAD_LOGO = 123
 private const val REQUEST_LOAD_FOOTER = 124
 private const val REQUEST_LOAD_ODT = 125
 
-class ConfigurationActivity : AppCompatActivity() {
+class ConfigurationActivity:
+    ArbeitsberichtActivity()
+{
     private var internetPermissionContinuation: Continuation<Boolean>? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+        if(!onCreateWrapper(savedInstanceState))
+            return
 
+        // Here we expect that the app initialization is done
+        super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_configuration)
 
-        val storageInitJob = storageHandler().initialize(this as Context)
+        requestedOrientation = when(configuration().lockScreenOrientation) {
+            true -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
+            else -> ActivityInfo.SCREEN_ORIENTATION_FULL_USER
+        }
+        findViewById<EditText>(R.id.config_employee_name).setText(configuration().employeeName)
+        findViewById<EditText>(R.id.config_device_name).setText(configuration().deviceName)
+        findViewById<EditText>(R.id.config_report_id_pattern).setText(configuration().reportIdPattern.value)
+        findViewById<EditText>(R.id.config_mail_receiver).setText(configuration().recvMail)
+        findViewById<SwitchMaterial>(R.id.crashlog_enable).isChecked = configuration().crashlyticsEnabled
+        FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(configuration().crashlyticsEnabled)
+        findViewById<SwitchMaterial>(R.id.always_landscape).isChecked = configuration().lockScreenOrientation
 
-        GlobalScope.launch(Dispatchers.Main) {
-            storageInitJob?.let {
-                if (!it.isCompleted) {
-                    findViewById<ProgressBar>(R.id.sftp_progress).visibility = View.VISIBLE
-                    it.join()
-                    findViewById<ProgressBar>(R.id.sftp_progress).visibility = View.GONE
-                }
-            } ?: run { Log.e(TAG, "storageHandler job was null :(") }
-            requestedOrientation = when(configuration().lockScreenOrientation) {
-                true -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
-                else -> ActivityInfo.SCREEN_ORIENTATION_FULL_USER
+        findViewById<EditText>(R.id.sftp_host).setText(configuration().sFtpHost)
+        findViewById<EditText>(R.id.sftp_port).setText(configuration().sFtpPort.toString())
+        findViewById<EditText>(R.id.sftp_user).setText(configuration().sFtpUser)
+        when {
+            configuration().useOdfOutput -> {
+                findViewById<RadioButton>(R.id.radio_odf_output).toggle()
+                findViewById<CardView>(R.id.odf_config_container).visibility = View.VISIBLE
+                findViewById<CardView>(R.id.pdf_config_container).visibility = View.GONE
+                findViewById<CardView>(R.id.xlsx_config_container).visibility = View.GONE
             }
-            findViewById<EditText>(R.id.config_employee_name).setText(configuration().employeeName)
-            findViewById<EditText>(R.id.config_device_name).setText(configuration().deviceName)
-            findViewById<EditText>(R.id.config_report_id_pattern).setText(configuration().reportIdPattern.value)
-            findViewById<EditText>(R.id.config_mail_receiver).setText(configuration().recvMail)
-            findViewById<SwitchMaterial>(R.id.crashlog_enable).isChecked = configuration().crashlyticsEnabled
-            FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(configuration().crashlyticsEnabled)
-            findViewById<SwitchMaterial>(R.id.always_landscape).isChecked = configuration().lockScreenOrientation
+            configuration().useXlsxOutput -> {
+                findViewById<RadioButton>(R.id.radio_xlsx_output).toggle()
+                findViewById<CardView>(R.id.odf_config_container).visibility = View.GONE
+                findViewById<CardView>(R.id.pdf_config_container).visibility = View.GONE
+                findViewById<CardView>(R.id.xlsx_config_container).visibility = View.VISIBLE
+            }
+            configuration().selectOutput -> {
+                findViewById<RadioButton>(R.id.radio_select_output).toggle()
+                findViewById<CardView>(R.id.odf_config_container).visibility = View.VISIBLE
+                findViewById<CardView>(R.id.pdf_config_container).visibility = View.VISIBLE
+                findViewById<CardView>(R.id.xlsx_config_container).visibility = View.VISIBLE
+            }
+            else -> {
+                findViewById<RadioButton>(R.id.radio_pdf_output).toggle()
+                findViewById<CardView>(R.id.odf_config_container).visibility = View.GONE
+                findViewById<CardView>(R.id.pdf_config_container).visibility = View.VISIBLE
+                findViewById<CardView>(R.id.xlsx_config_container).visibility = View.GONE
+            }
+        }
+        findViewById<EditText>(R.id.odf_template_ftp_path).setText(configuration().odfTemplateServerPath)
+        findViewById<EditText>(R.id.logo_ftp_path).setText(configuration().logoServerPath)
+        findViewById<EditText>(R.id.footer_ftp_path).setText(configuration().footerServerPath)
+        findViewById<SwitchMaterial>(R.id.pdf_use_logo).isChecked = configuration().pdfUseLogo
+        findViewById<SwitchMaterial>(R.id.pdf_use_footer).isChecked = configuration().pdfUseFooter
+        findViewById<SwitchMaterial>(R.id.pdf_use_internal).isChecked = configuration().useInlinePdfViewer
 
-            findViewById<EditText>(R.id.sftp_host).setText(configuration().sFtpHost)
-            findViewById<EditText>(R.id.sftp_port).setText(configuration().sFtpPort.toString())
-            findViewById<EditText>(R.id.sftp_user).setText(configuration().sFtpUser)
-            when {
-                configuration().useOdfOutput -> {
-                    findViewById<RadioButton>(R.id.radio_odf_output).toggle()
+        findViewById<SwitchMaterial>(R.id.xlsx_use_logo).isChecked = configuration().xlsxUseLogo
+        findViewById<SwitchMaterial>(R.id.xlsx_use_footer).isChecked = configuration().xlsxUseFooter
+        val pdfLogoWidthSlider = findViewById<Slider>(R.id.pdf_logo_width_slider)
+        pdfLogoWidthSlider.value = configuration().pdfLogoWidthPercent.toFloat()
+        val pdfLogoWidthText = findViewById<TextView>(R.id.pdf_logo_width_text)
+        pdfLogoWidthText.text = "Breite ${configuration().pdfLogoWidthPercent.toString()}%"
+        pdfLogoWidthSlider.addOnChangeListener { _, value, _ ->
+            pdfLogoWidthText.text = "Breite ${value.toInt().toString()}%"
+        }
+        val pdfFooterWidthSlider = findViewById<Slider>(R.id.pdf_footer_width_slider)
+        pdfFooterWidthSlider.value = configuration().pdfFooterWidthPercent.toFloat()
+        val pdfFooterWidthText = findViewById<TextView>(R.id.pdf_footer_width_text)
+        pdfFooterWidthText.text = "Breite ${configuration().pdfFooterWidthPercent.toString()}%"
+        pdfFooterWidthSlider.addOnChangeListener { _, value, _ ->
+            pdfFooterWidthText.text = "Breite ${value.toInt().toString()}%"
+        }
+
+        findViewById<MaterialButtonToggleGroup>(R.id.logo_alignment_group).check(when(configuration().pdfLogoAlignment) {
+            Configuration.Alignment.CENTER -> R.id.logo_alignment_center
+            Configuration.Alignment.RIGHT -> R.id.logo_alignment_right
+            else -> R.id.logo_alignment_left
+        })
+        findViewById<MaterialButtonToggleGroup>(R.id.footer_alignment_group).check(when(configuration().pdfFooterAlignment) {
+            Configuration.Alignment.CENTER -> R.id.footer_alignment_center
+            Configuration.Alignment.RIGHT -> R.id.footer_alignment_right
+            else -> R.id.footer_alignment_left
+        })
+
+        val radioGroup = findViewById<RadioGroup>(R.id.output_type_select_radiogroup)
+        radioGroup.setOnCheckedChangeListener { _, checkedId ->
+            when (checkedId) {
+                R.id.radio_odf_output -> {
                     findViewById<CardView>(R.id.odf_config_container).visibility = View.VISIBLE
                     findViewById<CardView>(R.id.pdf_config_container).visibility = View.GONE
                     findViewById<CardView>(R.id.xlsx_config_container).visibility = View.GONE
                 }
-                configuration().useXlsxOutput -> {
-                    findViewById<RadioButton>(R.id.radio_xlsx_output).toggle()
-                    findViewById<CardView>(R.id.odf_config_container).visibility = View.GONE
-                    findViewById<CardView>(R.id.pdf_config_container).visibility = View.GONE
-                    findViewById<CardView>(R.id.xlsx_config_container).visibility = View.VISIBLE
-                }
-                configuration().selectOutput -> {
-                    findViewById<RadioButton>(R.id.radio_select_output).toggle()
-                    findViewById<CardView>(R.id.odf_config_container).visibility = View.VISIBLE
-                    findViewById<CardView>(R.id.pdf_config_container).visibility = View.VISIBLE
-                    findViewById<CardView>(R.id.xlsx_config_container).visibility = View.VISIBLE
-                }
-                else -> {
-                    findViewById<RadioButton>(R.id.radio_pdf_output).toggle()
+                R.id.radio_pdf_output -> {
                     findViewById<CardView>(R.id.odf_config_container).visibility = View.GONE
                     findViewById<CardView>(R.id.pdf_config_container).visibility = View.VISIBLE
                     findViewById<CardView>(R.id.xlsx_config_container).visibility = View.GONE
                 }
-            }
-            findViewById<EditText>(R.id.odf_template_ftp_path).setText(configuration().odfTemplateServerPath)
-            findViewById<EditText>(R.id.logo_ftp_path).setText(configuration().logoServerPath)
-            findViewById<EditText>(R.id.footer_ftp_path).setText(configuration().footerServerPath)
-            findViewById<SwitchMaterial>(R.id.pdf_use_logo).isChecked = configuration().pdfUseLogo
-            findViewById<SwitchMaterial>(R.id.pdf_use_footer).isChecked = configuration().pdfUseFooter
-            findViewById<SwitchMaterial>(R.id.pdf_use_internal).isChecked = configuration().useInlinePdfViewer
-
-            findViewById<SwitchMaterial>(R.id.xlsx_use_logo).isChecked = configuration().xlsxUseLogo
-            findViewById<SwitchMaterial>(R.id.xlsx_use_footer).isChecked = configuration().xlsxUseFooter
-            val pdfLogoWidthSlider = findViewById<Slider>(R.id.pdf_logo_width_slider)
-            pdfLogoWidthSlider.value = configuration().pdfLogoWidthPercent.toFloat()
-            val pdfLogoWidthText = findViewById<TextView>(R.id.pdf_logo_width_text)
-            pdfLogoWidthText.text = "Breite ${configuration().pdfLogoWidthPercent.toString()}%"
-            pdfLogoWidthSlider.addOnChangeListener { _, value, _ ->
-                pdfLogoWidthText.text = "Breite ${value.toInt().toString()}%"
-            }
-            val pdfFooterWidthSlider = findViewById<Slider>(R.id.pdf_footer_width_slider)
-            pdfFooterWidthSlider.value = configuration().pdfFooterWidthPercent.toFloat()
-            val pdfFooterWidthText = findViewById<TextView>(R.id.pdf_footer_width_text)
-            pdfFooterWidthText.text = "Breite ${configuration().pdfFooterWidthPercent.toString()}%"
-            pdfFooterWidthSlider.addOnChangeListener { _, value, _ ->
-                pdfFooterWidthText.text = "Breite ${value.toInt().toString()}%"
-            }
-
-            findViewById<MaterialButtonToggleGroup>(R.id.logo_alignment_group).check(when(configuration().pdfLogoAlignment) {
-                Configuration.Alignment.CENTER -> R.id.logo_alignment_center
-                Configuration.Alignment.RIGHT -> R.id.logo_alignment_right
-                else -> R.id.logo_alignment_left
-            })
-            findViewById<MaterialButtonToggleGroup>(R.id.footer_alignment_group).check(when(configuration().pdfFooterAlignment) {
-                Configuration.Alignment.CENTER -> R.id.footer_alignment_center
-                Configuration.Alignment.RIGHT -> R.id.footer_alignment_right
-                else -> R.id.footer_alignment_left
-            })
-
-            val radioGroup = findViewById<RadioGroup>(R.id.output_type_select_radiogroup)
-            radioGroup.setOnCheckedChangeListener { _, checkedId ->
-                when (checkedId) {
-                    R.id.radio_odf_output -> {
-                        findViewById<CardView>(R.id.odf_config_container).visibility = View.VISIBLE
-                        findViewById<CardView>(R.id.pdf_config_container).visibility = View.GONE
-                        findViewById<CardView>(R.id.xlsx_config_container).visibility = View.GONE
-                    }
-                    R.id.radio_pdf_output -> {
-                        findViewById<CardView>(R.id.odf_config_container).visibility = View.GONE
-                        findViewById<CardView>(R.id.pdf_config_container).visibility = View.VISIBLE
-                        findViewById<CardView>(R.id.xlsx_config_container).visibility = View.GONE
-                    }
-                    R.id.radio_xlsx_output -> {
-                        findViewById<CardView>(R.id.odf_config_container).visibility = View.GONE
-                        findViewById<CardView>(R.id.pdf_config_container).visibility = View.GONE
-                        findViewById<CardView>(R.id.xlsx_config_container).visibility = View.VISIBLE
-                    }
-                    R.id.radio_select_output -> {
-                        findViewById<CardView>(R.id.odf_config_container).visibility = View.VISIBLE
-                        findViewById<CardView>(R.id.pdf_config_container).visibility = View.VISIBLE
-                        findViewById<CardView>(R.id.xlsx_config_container).visibility = View.VISIBLE
-                    }
+                R.id.radio_xlsx_output -> {
+                    findViewById<CardView>(R.id.odf_config_container).visibility = View.GONE
+                    findViewById<CardView>(R.id.pdf_config_container).visibility = View.GONE
+                    findViewById<CardView>(R.id.xlsx_config_container).visibility = View.VISIBLE
+                }
+                R.id.radio_select_output -> {
+                    findViewById<CardView>(R.id.odf_config_container).visibility = View.VISIBLE
+                    findViewById<CardView>(R.id.pdf_config_container).visibility = View.VISIBLE
+                    findViewById<CardView>(R.id.xlsx_config_container).visibility = View.VISIBLE
                 }
             }
-            showFileInImageView(configuration().footerFile, R.id.footer_image)
-            showFileInImageView(configuration().logoFile, R.id.logo_image)
+        }
+        showFileInImageView(configuration().footerFile, R.id.footer_image)
+        showFileInImageView(configuration().logoFile, R.id.logo_image)
 
-            // TODO: move the combination of edit text and slider into a custom view
-            // PDF font size
-            val fontSizeSlider = findViewById<Slider>(R.id.fontsize_slider)
-            val fontSizeEdit = findViewById<EditText>(R.id.fontsize_text)
-            fontSizeSlider.value = configuration().fontSize.toFloat()
-            fontSizeEdit.text.replace(0, fontSizeEdit.text.length, configuration().fontSize.toString())
-            //fontSizeEdit.text.replace(0, fontSizeEdit.text.length, configuration().fontSize.toString())
-            fontSizeSlider.addOnChangeListener { _, value, _ ->
-                fontSizeEdit.text.replace(0, fontSizeEdit.text.length, value.toInt().toString())
-            }
-            fontSizeEdit.addTextChangedListener(object : TextWatcher {
-                override fun afterTextChanged(text: Editable?) {
-                    Log.d(TAG, "${text}")
-                    try {
-                        val f = text?.toString()?.toFloat()
-                        f?.let {
-                            when {
-                                f == 0.0f && fontSizeSlider.valueFrom > 0.0f -> return
-                                f < fontSizeSlider.valueFrom -> fontSizeSlider.value = fontSizeSlider.valueFrom
-                                f > fontSizeSlider.valueTo ->  fontSizeSlider.value = fontSizeSlider.valueTo
-                                else -> fontSizeSlider.value = f
-                            }
+        // TODO: move the combination of edit text and slider into a custom view
+        // PDF font size
+        val fontSizeSlider = findViewById<Slider>(R.id.fontsize_slider)
+        val fontSizeEdit = findViewById<EditText>(R.id.fontsize_text)
+        fontSizeSlider.value = configuration().fontSize.toFloat()
+        fontSizeEdit.text.replace(0, fontSizeEdit.text.length, configuration().fontSize.toString())
+        //fontSizeEdit.text.replace(0, fontSizeEdit.text.length, configuration().fontSize.toString())
+        fontSizeSlider.addOnChangeListener { _, value, _ ->
+            fontSizeEdit.text.replace(0, fontSizeEdit.text.length, value.toInt().toString())
+        }
+        fontSizeEdit.addTextChangedListener(object : TextWatcher {
+            override fun afterTextChanged(text: Editable?) {
+                Log.d(TAG, "${text}")
+                try {
+                    val f = text?.toString()?.toFloat()
+                    f?.let {
+                        when {
+                            f == 0.0f && fontSizeSlider.valueFrom > 0.0f -> return
+                            f < fontSizeSlider.valueFrom -> fontSizeSlider.value = fontSizeSlider.valueFrom
+                            f > fontSizeSlider.valueTo ->  fontSizeSlider.value = fontSizeSlider.valueTo
+                            else -> fontSizeSlider.value = f
                         }
-                    } catch (e:NumberFormatException) {
-                        fontSizeSlider.value = fontSizeSlider.valueFrom
                     }
+                } catch (e:NumberFormatException) {
+                    fontSizeSlider.value = fontSizeSlider.valueFrom
                 }
-                override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) { }
-                override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) { }
-            })
+            }
+            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) { }
+            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) { }
+        })
 
-            // XLSX logo width
-            val xlsxLogoWidthSlider = findViewById<Slider>(R.id.xlsx_logo_width_slider)
-            val xlsxLogoWidthEdit = findViewById<EditText>(R.id.xlsx_logo_width_text)
-            xlsxLogoWidthSlider.value = configuration().xlsxLogoWidth.toFloat()
-            xlsxLogoWidthEdit.text.replace(0, xlsxLogoWidthEdit.text.length, configuration().xlsxLogoWidth.toString())
-            xlsxLogoWidthSlider.addOnChangeListener { _, value, _ ->
-                xlsxLogoWidthEdit.text.replace(0, xlsxLogoWidthEdit.text.length, value.toInt().toString())
-            }
-            xlsxLogoWidthEdit.addTextChangedListener(object : TextWatcher {
-                override fun afterTextChanged(text: Editable?) {
-                    try {
-                        val f = text?.toString()?.toFloat()
-                        f?.let {
-                            when {
-                                f == 0.0f && xlsxLogoWidthSlider.valueFrom > 0.0f -> return
-                                f < xlsxLogoWidthSlider.valueFrom -> xlsxLogoWidthSlider.value = xlsxLogoWidthSlider.valueFrom
-                                f > xlsxLogoWidthSlider.valueTo ->  xlsxLogoWidthSlider.value = xlsxLogoWidthSlider.valueTo
-                                else -> xlsxLogoWidthSlider.value = f
-                            }
+        // XLSX logo width
+        val xlsxLogoWidthSlider = findViewById<Slider>(R.id.xlsx_logo_width_slider)
+        val xlsxLogoWidthEdit = findViewById<EditText>(R.id.xlsx_logo_width_text)
+        xlsxLogoWidthSlider.value = configuration().xlsxLogoWidth.toFloat()
+        xlsxLogoWidthEdit.text.replace(0, xlsxLogoWidthEdit.text.length, configuration().xlsxLogoWidth.toString())
+        xlsxLogoWidthSlider.addOnChangeListener { _, value, _ ->
+            xlsxLogoWidthEdit.text.replace(0, xlsxLogoWidthEdit.text.length, value.toInt().toString())
+        }
+        xlsxLogoWidthEdit.addTextChangedListener(object : TextWatcher {
+            override fun afterTextChanged(text: Editable?) {
+                try {
+                    val f = text?.toString()?.toFloat()
+                    f?.let {
+                        when {
+                            f == 0.0f && xlsxLogoWidthSlider.valueFrom > 0.0f -> return
+                            f < xlsxLogoWidthSlider.valueFrom -> xlsxLogoWidthSlider.value = xlsxLogoWidthSlider.valueFrom
+                            f > xlsxLogoWidthSlider.valueTo ->  xlsxLogoWidthSlider.value = xlsxLogoWidthSlider.valueTo
+                            else -> xlsxLogoWidthSlider.value = f
                         }
-                    } catch (e:NumberFormatException) {
-                        xlsxLogoWidthSlider.value = xlsxLogoWidthSlider.valueFrom
                     }
+                } catch (e:NumberFormatException) {
+                    xlsxLogoWidthSlider.value = xlsxLogoWidthSlider.valueFrom
                 }
-                override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) { }
-                override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) { }
-            })
-            // XLSX footer width
-            val xlsxFooterWidthSlider = findViewById<Slider>(R.id.xlsx_footer_width_slider)
-            val xlsxFooterWidthEdit = findViewById<EditText>(R.id.xlsx_footer_width_text)
-            xlsxFooterWidthSlider.value = configuration().xlsxFooterWidth.toFloat()
-            xlsxFooterWidthEdit.text.replace(0, xlsxFooterWidthEdit.text.length, configuration().xlsxFooterWidth.toString())
-            xlsxFooterWidthSlider.addOnChangeListener { _, value, _ ->
-                xlsxFooterWidthEdit.text.replace(0, xlsxFooterWidthEdit.text.length, value.toInt().toString())
             }
-            xlsxFooterWidthEdit.addTextChangedListener(object : TextWatcher {
-                override fun afterTextChanged(text: Editable?) {
-                    try {
-                        val f = text?.toString()?.toFloat()
-                        f?.let {
-                            when {
-                                f == 0.0f && xlsxFooterWidthSlider.valueFrom > 0.0f -> return
-                                f < xlsxFooterWidthSlider.valueFrom -> xlsxFooterWidthSlider.value = xlsxFooterWidthSlider.valueFrom
-                                f > xlsxFooterWidthSlider.valueTo ->  xlsxFooterWidthSlider.value = xlsxFooterWidthSlider.valueTo
-                                else -> xlsxFooterWidthSlider.value = f
-                            }
+            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) { }
+            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) { }
+        })
+        // XLSX footer width
+        val xlsxFooterWidthSlider = findViewById<Slider>(R.id.xlsx_footer_width_slider)
+        val xlsxFooterWidthEdit = findViewById<EditText>(R.id.xlsx_footer_width_text)
+        xlsxFooterWidthSlider.value = configuration().xlsxFooterWidth.toFloat()
+        xlsxFooterWidthEdit.text.replace(0, xlsxFooterWidthEdit.text.length, configuration().xlsxFooterWidth.toString())
+        xlsxFooterWidthSlider.addOnChangeListener { _, value, _ ->
+            xlsxFooterWidthEdit.text.replace(0, xlsxFooterWidthEdit.text.length, value.toInt().toString())
+        }
+        xlsxFooterWidthEdit.addTextChangedListener(object : TextWatcher {
+            override fun afterTextChanged(text: Editable?) {
+                try {
+                    val f = text?.toString()?.toFloat()
+                    f?.let {
+                        when {
+                            f == 0.0f && xlsxFooterWidthSlider.valueFrom > 0.0f -> return
+                            f < xlsxFooterWidthSlider.valueFrom -> xlsxFooterWidthSlider.value = xlsxFooterWidthSlider.valueFrom
+                            f > xlsxFooterWidthSlider.valueTo ->  xlsxFooterWidthSlider.value = xlsxFooterWidthSlider.valueTo
+                            else -> xlsxFooterWidthSlider.value = f
                         }
-                    } catch (e:NumberFormatException) {
-                        xlsxFooterWidthSlider.value = xlsxFooterWidthSlider.valueFrom
                     }
+                } catch (e:NumberFormatException) {
+                    xlsxFooterWidthSlider.value = xlsxFooterWidthSlider.valueFrom
                 }
-                override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) { }
-                override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) { }
-            })
-            // Photo width
-            val scalePhotosSlider = findViewById<Slider>(R.id.scale_photos_slider)
-            val scalePhotosEdit = findViewById<EditText>(R.id.scale_photos_value)
-            scalePhotosSlider.value = configuration().photoResolution.toFloat()
-            scalePhotosEdit.text.replace(0, scalePhotosEdit.text.length, configuration().photoResolution.toString())
-            scalePhotosSlider.addOnChangeListener { _, value, _ ->
-                scalePhotosEdit.text.replace(0, scalePhotosEdit.text.length, value.toInt().toString())
             }
-            scalePhotosEdit.addTextChangedListener(object : TextWatcher {
-                override fun afterTextChanged(text: Editable?) {
-                    try {
-                        val f = text?.toString()?.toFloat()
-                        f?.let {
-                            when {
-                                f == 0.0f && scalePhotosSlider.valueFrom > 0.0f -> return
-                                f < scalePhotosSlider.valueFrom -> scalePhotosSlider.value = scalePhotosSlider.valueFrom
-                                f > scalePhotosSlider.valueTo ->  scalePhotosSlider.value = scalePhotosSlider.valueTo
-                                else -> scalePhotosSlider.value = f
-                            }
+            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) { }
+            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) { }
+        })
+        // Photo width
+        val scalePhotosSlider = findViewById<Slider>(R.id.scale_photos_slider)
+        val scalePhotosEdit = findViewById<EditText>(R.id.scale_photos_value)
+        scalePhotosSlider.value = configuration().photoResolution.toFloat()
+        scalePhotosEdit.text.replace(0, scalePhotosEdit.text.length, configuration().photoResolution.toString())
+        scalePhotosSlider.addOnChangeListener { _, value, _ ->
+            scalePhotosEdit.text.replace(0, scalePhotosEdit.text.length, value.toInt().toString())
+        }
+        scalePhotosEdit.addTextChangedListener(object : TextWatcher {
+            override fun afterTextChanged(text: Editable?) {
+                try {
+                    val f = text?.toString()?.toFloat()
+                    f?.let {
+                        when {
+                            f == 0.0f && scalePhotosSlider.valueFrom > 0.0f -> return
+                            f < scalePhotosSlider.valueFrom -> scalePhotosSlider.value = scalePhotosSlider.valueFrom
+                            f > scalePhotosSlider.valueTo ->  scalePhotosSlider.value = scalePhotosSlider.valueTo
+                            else -> scalePhotosSlider.value = f
                         }
-                    } catch (e:NumberFormatException) {
-                        scalePhotosSlider.value = scalePhotosSlider.valueFrom
                     }
+                } catch (e:NumberFormatException) {
+                    scalePhotosSlider.value = scalePhotosSlider.valueFrom
                 }
-                override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) { }
-                override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) { }
-            })
-            val scalePhotosSwitch = findViewById<SwitchMaterial>(R.id.scale_photos)
-            scalePhotosSwitch.isChecked = configuration().scalePhotos
-            scalePhotosSwitch.setOnCheckedChangeListener { button, b ->
-                scalePhotosSlider.isEnabled = b
-                scalePhotosEdit.isEnabled = b
             }
-            if(!configuration().scalePhotos) {
-                scalePhotosSlider.isEnabled = false
-            }
+            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) { }
+            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) { }
+        })
+        val scalePhotosSwitch = findViewById<SwitchMaterial>(R.id.scale_photos)
+        scalePhotosSwitch.isChecked = configuration().scalePhotos
+        scalePhotosSwitch.setOnCheckedChangeListener { button, b ->
+            scalePhotosSlider.isEnabled = b
+            scalePhotosEdit.isEnabled = b
+        }
+        if(!configuration().scalePhotos) {
+            scalePhotosSlider.isEnabled = false
         }
         findViewById<MaterialToolbar>(R.id.configuration_activity_toolbar).setOnMenuItemClickListener { item ->
             when (item.itemId) {

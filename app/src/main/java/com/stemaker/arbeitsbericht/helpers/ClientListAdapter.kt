@@ -9,9 +9,9 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.LifecycleOwner
 import androidx.recyclerview.widget.RecyclerView
-import com.stemaker.arbeitsbericht.Client
 import com.stemaker.arbeitsbericht.ClientViewModel
 import com.stemaker.arbeitsbericht.R
+import com.stemaker.arbeitsbericht.data.client.Client
 import com.stemaker.arbeitsbericht.databinding.ClientCardLayoutBinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope

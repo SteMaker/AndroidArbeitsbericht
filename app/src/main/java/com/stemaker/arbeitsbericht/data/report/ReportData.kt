@@ -1,24 +1,33 @@
 package com.stemaker.arbeitsbericht.data.report
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import com.stemaker.arbeitsbericht.R
+import com.stemaker.arbeitsbericht.data.base.DataBasicIf
+import com.stemaker.arbeitsbericht.data.base.DataElement
+import com.stemaker.arbeitsbericht.data.base.DataObject
 import com.stemaker.arbeitsbericht.data.configuration.configuration
 import kotlinx.serialization.json.Json
-import com.stemaker.arbeitsbericht.data.base.DataSimple
-import com.stemaker.arbeitsbericht.data.base.ElementChangeEvent
-import java.beans.PropertyChangeEvent
-import java.beans.PropertyChangeListener
+import java.util.*
+
+//Liste mit Änderungenm, die noch mindestens nötig sind. Explizit nicht als Kommentar, um
+//darauf aufmerksam zu machen
+//- Die Hochfahrphase durchgehen -> geht das theoretisch?
+//- Überprüfen, wie die dictionaries funktionieren
+//- Teste ob beim beenden der app auf eine noch laufende coroutine gewartet wird
+//- Weg von GlobalScope
+//- Timer für jeden report verwenden. Bei modify -> zurücksetzen, bei timeout -> save
+//- App für clients und configuration ähnlich erweitern, wie für reports, damit die gespeichert werden beim schließen
 
 private const val TAG="ReportData"
-const val FILTER_IMPACTING_PROPERTY = 1
+private const val REPORT = "report"
 
-class ReportData private constructor(var cnt: Int = 0):
-    PropertyChangeListener
+class ReportData private constructor(var cnt: Int = 0): DataObject(REPORT)
 {
     // Purpose of this var is to remember if the report needs to be stored
-    private var modified: Boolean = false
+    var modified: Boolean = false
 
     private val _create_date = MutableLiveData<String>()
     val create_date: LiveData<String>
@@ -40,7 +49,7 @@ class ReportData private constructor(var cnt: Int = 0):
             }
         }
     }
-    val state = DataSimple<ReportState>(ReportState.IN_WORK, "state")
+    val state = DataElement<ReportState>("state") { ReportState.IN_WORK }
     var project = ProjectData()
     var bill = BillData()
     val workTimeContainer = WorkTimeContainerData()
@@ -51,11 +60,11 @@ class ReportData private constructor(var cnt: Int = 0):
     val signatureData = SignatureData()
     val defaultValues = DefaultValues()
     val id = MediatorLiveData<String> ()
-    val filterMediator = MediatorLiveData<Boolean>()
 
-    override fun propertyChange(ev: PropertyChangeEvent) {
-        modified = true
-    }
+    override val elements = listOf<DataBasicIf>(
+        state, project, bill, workTimeContainer, workItemContainer, materialContainer, lumpSumContainer,
+        photoContainer, signatureData
+    )
 
     init {
         /* Build the observers that keep the ID up-to-date */
@@ -73,31 +82,13 @@ class ReportData private constructor(var cnt: Int = 0):
             id.value = buildId()
         }
 
-        // Build the observers that impact the filter
-        filterMediator.addSource(project.name) {  update(FILTER_IMPACTING_PROPERTY) }
-        filterMediator.addSource(project.extra1) {  update(FILTER_IMPACTING_PROPERTY) }
-        filterMediator.addSource(state) {  update(FILTER_IMPACTING_PROPERTY) }
-
-        // Build the observers that inform about changes
-        project.addObserver(this)
-        bill.addObserver(this)
-        workTimeContainer.addObserver(this)
-    }
-
-    private val observers = mutableListOf<androidx.databinding.Observable.OnPropertyChangedCallback>()
-    override fun addOnPropertyChangedCallback(observer: androidx.databinding.Observable.OnPropertyChangedCallback?) {
-        observer?.let { observers.add(it) }
-    }
-
-    override fun removeOnPropertyChangedCallback(observer: androidx.databinding.Observable.OnPropertyChangedCallback?) {
-        observer?.let { observers.remove(it) }
-    }
-
-    fun update(propertyId: Int) {
-        observers.forEach {
-            it.onPropertyChanged(this, propertyId)
+        // Any change within the report will be propagated here
+        dataModificationEvent.observeForever { value ->
+            Log.d(TAG, "${value.elem.elementName} has been modified")
+            modified = true
         }
     }
+
     private fun buildId(): String {
         var string = configuration().reportIdPattern.value?:""
         // Replace %<n>c -> running counter
@@ -158,6 +149,26 @@ class ReportData private constructor(var cnt: Int = 0):
         photoContainer.copyFromDb(r.photoContainer)
         signatureData.copyFromDb(r.signatures)
         defaultValues.copyFromDb(r.defaultValues)
+        modified = false
+        Log.d(TAG, "copyFromDb done for report ${cnt}")
+    }
+
+
+    fun copy(origin: ReportData, copyDate: Boolean = false) {
+        if(copyDate)
+            _create_date.value = origin.create_date.value
+        state.copy(origin.state)
+        project.copy(origin.project)
+        bill.copy(origin.bill)
+        workTimeContainer.copy(origin.workTimeContainer)
+        workItemContainer.copy(origin.workItemContainer)
+        materialContainer.copy(origin.materialContainer)
+        lumpSumContainer.copy(origin.lumpSumContainer)
+        photoContainer.copy(origin.photoContainer) // This is actually empty / not doing anything!!
+        signatureData.copy(origin.signatureData) // This is actually empty / not doing anything!!
+        defaultValues.copy(origin.defaultValues)
+        modified = true
+        Log.d(TAG, "copyFromReport done for report ${cnt}")
     }
 
     private fun getCurrentDate(): String {
@@ -179,6 +190,10 @@ class ReportData private constructor(var cnt: Int = 0):
 
         fun getReportFromDb(rDb: ReportDb, r: ReportData) {
             r.copyFromDb(rDb)
+        }
+
+        fun getReportFromReport(origin: ReportData) {
+
         }
 
         fun getJsonFromReport(r: ReportData): String {

@@ -7,7 +7,7 @@ import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.DialogFragment
 import com.stemaker.arbeitsbericht.R
-import com.stemaker.arbeitsbericht.data.configuration
+import com.stemaker.arbeitsbericht.data.configuration.configuration
 import com.stemaker.arbeitsbericht.databinding.ReportFilterLayoutBinding
 
 class ReportFilterDialog: DialogFragment() {
@@ -24,7 +24,6 @@ class ReportFilterDialog: DialogFragment() {
         dataBinding.projectName.setText(filter.projectName)
         dataBinding.projectExtra.setText(filter.projectExtra)
         dataBinding.applyButton.setOnClickListener {
-            val filter = configuration().reportFilter
             filter.inWork = dataBinding.inWork.isChecked
             filter.onHold = dataBinding.onHold.isChecked
             filter.done = dataBinding.done.isChecked

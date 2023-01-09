@@ -1,32 +1,32 @@
 package com.stemaker.arbeitsbericht.editor_fragments
 
-import android.content.Context
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.AutoCompleteTextView
-import android.widget.Button
 import android.widget.LinearLayout
 import androidx.appcompat.app.AlertDialog
+import androidx.lifecycle.ViewModelProvider
 import com.stemaker.arbeitsbericht.R
-import com.stemaker.arbeitsbericht.data.MaterialContainerData
-import com.stemaker.arbeitsbericht.data.MaterialData
+import com.stemaker.arbeitsbericht.data.report.ReportData
 import com.stemaker.arbeitsbericht.databinding.FragmentMaterialEditorBinding
 import com.stemaker.arbeitsbericht.databinding.MaterialLayoutBinding
 import com.stemaker.arbeitsbericht.helpers.showConfirmationDialog
+import com.stemaker.arbeitsbericht.view_models.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
-class MaterialEditorFragment : ReportEditorSectionFragment() {
+class MaterialEditorFragment(private val report: ReportData):
+    ReportEditorSectionFragment()
+{
     lateinit var dataBinding: FragmentMaterialEditorBinding
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         // Inflate the layout for this fragment
         val root = super.onCreateView(inflater, container, savedInstanceState)
         dataBinding = FragmentMaterialEditorBinding.inflate(inflater, container,false)
@@ -35,27 +35,18 @@ class MaterialEditorFragment : ReportEditorSectionFragment() {
         setHeadline(getString(R.string.material))
 
         dataBinding.lifecycleOwner = viewLifecycleOwner
-        GlobalScope.launch(Dispatchers.Main) {
-            listener?.let { listener ->
-                val report = listener.getReportData()
-                report?.let { report ->
-                    val materialContainerData = report.materialContainer
-                    dataBinding.materialContainerData = materialContainerData
+        val materialContainerData = report.materialContainer
+        val viewModelContainer = ViewModelProvider(this, MaterialContainerViewModelFactory(viewLifecycleOwner, materialContainerData)).get(MaterialContainerViewModel::class.java)
+        dataBinding.viewModel = viewModelContainer
 
-                    for (wt in materialContainerData.items) {
-                        addMaterialView(wt, materialContainerData)
-                    }
-
-                    dataBinding.materialAddButton.setOnClickListener(object : View.OnClickListener {
-                        override fun onClick(btn: View) {
-                            val wi = materialContainerData.addMaterial()
-                            addMaterialView(wi, materialContainerData)
-                        }
-                    })
-                }
-            }
+        for (viewModel in viewModelContainer) {
+            addMaterialView(viewModel, viewModelContainer)
         }
 
+        dataBinding.materialAddButton.setOnClickListener {
+            val viewModel = viewModelContainer.addMaterial()
+            addMaterialView(viewModel, viewModelContainer)
+        }
         return root
     }
 
@@ -70,33 +61,30 @@ class MaterialEditorFragment : ReportEditorSectionFragment() {
         return dataBinding.materialContentContainer.visibility != View.GONE
     }
 
-    fun addMaterialView(wi: MaterialData, materialContainerData: MaterialContainerData) {
+    private fun addMaterialView(viewModel: MaterialViewModel, viewModelContainer: MaterialContainerViewModel) {
         val inflater = layoutInflater
         val container = dataBinding.materialContentContainer
         val materialDataBinding: MaterialLayoutBinding = MaterialLayoutBinding.inflate(inflater, null, false)
-        materialDataBinding.material = wi
-        materialDataBinding.materialContainer = materialContainerData
+        materialDataBinding.viewModel = viewModel
+        materialDataBinding.viewModelContainer = viewModelContainer
         materialDataBinding.lifecycleOwner = activity
-        materialDataBinding.materialDelButton.setOnClickListener(object: View.OnClickListener {
-            override fun onClick(btn: View) {
-                GlobalScope.launch(Dispatchers.Main) {
-                    val answer =
-                        showConfirmationDialog(getString(R.string.del_confirmation), btn.context)
-                    if (answer == AlertDialog.BUTTON_POSITIVE) {
-                        container.removeView(materialDataBinding.root)
-                        materialContainerData.removeMaterial(wi)
-                    } else {
-                    }
+        materialDataBinding.materialDelButton.setOnClickListener { btn ->
+            GlobalScope.launch(Dispatchers.Main) {
+                val answer =
+                    showConfirmationDialog(getString(R.string.del_confirmation), btn.context)
+                if (answer == AlertDialog.BUTTON_POSITIVE) {
+                    container.removeView(materialDataBinding.root)
+                    viewModelContainer.removeMaterial(viewModel)
+                } else {
                 }
             }
-        })
+        }
         materialDataBinding.materialUnit.setOnFocusChangeListener { v, hasFocus -> run {
             val tv = v as AutoCompleteTextView
             if(hasFocus && tv.text.toString() == "") tv.showDropDown()
         } }
 
-        val pos = container.getChildCount()
+        val pos = container.childCount
         container.addView(materialDataBinding.root, pos)
     }
-
 }

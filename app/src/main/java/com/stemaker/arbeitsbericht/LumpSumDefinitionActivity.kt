@@ -1,6 +1,5 @@
 package com.stemaker.arbeitsbericht
 
-//import kotlinx.android.synthetic.main.activity_lump_sum_definition.*
 import android.Manifest
 import android.content.Context
 import android.content.Intent
@@ -11,20 +10,16 @@ import android.util.Log
 import android.view.*
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
-import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.stemaker.arbeitsbericht.data.configuration
+import com.stemaker.arbeitsbericht.data.configuration.configuration
 import com.stemaker.arbeitsbericht.databinding.ActivityLumpSumDefinitionBinding
 import com.stemaker.arbeitsbericht.helpers.SftpProvider
 import com.stemaker.arbeitsbericht.helpers.showConfirmationDialog
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import java.io.BufferedReader
-import java.io.File
-import java.io.FileInputStream
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.suspendCoroutine
 
@@ -32,35 +27,30 @@ private const val TAG = "LumpSumDefinitionAct"
 private const val PERMISSION_CODE_REQUEST_INTERNET = 1
 private const val REQUEST_LOAD_LUMP_SUM = 2
 
-class LumpSumDefinitionActivity : AppCompatActivity() {
+class LumpSumDefinitionActivity:
+    ArbeitsberichtActivity()
+{
     private var internetPermissionContinuation: Continuation<Boolean>? = null
     private lateinit var binding: ActivityLumpSumDefinitionBinding
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        if(!onCreateWrapper(savedInstanceState))
+            return
+
+        // Here we expect that the app initialization is done
         super.onCreate(savedInstanceState)
         binding = ActivityLumpSumDefinitionBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val storageInitJob = storageHandler().initialize(this as Context)
-
-        GlobalScope.launch(Dispatchers.Main) {
-            storageInitJob?.let {
-                if (!it.isCompleted) {
-                    findViewById<ProgressBar>(R.id.sftp_progress)?.visibility = View.VISIBLE
-                    it.join()
-                    findViewById<ProgressBar>(R.id.sftp_progress)?.visibility = View.GONE
-                }
-            } ?: run { Log.e(TAG, "storageHandler job was null :(") }
-            requestedOrientation = when(configuration().lockScreenOrientation) {
-                true -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
-                else -> ActivityInfo.SCREEN_ORIENTATION_FULL_USER
-            }
-            binding.lumpSumFtpPath.setText(configuration().lumpSumServerPath)
-            val lumpSums = configuration().lumpSums
-            for (ls in lumpSums) {
-                addLumpSumView(ls)
-            }
+        requestedOrientation = when(configuration().lockScreenOrientation) {
+            true -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
+            else -> ActivityInfo.SCREEN_ORIENTATION_FULL_USER
+        }
+        binding.lumpSumFtpPath.setText(configuration().lumpSumServerPath)
+        val lumpSums = configuration().lumpSums
+        for (ls in lumpSums) {
+            addLumpSumView(ls)
         }
         binding.lumpSumConfigurationActivityToolbar.setOnMenuItemClickListener { item ->
             when (item.itemId) {
@@ -119,7 +109,7 @@ class LumpSumDefinitionActivity : AppCompatActivity() {
             configuration().lumpSums = lumpSums
             configuration().lumpSumServerPath = findViewById<EditText>(R.id.lump_sum_ftp_path).text.toString()
             configuration().save()
-            storageHandler().updateLumpSums()
+            app.reportRepo.updateLumpSums()
             configuration().unlock()
             storageHandler().saveConfigurationToFile(getApplicationContext())
         }

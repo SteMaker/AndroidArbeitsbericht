@@ -165,7 +165,7 @@ class MainActivity:
     }
 
     private fun showFilterDialog() {
-        val dialog = ReportFilterDialog()
+        val dialog = ReportFilterDialog(app.reportFilter)
         dialog.show(supportFragmentManager, "Filter")
     }
 }

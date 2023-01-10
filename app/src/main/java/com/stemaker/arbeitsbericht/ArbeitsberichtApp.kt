@@ -2,12 +2,17 @@ package com.stemaker.arbeitsbericht
 
 import android.app.Application
 import android.content.Context
+import android.content.pm.PackageManager
+import android.graphics.Bitmap.Config
+import android.os.Build
 import android.util.Log
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.stemaker.arbeitsbericht.data.ReportDatabase
 import com.stemaker.arbeitsbericht.data.client.ClientRepository
+import com.stemaker.arbeitsbericht.data.configuration.Configuration
 import com.stemaker.arbeitsbericht.data.configuration.configuration
+import com.stemaker.arbeitsbericht.data.preferences.AbPreferences
 import com.stemaker.arbeitsbericht.data.report.ReportRepository
 import com.stemaker.arbeitsbericht.helpers.ReportFilter
 import kotlinx.coroutines.*
@@ -24,6 +29,7 @@ class ArbeitsberichtApp: Application() {
     lateinit var reportRepo: ReportRepository
     lateinit var reportFilter: ReportFilter
     lateinit var clientRepo: ClientRepository
+    lateinit var prefs: AbPreferences
 
     override fun onCreate() {
         super.onCreate()
@@ -50,11 +56,23 @@ class ArbeitsberichtApp: Application() {
         return reportRepo.isJobRunning
     }
 
+    var appUpdateWasDone = false
+        private set
+
     private fun initialize(): Job {
         return GlobalScope.launch(Dispatchers.Main) {
             Log.d(TAG, "initializing storage")
             // Read the configuration. This needs to be low level -> no configuration() invocation yet
-            StorageHandler.loadConfigurationFromFile(applicationContext)
+            if(StorageHandler.loadConfigurationFromFile(applicationContext)) {
+                // Handle switch to using preferences for storing configuration
+                if (configuration().previousVersionCode <= 131) {
+                    prefs = AbPreferences(appContext)
+                    prefs.fromConfig(configuration())
+                } else {
+                    prefs = AbPreferences(appContext)
+                }
+            }
+            appUpdateWasDone = prefs.previousVersionCode < prefs.versionCode.value!!
 
             reportRepo = ReportRepository(db.reportDao())
             clientRepo = ClientRepository(db.clientDao())
@@ -85,8 +103,15 @@ class ArbeitsberichtApp: Application() {
     }
     companion object {
         lateinit var appContext: Context
-        fun getVersionCode(): Int {
-            return appContext.packageManager.getPackageInfo(appContext.packageName!!, 0).versionCode
+
+        fun getVersionCode(): Long {
+            val info = when {
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU ->
+                    appContext.packageManager.getPackageInfo(appContext.packageName, PackageManager.PackageInfoFlags.of(0))
+                else ->
+                    appContext.packageManager.getPackageInfo(appContext.packageName, 0)
+            }
+            return info.longVersionCode
         }
         fun getInWorkIconDrawable() = R.drawable.ic_baseline_handyman_24
         fun getOnHoldIconDrawable() = R.drawable.ic_baseline_pause_24

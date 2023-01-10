@@ -10,11 +10,10 @@ import com.stemaker.arbeitsbericht.R
 import com.stemaker.arbeitsbericht.data.configuration.configuration
 import com.stemaker.arbeitsbericht.databinding.ReportFilterLayoutBinding
 
-class ReportFilterDialog: DialogFragment() {
+class ReportFilterDialog(val filter: ReportFilter): DialogFragment() {
     lateinit var dataBinding: ReportFilterLayoutBinding
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        val filter = configuration().reportFilter
         dataBinding = DataBindingUtil.inflate(inflater, R.layout.report_filter_layout, container, false)
         dataBinding.lifecycleOwner = this
         dataBinding.inWork.isChecked = filter.inWork

@@ -89,23 +89,14 @@ object Configuration {
     var inited = false
     var store = ConfigurationStore()
     val KEY_ALIAS = "ArbeitsberichtPasswordEncryptionKey"
-    var _appUpdateWasDone = false
+    private var _appUpdateWasDone = false
     val appUpdateWasDone: Boolean
-        get(): Boolean {
-            if(_appUpdateWasDone) {
-                _appUpdateWasDone = false
-                return true
-            } else {
-                return false
-            }
-        }
+        get() = _appUpdateWasDone
 
     val mutex = Mutex()
 
     suspend fun lock() = mutex.lock()
     suspend fun unlock() = mutex.unlock()
-
-    val reportFilter = ReportFilter()
 
     fun initialize() {
         if(!inited) {
@@ -117,12 +108,12 @@ object Configuration {
                 _appUpdateWasDone = true
                 updateConfiguration(store.vers)
             }
-            reportFilter.fromStore(store.filterProjectName, store.filterProjectExtra, store.filterStates)
         }
     }
 
     private fun updateConfiguration(oldVers: Int) {
-        store.vers = ArbeitsberichtApp.getVersionCode() + 100
+        previousVersionCode = oldVers
+        store.vers = (ArbeitsberichtApp.getVersionCode() + 100) as Int
         if(oldVers < 121) {
             try {
                 if(store.logoFile != "") {
@@ -155,6 +146,12 @@ object Configuration {
             } catch(e: Exception) {}
         }
     }
+
+    var previousVersionCode: Int = 0
+        private set
+
+    val versionCode: Int
+        get(): Int = store.vers
 
     var employeeName: String
         get(): String = store.employeeName
@@ -497,7 +494,7 @@ object Configuration {
     }
 
     fun save() {
-        store.vers = ArbeitsberichtApp.getVersionCode() +100
+        store.vers = (ArbeitsberichtApp.getVersionCode() +100) as Int
         // Only temp until I rework the configuration data handling to copy to/from json/db similar as for reports
         store.reportIdPattern = reportIdPattern.value?:""
         StorageHandler.saveConfigurationToFile(ArbeitsberichtApp.appContext)

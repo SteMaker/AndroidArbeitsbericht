@@ -36,18 +36,17 @@ object StorageHandler {
     val workItemDictionary: Set<String>
         get() = _workItemDictionary
 
-    fun loadConfigurationFromFile(c: Context) {
+    fun loadConfigurationFromFile(c: Context): Boolean {
         try {
             val fIn = c.openFileInput("configuration.json")
             val isr = InputStreamReader(fIn)
             Configuration.store = gson.fromJson(isr, ConfigurationStore::class.java)
             // Only temp until I rework the configuration data handling to copy to/from json/db similar as for reports
             Configuration.reportIdPattern.value = Configuration.store.reportIdPattern
-            // TODO: Load filter from configuration
+            return true // was able to read configuration
         }
         catch (e: Exception){
-            Configuration.store = ConfigurationStore()
-            configuration().save()
+            return false // not able to read configuration -> no need to migrate to AbPreferences
         }
     }
 

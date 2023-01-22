@@ -9,7 +9,7 @@ import androidx.lifecycle.Transformations
 /* Event to be emitted whenever a DataElement, DataObject or DataContainer changes */
 class DataModificationEvent(val type: Type, var elem: DataBasicIf) {
     enum class Type {
-        CONTAINER_ADD, CONTAINER_REMOVE, CONTAINER_CLEAR, ELEMENT_CHANGE
+        CONTAINER_ADD, CONTAINER_REMOVE, CONTAINER_CLEAR, CONTAINER_REORDER, ELEMENT_CHANGE
     }
 }
 /* Interface to be used for any DataElement, DataObject or DataContainer */
@@ -110,3 +110,7 @@ open class DataContainer<T: DataBasicIf>(n: String):
         }
     }
 }
+
+//private fun <T1, T2> MutableList<T2>.sortWith2(comparator: java.util.Comparator<T2>) {
+//    sortWith(comparator)
+//}

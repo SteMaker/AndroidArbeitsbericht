@@ -2,6 +2,7 @@ package com.stemaker.arbeitsbericht.editor_fragments
 
 import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -9,8 +10,10 @@ import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.stemaker.arbeitsbericht.R
+import com.stemaker.arbeitsbericht.data.base.DataModificationEvent
 import com.stemaker.arbeitsbericht.data.report.ReportData
 import com.stemaker.arbeitsbericht.databinding.EmployeeEntryLayoutBinding
 import com.stemaker.arbeitsbericht.databinding.FragmentWorkTimeEditorBinding
@@ -24,10 +27,12 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
 class WorkTimeEditorFragment(private val report: ReportData):
-    ReportEditorSectionFragment()
+    ReportEditorSectionFragment(),
+    WorkTimeInteractionFragment
 {
     lateinit var dataBinding: FragmentWorkTimeEditorBinding
     private val workTimeViews = mutableListOf<View>()
+    lateinit var viewModelContainer: WorkTimeContainerViewModel
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -42,7 +47,7 @@ class WorkTimeEditorFragment(private val report: ReportData):
 
         dataBinding.lifecycleOwner =viewLifecycleOwner
         val workTimeContainerData = report.workTimeContainer
-        val viewModelContainer = ViewModelProvider(this, WorkTimeContainerViewModelFactory(viewLifecycleOwner, workTimeContainerData, report.defaultValues)).get(WorkTimeContainerViewModel::class.java)
+        viewModelContainer = ViewModelProvider(this, WorkTimeContainerViewModelFactory(viewLifecycleOwner, this, workTimeContainerData, report.defaultValues)).get(WorkTimeContainerViewModel::class.java)
         dataBinding.viewModelContainer = viewModelContainer
 
         for (viewModel in viewModelContainer) {
@@ -55,21 +60,27 @@ class WorkTimeEditorFragment(private val report: ReportData):
                 val toast = Toast.makeText(root.context, it, Toast.LENGTH_LONG)
                 toast.show()
             }
-            addWorkTimeView(ret.second, viewModelContainer)
+            val v = addWorkTimeView(ret.second, viewModelContainer)
+            listener?.scrollTo(v)
         }
 
         dataBinding.workTimeSortButton.setOnClickListener {
             viewModelContainer.sortByDate()
-            val c = dataBinding.workTimeContentContainer
-            for (v in workTimeViews)
-                c.removeView(v)
-            workTimeViews.clear()
-            for (viewModel in viewModelContainer) {
-                addWorkTimeView(viewModel, viewModelContainer)
-            }
         }
+
         return root
     }
+
+    override fun onReorder() {
+        val c = dataBinding.workTimeContentContainer
+        for (v in workTimeViews)
+            c.removeView(v)
+        workTimeViews.clear()
+        for (viewModel in viewModelContainer) {
+            addWorkTimeView(viewModel, viewModelContainer)
+        }
+    }
+
 
     override fun setVisibility(vis: Boolean) {
         dataBinding.workTimeContentContainer.visibility = when(vis) {
@@ -82,7 +93,7 @@ class WorkTimeEditorFragment(private val report: ReportData):
         return dataBinding.workTimeContentContainer.visibility != View.GONE
     }
 
-    private fun addWorkTimeView(viewModel: WorkTimeViewModel, viewModelContainer: WorkTimeContainerViewModel) {
+    private fun addWorkTimeView(viewModel: WorkTimeViewModel, viewModelContainer: WorkTimeContainerViewModel): View {
         val inflater = layoutInflater
         val container = dataBinding.workTimeContentContainer
         val workTimeDataBinding: WorkTimeLayoutBinding = WorkTimeLayoutBinding.inflate(inflater, null, false)
@@ -142,6 +153,7 @@ class WorkTimeEditorFragment(private val report: ReportData):
 
         val pos = container.childCount
         container.addView(workTimeDataBinding.root, pos)
+        return workTimeDataBinding.root
     }
 
     private fun addEmployeeView(root: View, viewModel: WorkTimeViewModel, employee: MutableLiveData<String>) {

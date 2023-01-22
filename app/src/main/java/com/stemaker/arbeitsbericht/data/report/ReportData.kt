@@ -4,27 +4,16 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
-import com.stemaker.arbeitsbericht.R
 import com.stemaker.arbeitsbericht.data.base.DataBasicIf
 import com.stemaker.arbeitsbericht.data.base.DataElement
 import com.stemaker.arbeitsbericht.data.base.DataObject
-import com.stemaker.arbeitsbericht.data.configuration.configuration
-import kotlinx.serialization.json.Json
+import com.stemaker.arbeitsbericht.data.preferences.AbPreferences
 import java.util.*
-
-//Liste mit Änderungenm, die noch mindestens nötig sind. Explizit nicht als Kommentar, um
-//darauf aufmerksam zu machen
-//- Die Hochfahrphase durchgehen -> geht das theoretisch?
-//- Überprüfen, wie die dictionaries funktionieren
-//- Teste ob beim beenden der app auf eine noch laufende coroutine gewartet wird
-//- Weg von GlobalScope
-//- Timer für jeden report verwenden. Bei modify -> zurücksetzen, bei timeout -> save
-//- App für clients und configuration ähnlich erweitern, wie für reports, damit die gespeichert werden beim schließen
 
 private const val TAG="ReportData"
 private const val REPORT = "report"
 
-class ReportData private constructor(var cnt: Int = 0): DataObject(REPORT)
+class ReportData private constructor(var cnt: Int = 0, private val prefs: AbPreferences): DataObject(REPORT)
 {
     // Purpose of this var is to remember if the report needs to be stored
     var modified: Boolean = false
@@ -39,20 +28,13 @@ class ReportData private constructor(var cnt: Int = 0): DataObject(REPORT)
         companion object {
             fun fromInt(value: Int) = values().first() { it.ordinal == value }
             fun toInt(s: ReportState) = s.ordinal
-            fun toStringId(s: ReportState): Int {
-                return when(s) {
-                    IN_WORK -> R.string.in_work
-                    ON_HOLD -> R.string.on_hold
-                    DONE -> R.string.done
-                    ARCHIVED -> R.string.archived
-                }
-            }
+            val max = ARCHIVED.ordinal
         }
     }
     val state = DataElement<ReportState>("state") { ReportState.IN_WORK }
     var project = ProjectData()
     var bill = BillData()
-    val workTimeContainer = WorkTimeContainerData()
+    val workTimeContainer = WorkTimeContainerData(prefs.employeeName.value)
     val workItemContainer = WorkItemContainerData()
     val materialContainer = MaterialContainerData()
     val lumpSumContainer = LumpSumContainerData()
@@ -78,7 +60,7 @@ class ReportData private constructor(var cnt: Int = 0): DataObject(REPORT)
         id.addSource(project.extra1) {
             id.value = buildId()
         }
-        id.addSource(configuration().reportIdPattern) {
+        id.addSource(prefs.reportIdPattern) {
             id.value = buildId()
         }
 
@@ -90,7 +72,7 @@ class ReportData private constructor(var cnt: Int = 0): DataObject(REPORT)
     }
 
     private fun buildId(): String {
-        var string = configuration().reportIdPattern.value?:""
+        var string = prefs.reportIdPattern.value
         // Replace %<n>c -> running counter
         val regex = """(%c|%[0-9]c)""".toRegex()
         string = regex.replace(string) { m ->
@@ -109,8 +91,8 @@ class ReportData private constructor(var cnt: Int = 0): DataObject(REPORT)
         string = string.replace("%d", create_date.value!!.substring(0, 2))
 
         // Replace others
-        string = string.replace("%e", configuration().employeeName)
-        string = string.replace("%p", configuration().deviceName)
+        string = string.replace("%e", prefs.employeeName.value)
+        string = string.replace("%p", prefs.deviceName.value)
         project.name.value?.let { string = string.replace("%k", it) }
         project.extra1.value?.let { string = string.replace("%z", it) }
 
@@ -122,6 +104,7 @@ class ReportData private constructor(var cnt: Int = 0): DataObject(REPORT)
 
         return string
     }
+    /*
     private fun copyFromSerialized(r: ReportDataSerialized) {
         cnt = r.id
         _create_date.value = r.create_date
@@ -135,6 +118,7 @@ class ReportData private constructor(var cnt: Int = 0): DataObject(REPORT)
         photoContainer.copyFromSerialized(r.photoContainer)
         signatureData.copyFromSerialized(r.signatureData)
     }
+    */
 
     private fun copyFromDb(r: ReportDb) {
         cnt = r.cnt
@@ -164,8 +148,8 @@ class ReportData private constructor(var cnt: Int = 0): DataObject(REPORT)
         workItemContainer.copy(origin.workItemContainer)
         materialContainer.copy(origin.materialContainer)
         lumpSumContainer.copy(origin.lumpSumContainer)
-        photoContainer.copy(origin.photoContainer) // This is actually empty / not doing anything!!
-        signatureData.copy(origin.signatureData) // This is actually empty / not doing anything!!
+        photoContainer.copy() // This is actually empty / not doing anything!!
+        signatureData.copy() // This is actually empty / not doing anything!!
         defaultValues.copy(origin.defaultValues)
         modified = true
         Log.d(TAG, "copyFromReport done for report ${cnt}")
@@ -180,30 +164,12 @@ class ReportData private constructor(var cnt: Int = 0): DataObject(REPORT)
                 cal.get(Calendar.YEAR).toString().padStart(4,'0')
     }
 
+    fun getReportFromDb(rDb: ReportDb) {
+        copyFromDb(rDb)
+    }
     companion object {
-        fun getReportFromJson(jsonData: String): ReportData {
-            val serialized = Json.decodeFromString(ReportDataSerialized.serializer(), jsonData)
-            val report = ReportData()
-            report.copyFromSerialized(serialized)
-            return report
-        }
-
-        fun getReportFromDb(rDb: ReportDb, r: ReportData) {
-            r.copyFromDb(rDb)
-        }
-
-        fun getReportFromReport(origin: ReportData) {
-
-        }
-
-        fun getJsonFromReport(r: ReportData): String {
-            val serialized = ReportDataSerialized()
-            serialized.copyFromData(r) // Copy from data object into serialized object
-            return Json.encodeToString(ReportDataSerialized.serializer(), serialized)
-        }
-
-        fun createReport(cnt: Int): ReportData {
-            val r = ReportData(cnt)
+        fun createReport(cnt: Int, prefs: AbPreferences): ReportData {
+            val r = ReportData(cnt, prefs)
             r.modified = true
             return r
         }

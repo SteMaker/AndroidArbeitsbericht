@@ -5,6 +5,7 @@ import com.stemaker.arbeitsbericht.data.base.DataContainer
 import com.stemaker.arbeitsbericht.data.base.DataElement
 import com.stemaker.arbeitsbericht.data.calendarToDateString
 import com.stemaker.arbeitsbericht.helpers.ReportFilter
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.cbor.Cbor
 import kotlinx.serialization.decodeFromByteArray

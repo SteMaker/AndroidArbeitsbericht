@@ -75,15 +75,15 @@ class ClientListAdapter(val activity: AppCompatActivity, private val clientViewM
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ClientViewHolder {
-        val layoutInflater = LayoutInflater.from(parent.context);
-        val itemBinding = ClientCardLayoutBinding.inflate(layoutInflater, parent, false);
+        val layoutInflater = LayoutInflater.from(parent.context)
+        val itemBinding = ClientCardLayoutBinding.inflate(layoutInflater, parent, false)
         return ClientViewHolder(itemBinding, activity as LifecycleOwner, clientViewModel)
     }
 
     override fun onBindViewHolder(holder: ClientViewHolder, position: Int) {
         holder.bind(clientViewModel.clients[position]) {
             recyclerView.scrollToPosition(position)
-            Handler(Looper.getMainLooper()).postDelayed({ recyclerView.smoothScrollToPosition(position) }, 250); //sometime not working, need some delay
+            Handler(Looper.getMainLooper()).postDelayed({ recyclerView.smoothScrollToPosition(position) }, 250) //sometime not working, need some delay
         }
     }
 
@@ -94,7 +94,7 @@ class ClientListAdapter(val activity: AppCompatActivity, private val clientViewM
     override fun elementAdded(element: Client, pos: Int) {
         notifyItemInserted(pos)
         recyclerView.scrollToPosition(pos)
-        Handler(Looper.getMainLooper()).postDelayed({ recyclerView.smoothScrollToPosition(pos) }, 250); //sometime not working, need some delay
+        Handler(Looper.getMainLooper()).postDelayed({ recyclerView.smoothScrollToPosition(pos) }, 250) //sometime not working, need some delay
     }
 
     override fun elementRemoved(element: Client, oldPos: Int) {

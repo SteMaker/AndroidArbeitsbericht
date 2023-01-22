@@ -2,7 +2,6 @@ package com.stemaker.arbeitsbericht.helpers
 
 import android.app.DatePickerDialog
 import android.app.Dialog
-import android.content.Context
 import android.os.Bundle
 import android.widget.DatePicker
 import androidx.fragment.app.DialogFragment
@@ -21,7 +20,7 @@ class DatePickerFragment : DialogFragment(), DatePickerDialog.OnDateSetListener 
         val day = date.value?.get(Calendar.DAY_OF_MONTH)?:1
 
         // Create a new instance of DatePickerDialog and return it
-        return DatePickerDialog(activity!!, this, year, month, day)
+        return DatePickerDialog(requireActivity(), this, year, month, day)
     }
 
     override fun onPause() {

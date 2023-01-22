@@ -2,7 +2,6 @@ package com.stemaker.arbeitsbericht.editor_fragments
 
 import android.Manifest
 import android.app.Activity.RESULT_OK
-import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
@@ -17,14 +16,11 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.Toast
-import androidx.annotation.NonNull
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.lifecycle.ViewModelProvider
 import com.stemaker.arbeitsbericht.R
-import com.stemaker.arbeitsbericht.data.configuration.configuration
-import com.stemaker.arbeitsbericht.data.report.PhotoData
 import com.stemaker.arbeitsbericht.data.report.ReportData
 import com.stemaker.arbeitsbericht.databinding.FragmentPhotoEditorBinding
 import com.stemaker.arbeitsbericht.databinding.PhotoLayoutBinding
@@ -45,8 +41,11 @@ import kotlin.coroutines.suspendCoroutine
 
 private const val TAG = "PhotoEditorFrag"
 
-class PhotoEditorFragment(private val report: ReportData):
-    ReportEditorSectionFragment()
+class PhotoEditorFragment(
+    private val report: ReportData,
+    private val scalePhotos: Boolean,
+    private val photoResolution: Int)
+    : ReportEditorSectionFragment()
 {
     lateinit var dataBinding: FragmentPhotoEditorBinding
     private var contCnt = 1
@@ -77,7 +76,8 @@ class PhotoEditorFragment(private val report: ReportData):
 
         dataBinding.photoAddButton.setOnClickListener {
             val viewModel = viewModelContainer.addPhoto()
-            addPhotoView(viewModel, viewModelContainer)
+            val v = addPhotoView(viewModel, viewModelContainer)
+            listener?.scrollTo(v)
         }
         return root
     }
@@ -108,7 +108,7 @@ class PhotoEditorFragment(private val report: ReportData):
         }
     }
 
-    private fun addPhotoView(viewModel: PhotoViewModel, viewModelContainer: PhotoContainerViewModel) {
+    private fun addPhotoView(viewModel: PhotoViewModel, viewModelContainer: PhotoContainerViewModel): View {
         val inflater = layoutInflater
         val container = dataBinding.photoContentContainer
         val photoDataBinding: PhotoLayoutBinding = PhotoLayoutBinding.inflate(inflater, null, false)
@@ -218,6 +218,7 @@ class PhotoEditorFragment(private val report: ReportData):
 
         val pos = container.childCount
         container.addView(photoDataBinding.root, pos)
+        return photoDataBinding.root
     }
 
     private fun applyPhotoFile(viewModel: PhotoViewModel, f: File) {
@@ -225,18 +226,18 @@ class PhotoEditorFragment(private val report: ReportData):
         val destWidth: Int
         val options = BitmapFactory.Options()
         val bitmap = BitmapFactory.decodeFile(f.absolutePath, options)
-        if(configuration().scalePhotos && bitmap.width > configuration().photoResolution && bitmap.height > configuration().photoResolution) {
+        if(scalePhotos && bitmap.width > photoResolution && bitmap.height > photoResolution) {
             if(bitmap.width < bitmap.height) {
-                destWidth = configuration().photoResolution
+                destWidth = photoResolution
                 destHeight = bitmap.height * destWidth / bitmap.width
             } else {
-                destHeight = configuration().photoResolution
+                destHeight = photoResolution
                 destWidth = bitmap.width * destHeight / bitmap.height
             }
                 val scaledBitmap = Bitmap.createScaledBitmap(bitmap, destWidth, destHeight, false)
             val outStream = FileOutputStream(f)
-                scaledBitmap.compress(Bitmap.CompressFormat.JPEG, 70, outStream)
-                outStream.close()
+            scaledBitmap.compress(Bitmap.CompressFormat.JPEG, 70, outStream)
+            outStream.close()
         } else {
             destHeight = bitmap.height
             destWidth = bitmap.width

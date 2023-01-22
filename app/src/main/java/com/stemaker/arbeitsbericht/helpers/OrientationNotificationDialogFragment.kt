@@ -9,9 +9,10 @@ import android.widget.Button
 import androidx.fragment.app.DialogFragment
 import com.google.android.material.switchmaterial.SwitchMaterial
 import com.stemaker.arbeitsbericht.R
-import com.stemaker.arbeitsbericht.data.configuration.configuration
+import com.stemaker.arbeitsbericht.data.preferences.AbPreferences
 
-class OrientationNotificationDialogFragment: DialogFragment() {
+// @TODO(Change to data binding)
+class OrientationNotificationDialogFragment(private val prefs: AbPreferences): DialogFragment() {
     private var listener: ForcePortraitListener? = null
 
     interface ForcePortraitListener {
@@ -20,17 +21,16 @@ class OrientationNotificationDialogFragment: DialogFragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         // Inflate the layout for this fragment
         val v = inflater.inflate(R.layout.fragment_orientation_notification_dialog, container, false)
-        v.findViewById<SwitchMaterial>(R.id.always_landscape).isChecked = configuration().lockScreenOrientation
+        v.findViewById<SwitchMaterial>(R.id.always_landscape).isChecked = prefs.lockScreenOrientation.value
         v.findViewById<Button>(R.id.close_button).setOnClickListener { dismiss() }
         return v
     }
 
     override fun onDismiss(dialog: DialogInterface) {
         super.onDismiss(dialog)
-        configuration().lockScreenOrientation = view?.findViewById<SwitchMaterial>(R.id.always_landscape)?.isChecked?:false
-        configuration().lockScreenOrientationNoInfo = view?.findViewById<SwitchMaterial>(R.id.no_show)?.isChecked?:false
-        configuration().save()
-        if(configuration().lockScreenOrientation)
+        prefs.lockScreenOrientation.value = view?.findViewById<SwitchMaterial>(R.id.always_landscape)?.isChecked?:false
+        prefs.lockScreenOrientationNoInfo.value = view?.findViewById<SwitchMaterial>(R.id.no_show)?.isChecked?:false
+        if(prefs.lockScreenOrientation.value)
             listener?.forcePortrait()
     }
 

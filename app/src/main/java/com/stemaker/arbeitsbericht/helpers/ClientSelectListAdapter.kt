@@ -36,8 +36,8 @@ class ClientSelectListAdapter(val lcOwner: LifecycleOwner, private val clientVie
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ClientSelectViewHolder {
-        val layoutInflater = LayoutInflater.from(parent.context);
-        val itemBinding = ClientSelectLayoutBinding.inflate(layoutInflater, parent, false);
+        val layoutInflater = LayoutInflater.from(parent.context)
+        val itemBinding = ClientSelectLayoutBinding.inflate(layoutInflater, parent, false)
         return ClientSelectViewHolder(itemBinding, lcOwner)
     }
 

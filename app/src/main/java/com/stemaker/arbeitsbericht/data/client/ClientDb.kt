@@ -32,5 +32,4 @@ data class ClientDb(
     var driveTime: String = "00:00",
     var useDriveTime: Boolean = false,
     var notes: String = ""
-) {
-}
+)

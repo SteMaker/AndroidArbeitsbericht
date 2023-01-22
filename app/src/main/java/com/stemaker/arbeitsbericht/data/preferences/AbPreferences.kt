@@ -2,18 +2,14 @@ package com.stemaker.arbeitsbericht.data.preferences
 
 import android.content.Context
 import android.content.SharedPreferences
-import android.graphics.Paint.Align
 import android.os.Looper
 import android.util.Log
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.preference.PreferenceManager
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
-import com.stemaker.arbeitsbericht.R
 import com.stemaker.arbeitsbericht.data.configuration.Configuration
 import com.stemaker.arbeitsbericht.data.report.ReportData
-import javax.crypto.SecretKey
 
 const val TAG = "AbPreferences"
 private const val encryptedSharedPrefsFile = "ArbeitsberichtEncryptedPrefs"
@@ -68,61 +64,73 @@ private const val PDFFOOTERWIDTHPERCENTDEFAULT = 100
 private const val PDFFOOTERALIGNMENTDEFAULT = 0
 
 class ConfigElement<T>(initFct: (() -> T), val setFct: ((T) -> Unit)):
-    LiveData<T>()
+    MutableLiveData<T>()
 {
-    public override fun postValue(value: T) {
+    private val defaultValue = initFct()
+    override fun postValue(value: T) {
         super.postValue(value)
         setFct(value)
     }
 
-    public override fun setValue(value: T) {
+    override fun setValue(value: T) {
         super.setValue(value)
         setFct(value)
     }
 
+    override fun getValue(): T {
+        return super.getValue()?:defaultValue
+    }
+
     init {
-        super.setValue(initFct())
+        super.setValue(defaultValue)
     }
 }
-// Note: It is OK to use non-null assertion on the value of ConfigElement since they are set in init (.value!!)
-class AbPreferences(val ctx: Context) {
+
+class AbPreferences(private val ctx: Context)
+{
     enum class Alignment(val a: Int) {
         CENTER(0),
         LEFT(1),
         RIGHT(2)
     }
+    // We are using shared preferences as data store and also listen(!) for changes to reflect them in our LiveData.
+    // That allows any component in the app to use the shared preferences as well as the LiveData, just what is
+    // more appropriate
     private val sharedPrefs: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(ctx)
     private val masterKey = MasterKey.Builder(ctx)
         .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
-        .build();
+        .build()
 
+    // We are not listening on encrypted shared prefs. Need to see how to link it with the config activity
     private val encryptedSharedPrefs: SharedPreferences = EncryptedSharedPreferences.create(
         ctx, encryptedSharedPrefsFile, masterKey,
         EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
         EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM)
 
     val versionCode = ConfigElement<Long>(
-        { sharedPrefs.getLong(ctx.getString(R.string.versionCode), VERSIONCODEDEFAULT) },
+        { sharedPrefs.getLong("versionCode", VERSIONCODEDEFAULT) },
         { value -> with(sharedPrefs.edit()) {
-            putLong(ctx.getString(R.string.versionCode), value)
+            putLong("versionCode", value)
             apply()
         }})
-    val previousVersionCode = sharedPrefs.getLong(ctx.getString(R.string.versionCode), VERSIONCODEDEFAULT)
 
-    var employeeName = ConfigElement<String>(
-        { sharedPrefs.getString(ctx.getString(R.string.employeeName), EMPLOYEENAMEDEFAULT)?:EMPLOYEENAMEDEFAULT },
+    val employeeName = ConfigElement<String>(
+        { sharedPrefs.getString("employeeName", EMPLOYEENAMEDEFAULT)?:EMPLOYEENAMEDEFAULT },
         { value -> with(sharedPrefs.edit()) {
-            putString(ctx.getString(R.string.employeeName), value)
+            putString("employeeName", value)
             apply()
         } })
     var currentId: Int
-        get() = sharedPrefs.getInt(ctx.getString(R.string.currentId), CURRENTIDDEFAULT)
+        get() = sharedPrefs.getInt("currentId", CURRENTIDDEFAULT)
         private set(value) {
             with(sharedPrefs.edit()) {
-                putInt(ctx.getString(R.string.currentId), value)
+                putInt("currentId", value)
                 apply()
             }
         }
+    fun overrideCurrentId(id: Int) {
+        currentId = id
+    }
     fun allocateReportId() : Int {
         if(Looper.getMainLooper().thread != Thread.currentThread()) {
             Log.e(TAG, "Error: Allocating ID, not running on the main thread")
@@ -131,340 +139,353 @@ class AbPreferences(val ctx: Context) {
         currentId = id + 1
         return id
     }
-    var deviceName = ConfigElement<String>(
-        { sharedPrefs.getString(ctx.getString(R.string.deviceName), DEVICENAMEDEFAULT)?:DEVICENAMEDEFAULT },
+    val deviceName = ConfigElement<String>(
+        { sharedPrefs.getString("deviceName", DEVICENAMEDEFAULT)?:DEVICENAMEDEFAULT },
         { value -> with(sharedPrefs.edit()) {
-            putString(ctx.getString(R.string.deviceName), value)
+            putString("deviceName", value)
             apply()
         } })
-    var reportIdPattern = ConfigElement<String>(
-        { sharedPrefs.getString(ctx.getString(R.string.reportIdPattern), REPORTIDPATTERNDEFAULT)?: REPORTIDPATTERNDEFAULT},
+    val reportIdPattern = ConfigElement<String>(
+        { sharedPrefs.getString("reportIdPattern", REPORTIDPATTERNDEFAULT)?: REPORTIDPATTERNDEFAULT},
         { value -> with(sharedPrefs.edit()) {
-            putString(ctx.getString(R.string.reportIdPattern), value)
+            putString("reportIdPattern", value)
             apply()
         } })
-    var recvMail = ConfigElement<String>(
-        { sharedPrefs.getString(ctx.getString(R.string.recvMail), RECVMAILDEFAULT)?:RECVMAILDEFAULT },
+    val recvMail = ConfigElement<String>(
+        { sharedPrefs.getString("recvMail", RECVMAILDEFAULT)?:RECVMAILDEFAULT },
         { value -> with(sharedPrefs.edit()) {
-            putString(ctx.getString(R.string.recvMail), value)
+            putString("recvMail", value)
             apply()
         } })
-    var useOdfOutput = ConfigElement<Boolean>(
-        { sharedPrefs.getBoolean(ctx.getString(R.string.useOdfOutput), USEODFOUTPUTDEFAULT) },
+    val useOdfOutput = ConfigElement<Boolean>(
+        { sharedPrefs.getBoolean("useOdfOutput", USEODFOUTPUTDEFAULT) },
         { value -> with(sharedPrefs.edit()) {
-            putBoolean(ctx.getString(R.string.useOdfOutput), value)
+            putBoolean("useOdfOutput", value)
             apply()
         } })
-    var useXlsxOutput = ConfigElement<Boolean>(
-        { sharedPrefs.getBoolean(ctx.getString(R.string.useXlsxOutput), USEXLSXOUTPUTDEFAULT) },
+    val useXlsxOutput = ConfigElement<Boolean>(
+        { sharedPrefs.getBoolean("useXlsxOutput", USEXLSXOUTPUTDEFAULT) },
         { value -> with(sharedPrefs.edit()) {
-            putBoolean(ctx.getString(R.string.useXlsxOutput), value)
+            putBoolean("useXlsxOutput", value)
             apply()
         } })
-    var selectOutput = ConfigElement<Boolean>(
-        { sharedPrefs.getBoolean(ctx.getString(R.string.selectOutput), SELECTOUTPUTDEFAULT) },
+    val selectOutput = ConfigElement<Boolean>(
+        { sharedPrefs.getBoolean("selectOutput", SELECTOUTPUTDEFAULT) },
         { value -> with(sharedPrefs.edit()) {
-            putBoolean(ctx.getString(R.string.selectOutput), value)
+            putBoolean("selectOutput", value)
             apply()
         } })
-    var sFtpHost = ConfigElement<String>(
-        { sharedPrefs.getString(ctx.getString(R.string.sFtpHost), SFTPHOSTDEFAULT)?:SFTPHOSTDEFAULT },
+    val sFtpHost = ConfigElement<String>(
+        { sharedPrefs.getString("sFtpHost", SFTPHOSTDEFAULT)?:SFTPHOSTDEFAULT },
         { value -> with(sharedPrefs.edit()) {
-            putString(ctx.getString(R.string.sFtpHost), value)
+            putString("sFtpHost", value)
             apply()
         } })
-    var sFtpPort = ConfigElement<Int>(
-        { sharedPrefs.getInt(ctx.getString(R.string.sFtpPort), SFTPPORTDEFAULT) },
+    val sFtpPort = ConfigElement<Int>(
+        { sharedPrefs.getInt("sFtpPort", SFTPPORTDEFAULT) },
         { value -> with(sharedPrefs.edit()) {
-            putInt(ctx.getString(R.string.sFtpPort), value)
+            putInt("sFtpPort", value)
             apply()
         } })
-    var sFtpUser = ConfigElement<String>(
-        { sharedPrefs.getString(ctx.getString(R.string.sFtpUser), SFTPUSERDEFAULT)?:SFTPUSERDEFAULT },
+    val sFtpUser = ConfigElement<String>(
+        { sharedPrefs.getString("sFtpUser", SFTPUSERDEFAULT)?:SFTPUSERDEFAULT },
         { value -> with(sharedPrefs.edit()) {
-            putString(ctx.getString(R.string.sFtpUser), value)
+            putString("sFtpUser", value)
             apply()
         } })
     // Attention: This shall not be included in the backup
-    var sFtpPassword = ConfigElement<String>(
-        { encryptedSharedPrefs.getString(ctx.getString(R.string.sFtpPassword), SFTPPASSWORDDEFAULT)?:SFTPPASSWORDDEFAULT},
+    val sFtpPassword = ConfigElement<String>(
+        { encryptedSharedPrefs.getString("sFtpPassword", SFTPPASSWORDDEFAULT)?:SFTPPASSWORDDEFAULT},
         { value -> with(encryptedSharedPrefs.edit()) {
-            putString(ctx.getString(R.string.sFtpPassword), value)
+            putString("sFtpPassword", value)
             apply()
         } })
-    var lumpSumServerPath = ConfigElement<String>(
-        { sharedPrefs.getString(ctx.getString(R.string.lumpSumServerPath), LUMPSUMSERVERPATHDEFAULT)?:LUMPSUMSERVERPATHDEFAULT },
+    val lumpSumServerPath = ConfigElement<String>(
+        { sharedPrefs.getString("lumpSumServerPath", LUMPSUMSERVERPATHDEFAULT)?:LUMPSUMSERVERPATHDEFAULT },
         { value -> with(sharedPrefs.edit()) {
-            putString(ctx.getString(R.string.lumpSumServerPath), value)
+            putString("lumpSumServerPath", value)
             apply()
         } })
-    var odfTemplateServerPath = ConfigElement<String>(
-        { sharedPrefs.getString(ctx.getString(R.string.odfTemplateServerPath), ODFTEMPLATESERVERPATHDEFAULT)?:ODFTEMPLATESERVERPATHDEFAULT },
+    val odfTemplateServerPath = ConfigElement<String>(
+        { sharedPrefs.getString("odfTemplateServerPath", ODFTEMPLATESERVERPATHDEFAULT)?:ODFTEMPLATESERVERPATHDEFAULT },
         { value -> with(sharedPrefs.edit()) {
-            putString(ctx.getString(R.string.odfTemplateServerPath), value)
+            putString("odfTemplateServerPath", value)
             apply()
         } })
-    var logoServerPath = ConfigElement<String>(
-        { sharedPrefs.getString(ctx.getString(R.string.logoServerPath), LOGOSERVERPATHDEFAULT)?:LOGOSERVERPATHDEFAULT },
+    val logoServerPath = ConfigElement<String>(
+        { sharedPrefs.getString("logoServerPath", LOGOSERVERPATHDEFAULT)?:LOGOSERVERPATHDEFAULT },
         { value -> with(sharedPrefs.edit()) {
-            putString(ctx.getString(R.string.logoServerPath), value)
+            putString("logoServerPath", value)
             apply()
         } })
-    var footerServerPath = ConfigElement<String>(
-        { sharedPrefs.getString(ctx.getString(R.string.footerServerPath), FOOTERSERVERPATHDEFAULT)?:FOOTERSERVERPATHDEFAULT },
+    val footerServerPath = ConfigElement<String>(
+        { sharedPrefs.getString("footerServerPath", FOOTERSERVERPATHDEFAULT)?:FOOTERSERVERPATHDEFAULT },
         { value -> with(sharedPrefs.edit()) {
-            putString(ctx.getString(R.string.footerServerPath), value)
+            putString("footerServerPath", value)
             apply()
         } })
-    var lumpSums = ConfigElement<Set<String>>(
+    val lumpSums = ConfigElement<Set<String>>(
         {
-            val a: Collection<String> = sharedPrefs.getStringSet(ctx.getString(R.string.lumpSums), LUMPSUMSDEFAULT)?:LUMPSUMSDEFAULT
+            val a: Collection<String> = sharedPrefs.getStringSet("lumpSums", LUMPSUMSDEFAULT)?:LUMPSUMSDEFAULT
             a.toSet()
         },
         { value -> with(sharedPrefs.edit()) {
-            putStringSet(ctx.getString(R.string.footerServerPath), value)
+            putStringSet("footerServerPath", value)
             apply()
         } })
-    var activeReportId = ConfigElement<Int>(
-        { sharedPrefs.getInt(ctx.getString(R.string.activeReportId), ACTIVEREPORTIDDEFAULT)?:ACTIVEREPORTIDDEFAULT },
+    val activeReportId = ConfigElement<Int>(
+        { sharedPrefs.getInt("activeReportId", ACTIVEREPORTIDDEFAULT)},
         { value -> with(sharedPrefs.edit()) {
-            putInt(ctx.getString(R.string.activeReportId), value)
+            putInt("activeReportId", value)
             apply()
         } })
-    var workItemDictionary = ConfigElement<Set<String>>(
+    val workItemDictionary = ConfigElement<Set<String>>(
         {
-            val a: Collection<String> = sharedPrefs.getStringSet(ctx.getString(R.string.workItemDictionary), WORKITEMDICTIONARYDEFAULT)?:WORKITEMDICTIONARYDEFAULT
+            val a: Collection<String> = sharedPrefs.getStringSet("workItemDictionary", WORKITEMDICTIONARYDEFAULT)?:WORKITEMDICTIONARYDEFAULT
             a.toSet()
         },
         { value -> with(sharedPrefs.edit()) {
-            putStringSet(ctx.getString(R.string.workItemDictionary), value)
+            putStringSet("workItemDictionary", value)
             apply()
         } })
-    var materialDictionary = ConfigElement<Set<String>>(
+    val materialDictionary = ConfigElement<Set<String>>(
         {
-            val a: Collection<String> = sharedPrefs.getStringSet(ctx.getString(R.string.materialDictionary), MATERIALDICTIONARYDEFAULT)?: MATERIALDICTIONARYDEFAULT
+            val a: Collection<String> = sharedPrefs.getStringSet("materialDictionary", MATERIALDICTIONARYDEFAULT)?: MATERIALDICTIONARYDEFAULT
             a.toSet()
         },
         { value -> with(sharedPrefs.edit()) {
-            putStringSet(ctx.getString(R.string.materialDictionary), value)
+            putStringSet("materialDictionary", value)
             apply()
         } })
-    var odfTemplateFile = ConfigElement<String>(
-        { sharedPrefs.getString(ctx.getString(R.string.odfTemplateFile), ODFTEMPLATEFILEDEFAULT)?:ODFTEMPLATEFILEDEFAULT },
+    val odfTemplateFile = ConfigElement<String>(
+        { sharedPrefs.getString("odfTemplateFile", ODFTEMPLATEFILEDEFAULT)?:ODFTEMPLATEFILEDEFAULT },
         { value -> with(sharedPrefs.edit()) {
-            putString(ctx.getString(R.string.odfTemplateFile), value)
+            putString("odfTemplateFile", value)
             apply()
         } })
-    var logoFile = ConfigElement<String>(
-        { sharedPrefs.getString(ctx.getString(R.string.logoFile), LOGOFILEDEFAULT)?:LOGOFILEDEFAULT },
+    val logoFile = ConfigElement<String>(
+        { sharedPrefs.getString("logoFile", LOGOFILEDEFAULT)?:LOGOFILEDEFAULT },
         { value -> with(sharedPrefs.edit()) {
-            putString(ctx.getString(R.string.logoFile), value)
+            putString("logoFile", value)
             apply()
         } })
     // Attention: stored preference uses Float!
-    var logoRatio = ConfigElement<Double>(
-        { sharedPrefs.getFloat(ctx.getString(R.string.logoRatio), LOGORATIODEFAULT).toDouble()},
+    val logoRatio = ConfigElement<Double>(
+        { sharedPrefs.getFloat("logoRatio", LOGORATIODEFAULT).toDouble()},
         { value -> with(sharedPrefs.edit()) {
-            putFloat(ctx.getString(R.string.logoRatio), value.toFloat())
+            putFloat("logoRatio", value.toFloat())
             apply()
         } })
-    var footerFile = ConfigElement<String>(
-        { sharedPrefs.getString(ctx.getString(R.string.footerFile), FOOTERFILEDEFAULT)?:FOOTERFILEDEFAULT },
+    val footerFile = ConfigElement<String>(
+        { sharedPrefs.getString("footerFile", FOOTERFILEDEFAULT)?:FOOTERFILEDEFAULT },
         { value -> with(sharedPrefs.edit()) {
-            putString(ctx.getString(R.string.footerFile), value)
+            putString("footerFile", value)
             apply()
         } })
     // Attention: stored preference uses Float!
-    var footerRatio = ConfigElement<Double>(
-        { sharedPrefs.getFloat(ctx.getString(R.string.footerRatio), FOOTERRATIODEFAULT).toDouble()},
+    val footerRatio = ConfigElement<Double>(
+        { sharedPrefs.getFloat("footerRatio", FOOTERRATIODEFAULT).toDouble()},
         { value -> with(sharedPrefs.edit()) {
-            putFloat(ctx.getString(R.string.footerRatio), value.toFloat())
+            putFloat("footerRatio", value.toFloat())
             apply()
         } })
-    var fontSize = ConfigElement<Int>(
-        { sharedPrefs.getInt(ctx.getString(R.string.fontSize), FONTSIZEDEFAULT) },
+    val fontSize = ConfigElement<Int>(
+        { sharedPrefs.getInt("fontSize", FONTSIZEDEFAULT) },
         { value -> with(sharedPrefs.edit()) {
-            putInt(ctx.getString(R.string.fontSize), value)
+            putInt("fontSize", value)
             apply()
         } })
-    var crashlyticsEnable = ConfigElement<Boolean>(
-        { sharedPrefs.getBoolean(ctx.getString(R.string.crashlyticsEnabled), CRASHLYTICSENABLEDDEFAULT) },
+    val crashlyticsEnable = ConfigElement<Boolean>(
+        { sharedPrefs.getBoolean("crashlyticsEnabled", CRASHLYTICSENABLEDDEFAULT) },
         { value -> with(sharedPrefs.edit()) {
-            putBoolean(ctx.getString(R.string.crashlyticsEnabled), value)
+            putBoolean("crashlyticsEnabled", value)
             apply()
         } })
-    var pdfUseLogo = ConfigElement<Boolean>(
-        { sharedPrefs.getBoolean(ctx.getString(R.string.pdfUseLogo), PDFUSELOGODEFAULT) },
+    val pdfUseLogo = ConfigElement<Boolean>(
+        { sharedPrefs.getBoolean("pdfUseLogo", PDFUSELOGODEFAULT) },
         { value -> with(sharedPrefs.edit()) {
-            putBoolean(ctx.getString(R.string.pdfUseLogo), value)
+            putBoolean("pdfUseLogo", value)
             apply()
         } })
-    var pdfUseFooter = ConfigElement<Boolean>(
-        { sharedPrefs.getBoolean(ctx.getString(R.string.pdfUseFooter), PDFUSEFOOTERDEFAULT) },
+    val pdfUseFooter = ConfigElement<Boolean>(
+        { sharedPrefs.getBoolean("pdfUseFooter", PDFUSEFOOTERDEFAULT) },
         { value -> with(sharedPrefs.edit()) {
-            putBoolean(ctx.getString(R.string.pdfUseFooter), value)
+            putBoolean("pdfUseFooter", value)
             apply()
         } })
-    var xlsxUseLogo = ConfigElement<Boolean>(
-        { sharedPrefs.getBoolean(ctx.getString(R.string.xlsxUseLogo), XLSXUSELOGODEFAULT) },
+    val xlsxUseLogo = ConfigElement<Boolean>(
+        { sharedPrefs.getBoolean("xlsxUseLogo", XLSXUSELOGODEFAULT) },
         { value -> with(sharedPrefs.edit()) {
-            putBoolean(ctx.getString(R.string.xlsxUseLogo), value)
+            putBoolean("xlsxUseLogo", value)
             apply()
         } })
-    var xlsxLogoWidth = ConfigElement<Int>(
-        { sharedPrefs.getInt(ctx.getString(R.string.xlsxLogoWidth), XLSXLOGOWIDTHDEFAULT) },
+    val xlsxLogoWidth = ConfigElement<Int>(
+        { sharedPrefs.getInt("xlsxLogoWidth", XLSXLOGOWIDTHDEFAULT) },
         { value -> with(sharedPrefs.edit()) {
-            putInt(ctx.getString(R.string.xlsxLogoWidth), value)
+            putInt("xlsxLogoWidth", value)
             apply()
         } })
-    var xlsxUseFooter = ConfigElement<Boolean>(
-        { sharedPrefs.getBoolean(ctx.getString(R.string.xlsxUseFooter), XLSXUSEFOOTERDEFAULT) },
+    val xlsxUseFooter = ConfigElement<Boolean>(
+        { sharedPrefs.getBoolean("xlsxUseFooter", XLSXUSEFOOTERDEFAULT) },
         { value -> with(sharedPrefs.edit()) {
-            putBoolean(ctx.getString(R.string.xlsxUseFooter), value)
+            putBoolean("xlsxUseFooter", value)
             apply()
         } })
-    var xlsxFooterWidth = ConfigElement<Int>(
-        { sharedPrefs.getInt(ctx.getString(R.string.xlsxFooterWidth), XLSXFOOTERWIDTHDEFAULT) },
+    val xlsxFooterWidth = ConfigElement<Int>(
+        { sharedPrefs.getInt("xlsxFooterWidth", XLSXFOOTERWIDTHDEFAULT) },
         { value -> with(sharedPrefs.edit()) {
-            putInt(ctx.getString(R.string.xlsxFooterWidth), value)
+            putInt("xlsxFooterWidth", value)
             apply()
         } })
-    var scalePhotos = ConfigElement<Boolean>(
-        { sharedPrefs.getBoolean(ctx.getString(R.string.scalePhotos), SCALEPHOTOSDEFAULT) },
+    val scalePhotos = ConfigElement<Boolean>(
+        { sharedPrefs.getBoolean("scalePhotos", SCALEPHOTOSDEFAULT) },
         { value -> with(sharedPrefs.edit()) {
-            putBoolean(ctx.getString(R.string.scalePhotos), value)
+            putBoolean("scalePhotos", value)
             apply()
         } })
-    var photoResolution = ConfigElement<Int>(
-        { sharedPrefs.getInt(ctx.getString(R.string.photoResolution), PHOTORESOLUTIONDEFAULT) },
+    val photoResolution = ConfigElement<Int>(
+        { sharedPrefs.getInt("photoResolution", PHOTORESOLUTIONDEFAULT) },
         { value -> with(sharedPrefs.edit()) {
-            putInt(ctx.getString(R.string.photoResolution), value)
+            putInt("photoResolution", value)
             apply()
         } })
-    var currentClientId = ConfigElement<Int>(
-        { sharedPrefs.getInt(ctx.getString(R.string.currentClientId), CURRENTCLIENTIDDEFAULT) },
+    var currentClientId: Int
+        get() = sharedPrefs.getInt("currentClientId", CURRENTCLIENTIDDEFAULT)
+        private set(value) {
+            with(sharedPrefs.edit()) {
+                putInt("currentClientId", value)
+                apply()
+            }
+        }
+    fun allocateClientId() : Int {
+        if(Looper.getMainLooper().thread != Thread.currentThread()) {
+            Log.e(TAG, "Error: Allocating ID, not running on the main thread")
+        }
+        val id = currentClientId
+        currentClientId = id + 1
+        return id
+    }
+    val useInlinePdfViewer = ConfigElement<Boolean>(
+        { sharedPrefs.getBoolean("useInlinePdfViewer", USEINLINEPDFVIEWERDEFAULT) },
         { value -> with(sharedPrefs.edit()) {
-            putInt(ctx.getString(R.string.currentClientId), value)
+            putBoolean("useInlinePdfViewer", value)
             apply()
         } })
-    var useInlinePdfViewer = ConfigElement<Boolean>(
-        { sharedPrefs.getBoolean(ctx.getString(R.string.useInlinePdfViewer), USEINLINEPDFVIEWERDEFAULT) },
+    val filterProjectName = ConfigElement<String>(
+        { sharedPrefs.getString("filterProjectName", FILTERPROJECTNAMEDEFAULT)?:FILTERPROJECTNAMEDEFAULT },
         { value -> with(sharedPrefs.edit()) {
-            putBoolean(ctx.getString(R.string.useInlinePdfViewer), value)
+            putString("filterProjectName", value)
             apply()
         } })
-    var filterProjectName = ConfigElement<String>(
-        { sharedPrefs.getString(ctx.getString(R.string.filterProjectName), FILTERPROJECTNAMEDEFAULT)?:FILTERPROJECTNAMEDEFAULT },
+    val filterProjectExtra = ConfigElement<String>(
+        { sharedPrefs.getString("filterProjectExtra", FILTERPROJECTEXTRADEFAULT)?:FILTERPROJECTEXTRADEFAULT },
         { value -> with(sharedPrefs.edit()) {
-            putString(ctx.getString(R.string.filterProjectName), value)
+            putString("filterProjectExtra", value)
             apply()
         } })
-    var filterProjectExtra = ConfigElement<String>(
-        { sharedPrefs.getString(ctx.getString(R.string.filterProjectExtra), FILTERPROJECTEXTRADEFAULT)?:FILTERPROJECTEXTRADEFAULT },
+    val filterStates = ConfigElement<Int>(
+        { sharedPrefs.getInt("filterStates", FILTERSTATESDEFAULT) },
         { value -> with(sharedPrefs.edit()) {
-            putString(ctx.getString(R.string.filterProjectExtra), value)
+            putInt("filterStates", value)
             apply()
         } })
-    var filterStates = ConfigElement<Int>(
-        { sharedPrefs.getInt(ctx.getString(R.string.filterStates), FILTERSTATESDEFAULT) },
+    val lockScreenOrientation = ConfigElement<Boolean>(
+        { sharedPrefs.getBoolean("lockScreenOrientation", LOCKSCREENORIENTATIONDEFAULT) },
         { value -> with(sharedPrefs.edit()) {
-            putInt(ctx.getString(R.string.filterStates), value)
+            putBoolean("lockScreenOrientation", value)
             apply()
         } })
-    var lockScreenOrientation = ConfigElement<Boolean>(
-        { sharedPrefs.getBoolean(ctx.getString(R.string.lockScreenOrientation), LOCKSCREENORIENTATIONDEFAULT) },
+    val lockScreenOrientationNoInfo = ConfigElement<Boolean>(
+        { sharedPrefs.getBoolean("lockScreenOrientationNoInfo", LOCKSCREENORIENTATIONNOINFODEFAULT) },
         { value -> with(sharedPrefs.edit()) {
-            putBoolean(ctx.getString(R.string.lockScreenOrientation), value)
+            putBoolean("lockScreenOrientationNoInfo", value)
             apply()
         } })
-    var lockScreenOrientationNoInfo = ConfigElement<Boolean>(
-        { sharedPrefs.getBoolean(ctx.getString(R.string.lockScreenOrientationNoInfo), LOCKSCREENORIENTATIONNOINFODEFAULT) },
+    val pdfLogoWidthPercent = ConfigElement<Int>(
+        { sharedPrefs.getInt("pdfLogoWidthPercent", PDFLOGOWIDTHPERCENTDEFAULT) },
         { value -> with(sharedPrefs.edit()) {
-            putBoolean(ctx.getString(R.string.lockScreenOrientationNoInfo), value)
-            apply()
-        } })
-    var pdfLogoWidthPercent = ConfigElement<Int>(
-        { sharedPrefs.getInt(ctx.getString(R.string.pdfLogoWidthPercent), PDFLOGOWIDTHPERCENTDEFAULT) },
-        { value -> with(sharedPrefs.edit()) {
-            putInt(ctx.getString(R.string.pdfLogoWidthPercent), value)
-            apply()
-        } })
-    // Attention: stored preference uses Int!
-    var pdfLogoAlignment = ConfigElement<Alignment>(
-        { Alignment.values()[sharedPrefs.getInt(ctx.getString(R.string.pdfLogoAlignment), PDFLOGOALIGNMENTDEFAULT)] },
-        { value -> with(sharedPrefs.edit()) {
-            putInt(ctx.getString(R.string.pdfLogoAlignment), value.ordinal)
-            apply()
-        } })
-    var pdfFooterWidthPercent = ConfigElement<Int>(
-        { sharedPrefs.getInt(ctx.getString(R.string.pdfFooterWidthPercent), PDFFOOTERWIDTHPERCENTDEFAULT) },
-        { value -> with(sharedPrefs.edit()) {
-            putInt(ctx.getString(R.string.pdfFooterWidthPercent), value)
+            putInt("pdfLogoWidthPercent", value)
             apply()
         } })
     // Attention: stored preference uses Int!
-    var pdfFooterAlignment = ConfigElement<Alignment>(
-        { Alignment.values()[sharedPrefs.getInt(ctx.getString(R.string.pdfFooterAlignment), PDFFOOTERALIGNMENTDEFAULT)] },
+    val pdfLogoAlignment = ConfigElement<Alignment>(
+        { Alignment.values()[sharedPrefs.getInt("pdfLogoAlignment", PDFLOGOALIGNMENTDEFAULT)] },
         { value -> with(sharedPrefs.edit()) {
-            putInt(ctx.getString(R.string.pdfFooterAlignment), value.ordinal)
+            putInt("pdfLogoAlignment", value.ordinal)
+            apply()
+        } })
+    val pdfFooterWidthPercent = ConfigElement<Int>(
+        { sharedPrefs.getInt("pdfFooterWidthPercent", PDFFOOTERWIDTHPERCENTDEFAULT) },
+        { value -> with(sharedPrefs.edit()) {
+            putInt("pdfFooterWidthPercent", value)
+            apply()
+        } })
+    // Attention: stored preference uses Int!
+    val pdfFooterAlignment = ConfigElement<Alignment>(
+        { Alignment.values()[sharedPrefs.getInt("pdfFooterAlignment", PDFFOOTERALIGNMENTDEFAULT)] },
+        { value -> with(sharedPrefs.edit()) {
+            putInt("pdfFooterAlignment", value.ordinal)
             apply()
         } })
 
+    // Only valid directly after construction, afterwards it will deliver wrong info
+    val isNewlyCreated = versionCode.value == VERSIONCODEDEFAULT
+
     fun fromConfig(cfg: Configuration) {
-        versionCode.setValue(cfg.versionCode.toLong())
-        employeeName.setValue(cfg.employeeName)
+        versionCode.value = if(cfg.versionCode.toLong() > 100) { cfg.versionCode.toLong() - 100 } else { 0 }
+        employeeName.value = cfg.employeeName
         currentId = cfg.currentId
-        deviceName.setValue(cfg.deviceName)
-        reportIdPattern.setValue(cfg.reportIdPattern.value?:REPORTIDPATTERNDEFAULT)
-        recvMail.setValue(cfg.recvMail)
-        useOdfOutput.setValue(cfg.useOdfOutput)
-        useXlsxOutput.setValue(cfg.useXlsxOutput)
-        selectOutput.setValue(cfg.selectOutput)
-        sFtpHost.setValue(cfg.sFtpHost)
-        sFtpPort.setValue(cfg.sFtpPort)
-        sFtpUser.setValue(cfg.sFtpUser)
-        sFtpPassword.setValue(cfg.sFtpEncryptedPassword)
-        lumpSumServerPath.setValue(cfg.lumpSumServerPath)
-        odfTemplateServerPath.setValue(cfg.odfTemplateServerPath)
-        logoServerPath.setValue(cfg.logoServerPath)
-        footerServerPath.setValue(cfg.footerServerPath)
-        lumpSums.setValue(cfg.lumpSums.toSet())
-        activeReportId.setValue(cfg.activeReportId)
-        workItemDictionary.setValue(cfg.workItemDictionary)
-        materialDictionary.setValue(cfg.materialDictionary)
-        odfTemplateFile.setValue(cfg.odfTemplateFile)
-        logoFile.setValue(cfg.logoFile)
-        logoRatio.setValue(cfg.logoRatio)
-        footerFile.setValue(cfg.footerFile)
-        footerRatio.setValue(cfg.footerRatio)
-        fontSize.setValue(cfg.fontSize)
-        crashlyticsEnable.setValue(cfg.crashlyticsEnabled)
-        pdfUseLogo.setValue(cfg.pdfUseLogo)
-        pdfUseFooter.setValue(cfg.pdfUseFooter)
-        xlsxUseLogo.setValue(cfg.xlsxUseLogo)
-        xlsxLogoWidth.setValue(cfg.xlsxLogoWidth)
-        xlsxUseFooter.setValue(cfg.xlsxUseFooter)
-        xlsxFooterWidth.setValue(cfg.xlsxFooterWidth)
-        scalePhotos.setValue(cfg.scalePhotos)
-        photoResolution.setValue(cfg.photoResolution)
-        currentClientId.setValue(cfg.currentClientId)
-        useInlinePdfViewer.setValue(cfg.useInlinePdfViewer)
-        filterProjectName.setValue(cfg.filterProjectName)
-        filterProjectExtra.setValue(cfg.filterProjectExtra)
-        filterStates.setValue(cfg.filterStates)
-        lockScreenOrientation.setValue(cfg.lockScreenOrientation)
-        lockScreenOrientationNoInfo.setValue(cfg.lockScreenOrientationNoInfo)
-        pdfLogoWidthPercent.setValue(cfg.pdfLogoWidthPercent)
-        pdfLogoAlignment.setValue(when(cfg.pdfFooterAlignment) {
+        deviceName.value = cfg.deviceName
+        reportIdPattern.value = cfg.reportIdPattern.value?:REPORTIDPATTERNDEFAULT
+        recvMail.value = cfg.recvMail
+        useOdfOutput.value = cfg.useOdfOutput
+        useXlsxOutput.value = cfg.useXlsxOutput
+        selectOutput.value = cfg.selectOutput
+        sFtpHost.value = cfg.sFtpHost
+        sFtpPort.value = cfg.sFtpPort
+        sFtpUser.value = cfg.sFtpUser
+        sFtpPassword.value = cfg.sFtpEncryptedPassword
+        lumpSumServerPath.value = cfg.lumpSumServerPath
+        odfTemplateServerPath.value = cfg.odfTemplateServerPath
+        logoServerPath.value = cfg.logoServerPath
+        footerServerPath.value = cfg.footerServerPath
+        lumpSums.value = cfg.lumpSums.toSet()
+        activeReportId.value = cfg.activeReportId
+        workItemDictionary.value = cfg.workItemDictionary
+        materialDictionary.value = cfg.materialDictionary
+        odfTemplateFile.value = cfg.odfTemplateFile
+        logoFile.value = cfg.logoFile
+        logoRatio.value = cfg.logoRatio
+        footerFile.value = cfg.footerFile
+        footerRatio.value = cfg.footerRatio
+        fontSize.value = cfg.fontSize
+        crashlyticsEnable.value = cfg.crashlyticsEnabled
+        pdfUseLogo.value = cfg.pdfUseLogo
+        pdfUseFooter.value = cfg.pdfUseFooter
+        xlsxUseLogo.value = cfg.xlsxUseLogo
+        xlsxLogoWidth.value = cfg.xlsxLogoWidth
+        xlsxUseFooter.value = cfg.xlsxUseFooter
+        xlsxFooterWidth.value = cfg.xlsxFooterWidth
+        scalePhotos.value = cfg.scalePhotos
+        photoResolution.value = cfg.photoResolution
+        currentClientId = cfg.currentClientId
+        useInlinePdfViewer.value = cfg.useInlinePdfViewer
+        filterProjectName.value = cfg.filterProjectName
+        filterProjectExtra.value = cfg.filterProjectExtra
+        filterStates.value = cfg.filterStates
+        lockScreenOrientation.value = cfg.lockScreenOrientation
+        lockScreenOrientationNoInfo.value = cfg.lockScreenOrientationNoInfo
+        pdfLogoWidthPercent.value = cfg.pdfLogoWidthPercent
+        pdfLogoAlignment.value = when(cfg.pdfFooterAlignment) {
             Configuration.Alignment.CENTER -> Alignment.CENTER
             Configuration.Alignment.RIGHT -> Alignment.RIGHT
             else -> Alignment.LEFT
-        })
-        pdfFooterWidthPercent.setValue(cfg.pdfFooterWidthPercent)
-        pdfFooterAlignment.setValue(when(cfg.pdfFooterAlignment) {
+        }
+        pdfFooterWidthPercent.value = cfg.pdfFooterWidthPercent
+        pdfFooterAlignment.value = when(cfg.pdfFooterAlignment) {
             Configuration.Alignment.CENTER -> Alignment.CENTER
             Configuration.Alignment.RIGHT -> Alignment.RIGHT
             else -> Alignment.LEFT
-        })
+        }
     }
 }

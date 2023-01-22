@@ -10,6 +10,7 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import com.stemaker.arbeitsbericht.R
+import com.stemaker.arbeitsbericht.data.preferences.AbPreferences
 import com.stemaker.arbeitsbericht.data.report.ReportData
 import com.stemaker.arbeitsbericht.helpers.showConfirmationDialog
 import com.stemaker.arbeitsbericht.helpers.showInfoDialog
@@ -27,7 +28,14 @@ private class ProgressInfo(val progress: Int, val status: String)
 private const val MSG_CREATE = 0x01
 private const val MSG_PROGRESS_INFO = 0x02
 
-abstract class ReportGenerator(val activity: Activity, val report: ReportData, private val progressBar: ProgressBar?, private val textView: TextView?, val renderInUiThread: Boolean = false) {
+abstract class ReportGenerator(
+    val activity: Activity,
+    val report: ReportData,
+    val prefs: AbPreferences,
+    private val progressBar: ProgressBar?,
+    private val textView: TextView?,
+    val renderInUiThread: Boolean = false)
+{
 
     // Make sure that every postfix-extension combination only exists once
     abstract val filePostFixExt: Array<Pair<String, String>>
@@ -129,7 +137,7 @@ abstract class ReportGenerator(val activity: Activity, val report: ReportData, p
     private inner class DocThreadHandler(looper: Looper): Handler(looper) {
         override fun handleMessage(msg: Message) {
             super.handleMessage(msg)
-            when(msg?.what) {
+            when(msg.what) {
                 MSG_CREATE -> handleCreate(msg)
             }
         }
@@ -139,7 +147,7 @@ abstract class ReportGenerator(val activity: Activity, val report: ReportData, p
     private inner class UiThreadHandler(looper: Looper): Handler(looper) {
         override fun handleMessage(msg: Message) {
             super.handleMessage(msg)
-            when (msg?.what) {
+            when (msg.what) {
                 MSG_PROGRESS_INFO -> handleProgressInfo(msg)
             }
         }

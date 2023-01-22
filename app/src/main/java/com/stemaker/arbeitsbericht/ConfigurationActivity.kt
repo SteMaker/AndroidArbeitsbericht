@@ -1,7 +1,6 @@
 package com.stemaker.arbeitsbericht
 
 import android.Manifest
-import android.content.Context
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
@@ -16,13 +15,15 @@ import android.widget.*
 import androidx.cardview.widget.CardView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.databinding.DataBindingUtil
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.button.MaterialButtonToggleGroup
 import com.google.android.material.slider.Slider
 import com.google.android.material.switchmaterial.SwitchMaterial
 import com.google.firebase.crashlytics.FirebaseCrashlytics
-import com.stemaker.arbeitsbericht.data.configuration.Configuration
-import com.stemaker.arbeitsbericht.data.configuration.configuration
+import com.stemaker.arbeitsbericht.data.preferences.AbPreferences
+import com.stemaker.arbeitsbericht.databinding.ActivityConfigurationBinding
+import com.stemaker.arbeitsbericht.databinding.ActivityReportEditorBinding
 import com.stemaker.arbeitsbericht.helpers.SftpProvider
 import com.stemaker.arbeitsbericht.helpers.showInfoDialog
 import kotlinx.coroutines.Dispatchers
@@ -43,6 +44,7 @@ class ConfigurationActivity:
     ArbeitsberichtActivity()
 {
     private var internetPermissionContinuation: Continuation<Boolean>? = null
+    lateinit var dataBinding: ActivityConfigurationBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         if(!onCreateWrapper(savedInstanceState))
@@ -50,37 +52,29 @@ class ConfigurationActivity:
 
         // Here we expect that the app initialization is done
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_configuration)
+        dataBinding = DataBindingUtil.setContentView(this, R.layout.activity_configuration)
+        dataBinding.prefs = app.prefs
 
-        requestedOrientation = when(configuration().lockScreenOrientation) {
+        requestedOrientation = when(prefs.lockScreenOrientation.value) {
             true -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
             else -> ActivityInfo.SCREEN_ORIENTATION_FULL_USER
         }
-        findViewById<EditText>(R.id.config_employee_name).setText(configuration().employeeName)
-        findViewById<EditText>(R.id.config_device_name).setText(configuration().deviceName)
-        findViewById<EditText>(R.id.config_report_id_pattern).setText(configuration().reportIdPattern.value)
-        findViewById<EditText>(R.id.config_mail_receiver).setText(configuration().recvMail)
-        findViewById<SwitchMaterial>(R.id.crashlog_enable).isChecked = configuration().crashlyticsEnabled
-        FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(configuration().crashlyticsEnabled)
-        findViewById<SwitchMaterial>(R.id.always_landscape).isChecked = configuration().lockScreenOrientation
+        FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(prefs.crashlyticsEnable.value)
 
-        findViewById<EditText>(R.id.sftp_host).setText(configuration().sFtpHost)
-        findViewById<EditText>(R.id.sftp_port).setText(configuration().sFtpPort.toString())
-        findViewById<EditText>(R.id.sftp_user).setText(configuration().sFtpUser)
         when {
-            configuration().useOdfOutput -> {
+            prefs.useOdfOutput.value -> {
                 findViewById<RadioButton>(R.id.radio_odf_output).toggle()
                 findViewById<CardView>(R.id.odf_config_container).visibility = View.VISIBLE
                 findViewById<CardView>(R.id.pdf_config_container).visibility = View.GONE
                 findViewById<CardView>(R.id.xlsx_config_container).visibility = View.GONE
             }
-            configuration().useXlsxOutput -> {
+            prefs.useXlsxOutput.value -> {
                 findViewById<RadioButton>(R.id.radio_xlsx_output).toggle()
                 findViewById<CardView>(R.id.odf_config_container).visibility = View.GONE
                 findViewById<CardView>(R.id.pdf_config_container).visibility = View.GONE
                 findViewById<CardView>(R.id.xlsx_config_container).visibility = View.VISIBLE
             }
-            configuration().selectOutput -> {
+            prefs.selectOutput.value -> {
                 findViewById<RadioButton>(R.id.radio_select_output).toggle()
                 findViewById<CardView>(R.id.odf_config_container).visibility = View.VISIBLE
                 findViewById<CardView>(R.id.pdf_config_container).visibility = View.VISIBLE
@@ -93,38 +87,30 @@ class ConfigurationActivity:
                 findViewById<CardView>(R.id.xlsx_config_container).visibility = View.GONE
             }
         }
-        findViewById<EditText>(R.id.odf_template_ftp_path).setText(configuration().odfTemplateServerPath)
-        findViewById<EditText>(R.id.logo_ftp_path).setText(configuration().logoServerPath)
-        findViewById<EditText>(R.id.footer_ftp_path).setText(configuration().footerServerPath)
-        findViewById<SwitchMaterial>(R.id.pdf_use_logo).isChecked = configuration().pdfUseLogo
-        findViewById<SwitchMaterial>(R.id.pdf_use_footer).isChecked = configuration().pdfUseFooter
-        findViewById<SwitchMaterial>(R.id.pdf_use_internal).isChecked = configuration().useInlinePdfViewer
 
-        findViewById<SwitchMaterial>(R.id.xlsx_use_logo).isChecked = configuration().xlsxUseLogo
-        findViewById<SwitchMaterial>(R.id.xlsx_use_footer).isChecked = configuration().xlsxUseFooter
         val pdfLogoWidthSlider = findViewById<Slider>(R.id.pdf_logo_width_slider)
-        pdfLogoWidthSlider.value = configuration().pdfLogoWidthPercent.toFloat()
+        pdfLogoWidthSlider.value = prefs.pdfLogoWidthPercent.value.toFloat()
         val pdfLogoWidthText = findViewById<TextView>(R.id.pdf_logo_width_text)
-        pdfLogoWidthText.text = "Breite ${configuration().pdfLogoWidthPercent.toString()}%"
+        pdfLogoWidthText.text = "Breite ${prefs.pdfLogoWidthPercent.toString()}%"
         pdfLogoWidthSlider.addOnChangeListener { _, value, _ ->
             pdfLogoWidthText.text = "Breite ${value.toInt().toString()}%"
         }
         val pdfFooterWidthSlider = findViewById<Slider>(R.id.pdf_footer_width_slider)
-        pdfFooterWidthSlider.value = configuration().pdfFooterWidthPercent.toFloat()
+        pdfFooterWidthSlider.value = prefs.pdfFooterWidthPercent.value.toFloat()
         val pdfFooterWidthText = findViewById<TextView>(R.id.pdf_footer_width_text)
-        pdfFooterWidthText.text = "Breite ${configuration().pdfFooterWidthPercent.toString()}%"
+        pdfFooterWidthText.text = "Breite ${prefs.pdfFooterWidthPercent.toString()}%"
         pdfFooterWidthSlider.addOnChangeListener { _, value, _ ->
             pdfFooterWidthText.text = "Breite ${value.toInt().toString()}%"
         }
 
-        findViewById<MaterialButtonToggleGroup>(R.id.logo_alignment_group).check(when(configuration().pdfLogoAlignment) {
-            Configuration.Alignment.CENTER -> R.id.logo_alignment_center
-            Configuration.Alignment.RIGHT -> R.id.logo_alignment_right
+        findViewById<MaterialButtonToggleGroup>(R.id.logo_alignment_group).check(when(prefs.pdfLogoAlignment.value) {
+            AbPreferences.Alignment.CENTER -> R.id.logo_alignment_center
+            AbPreferences.Alignment.RIGHT -> R.id.logo_alignment_right
             else -> R.id.logo_alignment_left
         })
-        findViewById<MaterialButtonToggleGroup>(R.id.footer_alignment_group).check(when(configuration().pdfFooterAlignment) {
-            Configuration.Alignment.CENTER -> R.id.footer_alignment_center
-            Configuration.Alignment.RIGHT -> R.id.footer_alignment_right
+        findViewById<MaterialButtonToggleGroup>(R.id.footer_alignment_group).check(when(prefs.pdfFooterAlignment.value) {
+            AbPreferences.Alignment.CENTER -> R.id.footer_alignment_center
+            AbPreferences.Alignment.RIGHT -> R.id.footer_alignment_right
             else -> R.id.footer_alignment_left
         })
 
@@ -153,16 +139,15 @@ class ConfigurationActivity:
                 }
             }
         }
-        showFileInImageView(configuration().footerFile, R.id.footer_image)
-        showFileInImageView(configuration().logoFile, R.id.logo_image)
+        showFileInImageView(prefs.footerFile.value, R.id.footer_image)
+        showFileInImageView(prefs.logoFile.value, R.id.logo_image)
 
         // TODO: move the combination of edit text and slider into a custom view
         // PDF font size
         val fontSizeSlider = findViewById<Slider>(R.id.fontsize_slider)
         val fontSizeEdit = findViewById<EditText>(R.id.fontsize_text)
-        fontSizeSlider.value = configuration().fontSize.toFloat()
-        fontSizeEdit.text.replace(0, fontSizeEdit.text.length, configuration().fontSize.toString())
-        //fontSizeEdit.text.replace(0, fontSizeEdit.text.length, configuration().fontSize.toString())
+        fontSizeSlider.value = prefs.fontSize.value.toFloat()
+        fontSizeEdit.text.replace(0, fontSizeEdit.text.length, prefs.fontSize.value.toString())
         fontSizeSlider.addOnChangeListener { _, value, _ ->
             fontSizeEdit.text.replace(0, fontSizeEdit.text.length, value.toInt().toString())
         }
@@ -190,8 +175,8 @@ class ConfigurationActivity:
         // XLSX logo width
         val xlsxLogoWidthSlider = findViewById<Slider>(R.id.xlsx_logo_width_slider)
         val xlsxLogoWidthEdit = findViewById<EditText>(R.id.xlsx_logo_width_text)
-        xlsxLogoWidthSlider.value = configuration().xlsxLogoWidth.toFloat()
-        xlsxLogoWidthEdit.text.replace(0, xlsxLogoWidthEdit.text.length, configuration().xlsxLogoWidth.toString())
+        xlsxLogoWidthSlider.value = prefs.xlsxLogoWidth.value.toFloat()
+        xlsxLogoWidthEdit.text.replace(0, xlsxLogoWidthEdit.text.length, prefs.xlsxLogoWidth.value.toString())
         xlsxLogoWidthSlider.addOnChangeListener { _, value, _ ->
             xlsxLogoWidthEdit.text.replace(0, xlsxLogoWidthEdit.text.length, value.toInt().toString())
         }
@@ -217,8 +202,8 @@ class ConfigurationActivity:
         // XLSX footer width
         val xlsxFooterWidthSlider = findViewById<Slider>(R.id.xlsx_footer_width_slider)
         val xlsxFooterWidthEdit = findViewById<EditText>(R.id.xlsx_footer_width_text)
-        xlsxFooterWidthSlider.value = configuration().xlsxFooterWidth.toFloat()
-        xlsxFooterWidthEdit.text.replace(0, xlsxFooterWidthEdit.text.length, configuration().xlsxFooterWidth.toString())
+        xlsxFooterWidthSlider.value = prefs.xlsxFooterWidth.value.toFloat()
+        xlsxFooterWidthEdit.text.replace(0, xlsxFooterWidthEdit.text.length, prefs.xlsxFooterWidth.value.toString())
         xlsxFooterWidthSlider.addOnChangeListener { _, value, _ ->
             xlsxFooterWidthEdit.text.replace(0, xlsxFooterWidthEdit.text.length, value.toInt().toString())
         }
@@ -244,8 +229,8 @@ class ConfigurationActivity:
         // Photo width
         val scalePhotosSlider = findViewById<Slider>(R.id.scale_photos_slider)
         val scalePhotosEdit = findViewById<EditText>(R.id.scale_photos_value)
-        scalePhotosSlider.value = configuration().photoResolution.toFloat()
-        scalePhotosEdit.text.replace(0, scalePhotosEdit.text.length, configuration().photoResolution.toString())
+        scalePhotosSlider.value = prefs.photoResolution.value.toFloat()
+        scalePhotosEdit.text.replace(0, scalePhotosEdit.text.length, prefs.photoResolution.value.toString())
         scalePhotosSlider.addOnChangeListener { _, value, _ ->
             scalePhotosEdit.text.replace(0, scalePhotosEdit.text.length, value.toInt().toString())
         }
@@ -269,12 +254,11 @@ class ConfigurationActivity:
             override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) { }
         })
         val scalePhotosSwitch = findViewById<SwitchMaterial>(R.id.scale_photos)
-        scalePhotosSwitch.isChecked = configuration().scalePhotos
         scalePhotosSwitch.setOnCheckedChangeListener { button, b ->
             scalePhotosSlider.isEnabled = b
             scalePhotosEdit.isEnabled = b
         }
-        if(!configuration().scalePhotos) {
+        if(!prefs.scalePhotos.value) {
             scalePhotosSlider.isEnabled = false
         }
         findViewById<MaterialToolbar>(R.id.configuration_activity_toolbar).setOnMenuItemClickListener { item ->
@@ -318,50 +302,27 @@ class ConfigurationActivity:
         window.setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
         findViewById<ProgressBar>(R.id.sftp_progress).visibility = View.VISIBLE
 
-        configuration().employeeName = findViewById<EditText>(R.id.config_employee_name).getText().toString()
-        configuration().deviceName = findViewById<EditText>(R.id.config_device_name).getText().toString()
-        configuration().reportIdPattern.value = findViewById<EditText>(R.id.config_report_id_pattern).getText().toString()
+        FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(prefs.crashlyticsEnable.value)
 
-        configuration().recvMail = findViewById<EditText>(R.id.config_mail_receiver).getText().toString()
-        configuration().crashlyticsEnabled = findViewById<SwitchMaterial>(R.id.crashlog_enable).isChecked
-        FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(configuration().crashlyticsEnabled)
-        configuration().lockScreenOrientation = findViewById<SwitchMaterial>(R.id.always_landscape).isChecked
-
-        configuration().useOdfOutput = findViewById<RadioButton>(R.id.radio_odf_output).isChecked
-        configuration().useXlsxOutput = findViewById<RadioButton>(R.id.radio_xlsx_output).isChecked
-        configuration().selectOutput = findViewById<RadioButton>(R.id.radio_select_output).isChecked
-        configuration().sFtpHost = findViewById<EditText>(R.id.sftp_host).text.toString()
-        configuration().sFtpPort = findViewById<EditText>(R.id.sftp_port).text.toString().toInt()
-        configuration().sFtpUser = findViewById<EditText>(R.id.sftp_user).text.toString()
-        val pwd = findViewById<EditText>(R.id.sftp_pwd).text.toString()
-        if (pwd != "") // only overwrite if a new one has been set
-            configuration().sFtpEncryptedPassword = pwd
-        configuration().odfTemplateServerPath = findViewById<EditText>(R.id.odf_template_ftp_path).text.toString()
-        configuration().logoServerPath = findViewById<EditText>(R.id.logo_ftp_path).text.toString()
-        configuration().footerServerPath = findViewById<EditText>(R.id.footer_ftp_path).text.toString()
-        configuration().fontSize = findViewById<Slider>(R.id.fontsize_slider).value.toInt()
-        configuration().pdfUseLogo = findViewById<SwitchMaterial>(R.id.pdf_use_logo).isChecked
-        configuration().pdfUseFooter = findViewById<SwitchMaterial>(R.id.pdf_use_footer).isChecked
-        configuration().useInlinePdfViewer = findViewById<SwitchMaterial>(R.id.pdf_use_internal).isChecked
-        configuration().xlsxUseLogo = findViewById<SwitchMaterial>(R.id.xlsx_use_logo).isChecked
-        configuration().xlsxUseFooter = findViewById<SwitchMaterial>(R.id.xlsx_use_footer).isChecked
-        configuration().xlsxLogoWidth = findViewById<Slider>(R.id.xlsx_logo_width_slider).value.toInt()
-        configuration().xlsxFooterWidth = findViewById<Slider>(R.id.xlsx_footer_width_slider).value.toInt()
-        configuration().photoResolution = findViewById<Slider>(R.id.scale_photos_slider).value.toInt()
-        configuration().scalePhotos = findViewById<SwitchMaterial>(R.id.scale_photos).isChecked
-        configuration().pdfLogoWidthPercent = findViewById<Slider>(R.id.pdf_logo_width_slider).value.toInt()
-        configuration().pdfFooterWidthPercent = findViewById<Slider>(R.id.pdf_footer_width_slider).value.toInt()
-        configuration().pdfLogoAlignment = when(findViewById<MaterialButtonToggleGroup>(R.id.logo_alignment_group).checkedButtonId) {
-            R.id.logo_alignment_center -> Configuration.Alignment.CENTER
-            R.id.logo_alignment_right -> Configuration.Alignment.RIGHT
-            else -> Configuration.Alignment.LEFT
+        prefs.useOdfOutput.value = findViewById<RadioButton>(R.id.radio_odf_output).isChecked
+        prefs.useXlsxOutput.value = findViewById<RadioButton>(R.id.radio_xlsx_output).isChecked
+        prefs.selectOutput.value = findViewById<RadioButton>(R.id.radio_select_output).isChecked
+        prefs.fontSize.value = findViewById<Slider>(R.id.fontsize_slider).value.toInt()
+        prefs.xlsxLogoWidth.value = findViewById<Slider>(R.id.xlsx_logo_width_slider).value.toInt()
+        prefs.xlsxFooterWidth.value = findViewById<Slider>(R.id.xlsx_footer_width_slider).value.toInt()
+        prefs.photoResolution.value = findViewById<Slider>(R.id.scale_photos_slider).value.toInt()
+        prefs.pdfLogoWidthPercent.value = findViewById<Slider>(R.id.pdf_logo_width_slider).value.toInt()
+        prefs.pdfFooterWidthPercent.value = findViewById<Slider>(R.id.pdf_footer_width_slider).value.toInt()
+        prefs.pdfLogoAlignment.value = when(findViewById<MaterialButtonToggleGroup>(R.id.logo_alignment_group).checkedButtonId) {
+            R.id.logo_alignment_center -> AbPreferences.Alignment.CENTER
+            R.id.logo_alignment_right -> AbPreferences.Alignment.RIGHT
+            else -> AbPreferences.Alignment.LEFT
         }
-        configuration().pdfFooterAlignment = when(findViewById<MaterialButtonToggleGroup>(R.id.footer_alignment_group).checkedButtonId) {
-            R.id.footer_alignment_center -> Configuration.Alignment.CENTER
-            R.id.footer_alignment_right -> Configuration.Alignment.RIGHT
-            else -> Configuration.Alignment.LEFT
+        prefs.pdfFooterAlignment.value = when(findViewById<MaterialButtonToggleGroup>(R.id.footer_alignment_group).checkedButtonId) {
+            R.id.footer_alignment_center -> AbPreferences.Alignment.CENTER
+            R.id.footer_alignment_right -> AbPreferences.Alignment.RIGHT
+            else -> AbPreferences.Alignment.LEFT
         }
-        configuration().save()
 
         findViewById<ProgressBar>(R.id.sftp_progress).visibility = View.GONE
         window.clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
@@ -370,13 +331,13 @@ class ConfigurationActivity:
     fun onClickConnect(@Suppress("UNUSED_PARAMETER") btn: View) {
         GlobalScope.launch(Dispatchers.Main) {
             if(checkAndObtainInternetPermission()) {
-                getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
+                window.setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
                 findViewById<ProgressBar>(R.id.sftp_progress).visibility = View.VISIBLE
                 val host = findViewById<EditText>(R.id.sftp_host).text.toString()
                 val port = findViewById<EditText>(R.id.sftp_port).text.toString().toInt()
                 val user = findViewById<EditText>(R.id.sftp_user).text.toString()
                 var pwd = findViewById<EditText>(R.id.sftp_pwd).text.toString()
-                if (pwd == "") pwd = configuration().sFtpEncryptedPassword
+                if (pwd == "") pwd = prefs.sFtpPassword.value
                 try {
                     val sftpProvider = SftpProvider(this@ConfigurationActivity)
                     sftpProvider.connect(user, pwd, host, port)
@@ -387,7 +348,7 @@ class ConfigurationActivity:
                     showInfoDialog(getString(R.string.sftp_connect_error, ""), this@ConfigurationActivity, e.message?:getString(R.string.unknown))
                 }
                 findViewById<ProgressBar>(R.id.sftp_progress).visibility = View.GONE
-                getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
+                window.clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
             }
         }
     }
@@ -433,7 +394,7 @@ class ConfigurationActivity:
             try {
                 val dst = "custom_output_template.ott"
                 copyUriToFile(file, dst)
-                configuration().odfTemplateFile = dst
+                prefs.odfTemplateFile.value = dst
             } catch (e: Exception) {
                 GlobalScope.launch(Dispatchers.Main) {
                     showInfoDialog(getString(R.string.getfile_error), this@ConfigurationActivity, e.message ?: getString(R.string.unknown))
@@ -452,7 +413,7 @@ class ConfigurationActivity:
                 val user = findViewById<EditText>(R.id.sftp_user).text.toString()
                 var pwd = findViewById<EditText>(R.id.sftp_pwd).text.toString()
                 try {
-                    if (pwd == "") pwd = configuration().sFtpEncryptedPassword
+                    if (pwd == "") pwd = prefs.sFtpPassword.value
                     val sftpProvider = SftpProvider(this@ConfigurationActivity)
                     sftpProvider.connect(user, pwd, host, port)
                     Log.d(TAG, "Connection success")
@@ -460,7 +421,7 @@ class ConfigurationActivity:
                     val dst = "custom_output_template.ott"
                     sftpProvider.copyFile(src, "${filesDir}/$dst")
                     sftpProvider.disconnect()
-                    configuration().odfTemplateFile = dst
+                    prefs.odfTemplateFile.value = dst
                 } catch (e: Exception) {
                     showInfoDialog(getString(R.string.getfile_error), this@ConfigurationActivity, e.message?:getString(R.string.unknown))
                 }
@@ -487,8 +448,8 @@ class ConfigurationActivity:
             try {
                 val dst = "logo.jpg"
                 copyUriToFile(file, dst)
-                configuration().logoFile = dst
-                configuration().logoRatio = showFileInImageView(dst, R.id.logo_image)
+                prefs.logoFile.value = dst
+                prefs.logoRatio.value = showFileInImageView(dst, R.id.logo_image)
             } catch (e: Exception) {
                 GlobalScope.launch(Dispatchers.Main) {
                     showInfoDialog(getString(R.string.getfile_error), this@ConfigurationActivity, e.message ?: getString(R.string.unknown))
@@ -511,15 +472,15 @@ class ConfigurationActivity:
                     showInfoDialog(getString(R.string.only_jpeg_supported), this@ConfigurationActivity)
                 } else {
                     try {
-                        if (pwd == "") pwd = configuration().sFtpEncryptedPassword
+                        if (pwd == "") pwd = prefs.sFtpPassword.value
                         val sftpProvider = SftpProvider(this@ConfigurationActivity)
                         sftpProvider.connect(user, pwd, host, port)
                         Log.d(TAG, "Connection success")
                         val dst = "logo.jpg"
                         sftpProvider.copyFile(src, "${filesDir}/$dst")
                         sftpProvider.disconnect()
-                        configuration().logoFile = dst
-                        configuration().logoRatio = showFileInImageView(dst, R.id.logo_image)
+                        prefs.logoFile.value = dst
+                        prefs.logoRatio.value = showFileInImageView(dst, R.id.logo_image)
                     } catch (e: Exception) {
                         showInfoDialog(getString(R.string.getfile_error), this@ConfigurationActivity, e.message ?: getString(R.string.unknown))
                     }
@@ -547,8 +508,8 @@ class ConfigurationActivity:
             try {
                 val dst = "footer.jpg"
                 copyUriToFile(file, dst)
-                configuration().footerFile = dst
-                configuration().footerRatio = showFileInImageView(dst, R.id.footer_image)
+                prefs.footerFile.value = dst
+                prefs.footerRatio.value = showFileInImageView(dst, R.id.footer_image)
             } catch (e: Exception) {
                 GlobalScope.launch(Dispatchers.Main) {
                     showInfoDialog(getString(R.string.getfile_error), this@ConfigurationActivity, e.message ?: getString(R.string.unknown))
@@ -571,15 +532,15 @@ class ConfigurationActivity:
                     showInfoDialog(getString(R.string.only_jpeg_supported), this@ConfigurationActivity)
                 } else {
                     try {
-                        if (pwd == "") pwd = configuration().sFtpEncryptedPassword
+                        if (pwd == "") pwd = prefs.sFtpPassword.value
                         val sftpProvider = SftpProvider(this@ConfigurationActivity)
                         sftpProvider.connect(user, pwd, host, port)
                         Log.d(TAG, "Connection success")
                         val dst = "footer.jpg"
                         sftpProvider.copyFile(src, "${filesDir}/$dst")
                         sftpProvider.disconnect()
-                        configuration().footerFile = "footer.jpg"
-                        configuration().footerRatio = showFileInImageView(dst, R.id.footer_image)
+                        prefs.footerFile.value = "footer.jpg"
+                        prefs.footerRatio.value = showFileInImageView(dst, R.id.footer_image)
                     } catch (e: Exception) {
                         showInfoDialog(getString(R.string.getfile_error), this@ConfigurationActivity, e.message ?: getString(R.string.unknown))
                     }

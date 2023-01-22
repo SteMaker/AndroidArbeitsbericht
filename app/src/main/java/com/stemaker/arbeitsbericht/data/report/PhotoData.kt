@@ -1,7 +1,5 @@
 package com.stemaker.arbeitsbericht.data.report
 
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import com.stemaker.arbeitsbericht.data.base.*
 
 const val PHOTO_CONTAINER_VISIBILITY = "pcVis"
@@ -9,6 +7,7 @@ const val PHOTO_CONTAINER = "pc"
 class PhotoContainerData: DataContainer<PhotoData>(PHOTO_CONTAINER) {
     val visibility = DataElement<Boolean>(PHOTO_CONTAINER_VISIBILITY) { false }
 
+    /*
     fun copyFromSerialized(p: PhotoContainerDataSerialized) {
         visibility.value = p.visibility
         clear()
@@ -18,6 +17,7 @@ class PhotoContainerData: DataContainer<PhotoData>(PHOTO_CONTAINER) {
             add(item)
         }
     }
+     */
 
     fun copyFromDb(w: PhotoContainerDb) {
         visibility.value = w.pVisibility
@@ -29,7 +29,7 @@ class PhotoContainerData: DataContainer<PhotoData>(PHOTO_CONTAINER) {
         }
     }
 
-    fun copy(w: PhotoContainerData) {
+    fun copy() {
         // not copying photos
     }
 
@@ -60,6 +60,7 @@ class PhotoData: DataObject(PHOTO_DATA) {
         file, description, imageHeight, imageWidth
     )
 
+    /*
     fun copyFromSerialized(p: PhotoDataSerialized) {
         file.value = p.file
         description.value = p.description
@@ -79,6 +80,7 @@ class PhotoData: DataObject(PHOTO_DATA) {
             }
         }
     }
+    */
     fun copyFromDb(p: PhotoContainerDb.PhotoDb) {
         file.value = p.pFile
         description.value = p.pDescription

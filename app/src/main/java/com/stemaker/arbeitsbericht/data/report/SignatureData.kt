@@ -20,17 +20,19 @@ class SignatureData: DataObject(SIGNATURE) {
         employeeSignatureSvg, clientSignatureSvg
     )
 
+    /*
     fun copyFromSerialized(s: SignatureDataSerialized) {
         employeeSignatureSvg.value = s.employeeSignatureSvg
         clientSignatureSvg.value = s.clientSignatureSvg
     }
+     */
 
     fun copyFromDb(s: SignatureDb) {
         employeeSignatureSvg.value = s.employeeSignatureSvg
         clientSignatureSvg.value = s.clientSignatureSvg
     }
 
-    fun copy(s: SignatureData) {
+    fun copy() {
         // Not copying signatures
     }
 }

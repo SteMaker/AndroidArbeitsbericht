@@ -7,7 +7,7 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import com.stemaker.arbeitsbericht.R
 import com.stemaker.arbeitsbericht.data.calendarToDateString
-import com.stemaker.arbeitsbericht.data.configuration.configuration
+import com.stemaker.arbeitsbericht.data.preferences.AbPreferences
 import com.stemaker.arbeitsbericht.data.report.ReportData
 import org.odftoolkit.odfdom.doc.OdfTextDocument
 import org.odftoolkit.odfdom.doc.table.OdfTable
@@ -33,8 +33,14 @@ import javax.xml.xpath.XPathExpressionException
 
 private const val TAG = "OdfGenerator"
 
-class OdfGenerator(activity: Activity, report: ReportData, progressBar: ProgressBar?, textView: TextView?) :
-    ReportGenerator(activity, report, progressBar, textView) {
+class OdfGenerator(
+    activity: Activity,
+    report: ReportData,
+    prefs: AbPreferences,
+    progressBar: ProgressBar?,
+    textView: TextView?)
+    :ReportGenerator(activity, report, prefs, progressBar, textView)
+{
 
     override fun getHash(files: Array<File>): String? {
         val odfFile = files[0]
@@ -117,17 +123,19 @@ class OdfGenerator(activity: Activity, report: ReportData, progressBar: Progress
 
     private fun addImagesToPackage(): OdfPackage {
         val templateFile: InputStream
-        if(configuration().odfTemplateFile != "" && File(activity.filesDir, configuration().odfTemplateFile).exists())
-            templateFile = FileInputStream(File(activity.filesDir, configuration().odfTemplateFile))
+        if(prefs.odfTemplateFile.value != "" && File(activity.filesDir, prefs.odfTemplateFile.value).exists())
+            templateFile = FileInputStream(File(activity.filesDir, prefs.odfTemplateFile.value))
         else
             templateFile = activity.assets.open("output_template.ott")
 
         val pkg = OdfPackage.loadPackage(templateFile)
         report.photoContainer.forEachIndexed { index, elem ->
-            val tmpFile = File(elem.file.value)
-            val file = File(activity.getExternalFilesDir(Environment.DIRECTORY_PICTURES), tmpFile.name)
-            if(file.exists()) {
-                pkg.insert(file.toURI(), "Pictures/photo$index.jpg", "image/jpg")
+            elem.file.value?.let {
+                val tmpFile = File(it)
+                val file = File(activity.getExternalFilesDir(Environment.DIRECTORY_PICTURES), tmpFile.name)
+                if (file.exists()) {
+                    pkg.insert(file.toURI(), "Pictures/photo$index.jpg", "image/jpg")
+                }
             }
         }
         val csf = clientSigFile

@@ -2,19 +2,13 @@ package com.stemaker.arbeitsbericht
 
 import android.content.Intent
 import android.content.pm.ActivityInfo
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
-import android.view.WindowManager
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.stemaker.arbeitsbericht.data.configuration.configuration
 import com.stemaker.arbeitsbericht.databinding.ActivityClientListBinding
 import com.stemaker.arbeitsbericht.helpers.ClientListAdapter
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 
 class ClientListActivity:
     ArbeitsberichtActivity()
@@ -37,7 +31,7 @@ class ClientListActivity:
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = adapter
 
-        requestedOrientation = when(configuration().lockScreenOrientation) {
+        requestedOrientation = when(prefs.lockScreenOrientation.value) {
             true -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
             else -> ActivityInfo.SCREEN_ORIENTATION_FULL_USER
         }

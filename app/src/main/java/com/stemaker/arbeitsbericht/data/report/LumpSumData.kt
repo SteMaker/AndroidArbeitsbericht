@@ -1,22 +1,13 @@
 package com.stemaker.arbeitsbericht.data.report
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import com.stemaker.arbeitsbericht.data.base.*
-import com.stemaker.arbeitsbericht.data.configuration.configuration
 
 const val LUMP_SUM_CONTAINER_VISIBILITY = "lscVis"
 const val LUMP_SUM_CONTAINER = "lsc"
 class LumpSumContainerData: DataContainer<LumpSumData>(LUMP_SUM_CONTAINER) {
     val visibility = DataElement<Boolean>(LUMP_SUM_CONTAINER_VISIBILITY) { false }
 
-    private var _list = MutableLiveData<Set<String>>().apply { value = configuration().lumpSums.toSet() }
-    val list: LiveData<Set<String>>
-        get() = _list
-    fun updateLumpSums() {
-        _list.value = configuration().lumpSums.toSet()
-    }
-
+    /*
     fun copyFromSerialized(l: LumpSumContainerDataSerialized) {
         visibility.value = l.visibility
         clear()
@@ -26,6 +17,7 @@ class LumpSumContainerData: DataContainer<LumpSumData>(LUMP_SUM_CONTAINER) {
             add(item)
         }
     }
+     */
 
     fun copyFromDb(w: LumpSumContainerDb) {
         visibility.value = w.lVisibility
@@ -71,11 +63,13 @@ class LumpSumData: DataObject(LUMP_SUM_DATA) {
         item, amount, comment
     )
 
+    /*
     fun copyFromSerialized(l: LumpSumDataSerialized) {
         item.value = l.item
         amount.value = l.amount
         comment.value = l.comment
     }
+     */
 
     fun copyFromDb(l: LumpSumContainerDb.LumpSumDb) {
         item.value = l.lItem

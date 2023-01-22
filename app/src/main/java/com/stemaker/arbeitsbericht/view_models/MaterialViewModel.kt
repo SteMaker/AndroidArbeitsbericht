@@ -1,18 +1,19 @@
 package com.stemaker.arbeitsbericht.view_models
 
 import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.stemaker.arbeitsbericht.data.report.*
 
 class MaterialContainerViewModel(
     private val lifecycleOwner: LifecycleOwner,
-    private val materialContainer: MaterialContainerData)
+    private val materialContainer: MaterialContainerData,
+    val definedMaterials: LiveData<Set<String>>)
     : ViewModel(),
     Iterable<MaterialViewModel>
 {
     val visibility = materialContainer.visibility
-    val dictionary = materialContainer.dictionary
     val units = materialContainer.units
     private val itemViewModels = mutableListOf<MaterialViewModel>()
     init {
@@ -44,11 +45,16 @@ class MaterialContainerViewModel(
     }
 }
 
-class MaterialContainerViewModelFactory(private val lifecycleOwner: LifecycleOwner, private val materialContainer: MaterialContainerData) : ViewModelProvider.Factory {
+class MaterialContainerViewModelFactory(
+    private val lifecycleOwner: LifecycleOwner,
+    private val materialContainer: MaterialContainerData,
+    private val definedMaterials: LiveData<Set<String>>)
+    : ViewModelProvider.Factory
+{
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(MaterialContainerViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return MaterialContainerViewModel(lifecycleOwner, materialContainer) as T
+            return MaterialContainerViewModel(lifecycleOwner, materialContainer, definedMaterials) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

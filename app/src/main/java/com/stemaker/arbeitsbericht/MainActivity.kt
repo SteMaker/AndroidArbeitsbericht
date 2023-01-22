@@ -7,7 +7,6 @@ import android.view.*
 import androidx.appcompat.app.AlertDialog
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.stemaker.arbeitsbericht.data.configuration.configuration
 import com.stemaker.arbeitsbericht.data.report.ReportData
 import com.stemaker.arbeitsbericht.databinding.ActivityMainBinding
 import com.stemaker.arbeitsbericht.helpers.ReportFilterDialog
@@ -22,7 +21,7 @@ import java.lang.IllegalStateException
 private const val TAG = "MainActivity"
 
 interface ReportCardInterface {
-    fun onClickReport(cnt: Int)
+    fun onClickReport(uid: Int)
     fun onClickDeleteReport(report: ReportData)
     fun onSetReportState(report: ReportData, pos: Int, state: ReportData.ReportState)
     fun onClickDuplicateReport(report:ReportData)
@@ -56,12 +55,12 @@ class MainActivity:
         recyclerView.layoutManager = layoutManager
         recyclerView.adapter = adapter
 
-        requestedOrientation = when(configuration().lockScreenOrientation) {
+        requestedOrientation = when(prefs.lockScreenOrientation.value) {
             true -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
             else -> ActivityInfo.SCREEN_ORIENTATION_FULL_USER
         }
 
-        if (configuration().appUpdateWasDone) {
+        if (app.appUpdateWasDone) {
             val versionDialog = VersionDialogFragment()
             try {
                 versionDialog.show(supportFragmentManager, "VersionDialog")
@@ -109,7 +108,7 @@ class MainActivity:
 
     private fun createNewReport() {
         // On creating a new report, we should make in work reports visible
-        app.reportFilter.inWork = true
+        app.reportRepo.filter.inWork = true
         app.reportRepo.createReportAndActivate() {
             val intent = Intent(this@MainActivity, ReportEditorActivity::class.java).apply {}
             startActivity(intent)
@@ -141,20 +140,12 @@ class MainActivity:
 
     override fun onClickDuplicateReport(report:ReportData) {
         // On creating a new report, we should make in work reports visible
-        app.reportFilter.inWork = true
+        app.reportRepo.filter.inWork = true
         app.reportRepo.duplicateReportAndActivate(report) {
             val intent = Intent(this@MainActivity, ReportEditorActivity::class.java).apply {}
             startActivity(intent)
         }
     }
-    /* This is only for test purposes to create many reports. All are marked with MANY_REPORTS */
-    /*
-    override fun onCopyReport(report: ReportData) {
-        for (i in 0..100) {
-            storageHandler().duplicateReport(report)
-            adapter.add(report)
-        }
-    }*/
 
     override fun onSetReportState(report: ReportData, pos: Int, state: ReportData.ReportState) {
         report.state.value = state
@@ -165,7 +156,7 @@ class MainActivity:
     }
 
     private fun showFilterDialog() {
-        val dialog = ReportFilterDialog(app.reportFilter)
+        val dialog = ReportFilterDialog(app.reportRepo.filter /* falsch, sollte prefs sein */)
         dialog.show(supportFragmentManager, "Filter")
     }
 }

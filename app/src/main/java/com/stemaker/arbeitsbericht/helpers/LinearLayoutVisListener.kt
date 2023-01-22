@@ -8,18 +8,18 @@ import android.widget.LinearLayout
 class LinearLayoutVisListener @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0) :
     LinearLayout(context, attrs, defStyleAttr) {
 
-    var visibilityListener: onVisibilityChange? = null
+    private var visibilityListener: OnVisibilityChange? = null
 
-    fun setVisibilityChangeListener(listener: onVisibilityChange) {
+    fun setVisibilityChangeListener(listener: OnVisibilityChange) {
         visibilityListener = listener
     }
 
     override fun onVisibilityChanged(changedView: View, visibility: Int) {
         super.onVisibilityChanged(changedView, visibility)
-        visibilityListener?.visibilityChanged(changedView, if(visibility==View.GONE) false else true)
+        visibilityListener?.visibilityChanged(changedView, visibility != View.GONE)
     }
 
-    interface onVisibilityChange {
+    interface OnVisibilityChange {
         fun visibilityChanged(view: View, visible: Boolean)
     }
 }

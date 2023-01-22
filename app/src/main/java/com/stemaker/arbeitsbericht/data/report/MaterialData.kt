@@ -3,7 +3,6 @@ package com.stemaker.arbeitsbericht.data.report
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.stemaker.arbeitsbericht.data.base.*
-import com.stemaker.arbeitsbericht.storageHandler
 
 const val MATERIAL_CONTAINER_VISIBILITY = "macVis"
 const val MATERIAL_CONTAINER = "mac"
@@ -11,12 +10,9 @@ class MaterialContainerData: DataContainer<MaterialData>(MATERIAL_CONTAINER) {
     val visibility = DataElement<Boolean>(MATERIAL_CONTAINER_VISIBILITY) { false }
 
     /* The list below won't go into the json / serialized data */
-    private var _dictionary = MutableLiveData<Set<String>>().apply { value = storageHandler().materialDictionary }
-    val dictionary: LiveData<Set<String>>
-        get() = _dictionary
-    private var _units = MutableLiveData<Set<String>>().apply { value = setOf("Stück", "Meter", "Packung", "Liter", "VPE") }
+    val _units = MutableLiveData<Set<String>>(setOf("Stück", "Meter", "Packung", "Liter", "VPE"))
     val units: LiveData<Set<String>>
-        get() = _units
+            get() = _units
 
     fun isAnyMaterialUnitSet(): Boolean {
         for(item in items) {
@@ -25,6 +21,7 @@ class MaterialContainerData: DataContainer<MaterialData>(MATERIAL_CONTAINER) {
         return false
     }
 
+    /*
     fun copyFromSerialized(m: MaterialContainerDataSerialized) {
         visibility.value = m.visibility
         clear()
@@ -34,6 +31,7 @@ class MaterialContainerData: DataContainer<MaterialData>(MATERIAL_CONTAINER) {
             add(item)
         }
     }
+     */
 
     fun copyFromDb(w: MaterialContainerDb) {
         visibility.value = w.mVisibility
@@ -80,11 +78,13 @@ class MaterialData: DataObject(MATERIAL_DATA) {
         item, amount, unit
     )
 
+    /*
     fun copyFromSerialized(m: MaterialDataSerialized) {
         item.value = m.item
         amount.value = m.amount
         unit.value = m.unit
     }
+     */
     fun copyFromDb(m: MaterialContainerDb.MaterialDb) {
         item.value = m.mItem
         amount.value = m.mAmount

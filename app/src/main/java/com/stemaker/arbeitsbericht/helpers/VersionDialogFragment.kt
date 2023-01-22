@@ -14,11 +14,7 @@ class VersionDialogFragment : DialogFragment() {
         // Inflate the layout for this fragment
         val v = inflater.inflate(R.layout.fragment_version_dialog, container, false)
         val btn: Button = v.findViewById(R.id.ok_button)
-        btn.setOnClickListener(object: View.OnClickListener {
-            override fun onClick(btn: View) {
-                dismiss()
-            }
-        })
+        btn.setOnClickListener { dismiss() }
         val wv = v.findViewById<WebView>(R.id.version_webview)
         wv.loadUrl("file:///android_asset/versions.html")
         return v

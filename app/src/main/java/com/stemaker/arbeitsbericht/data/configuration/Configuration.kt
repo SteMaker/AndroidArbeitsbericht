@@ -6,13 +6,8 @@ import android.security.keystore.KeyProperties
 import android.util.Base64
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
-import com.bumptech.glide.load.resource.bitmap.CenterCrop
 import com.stemaker.arbeitsbericht.ArbeitsberichtApp
-import com.stemaker.arbeitsbericht.StorageHandler
 import com.stemaker.arbeitsbericht.data.report.ReportData
-import com.stemaker.arbeitsbericht.helpers.ReportFilter
-import com.stemaker.arbeitsbericht.storageHandler
-import kotlinx.coroutines.sync.Mutex
 import kotlinx.serialization.Serializable
 import java.security.KeyStore
 import java.security.UnrecoverableKeyException
@@ -78,52 +73,23 @@ class ConfigurationStore {
     var pdfFooterAlignment : Int = 0 // 0->center, 1->left, 2->right
 }
 
-fun configuration(): Configuration {
-    if(!Configuration.inited) {
-        Configuration.initialize()
-    }
-    return Configuration
-}
-
 object Configuration {
-    var inited = false
     var store = ConfigurationStore()
     val KEY_ALIAS = "ArbeitsberichtPasswordEncryptionKey"
-    private var _appUpdateWasDone = false
-    val appUpdateWasDone: Boolean
-        get() = _appUpdateWasDone
 
-    val mutex = Mutex()
-
-    suspend fun lock() = mutex.lock()
-    suspend fun unlock() = mutex.unlock()
-
-    fun initialize() {
-        if(!inited) {
-            inited = true
-            storageHandler()
-            // Had to add 100 because this is the value I used previously
-            val versionCode = ArbeitsberichtApp.getVersionCode() +100
-            if(store.vers < versionCode) {
-                _appUpdateWasDone = true
-                updateConfiguration(store.vers)
-            }
-        }
-    }
-
-    private fun updateConfiguration(oldVers: Int) {
-        previousVersionCode = oldVers
-        store.vers = (ArbeitsberichtApp.getVersionCode() + 100) as Int
-        if(oldVers < 121) {
+    fun updateConfiguration() {
+        previousVersionCode = store.vers
+        store.vers = (ArbeitsberichtApp.getVersionCode() + 100).toInt()
+        if(previousVersionCode < 121) {
             try {
                 if(store.logoFile != "") {
                     store.pdfUseLogo = true
                     store.xlsxUseLogo = true
                     try {
                         val bitmap = BitmapFactory.decodeFile(store.logoFile)
-                        configuration().logoRatio = bitmap.width.toDouble() / bitmap.height.toDouble()
+                        logoRatio = bitmap.width.toDouble() / bitmap.height.toDouble()
                     } catch (e:Exception) {
-                        configuration().logoRatio = 1.0
+                        logoRatio = 1.0
                     }
                 }
                 if(store.footerFile != "") {
@@ -131,18 +97,17 @@ object Configuration {
                     store.xlsxUseFooter = true
                     try {
                         val bitmap = BitmapFactory.decodeFile(store.footerFile)
-                        configuration().footerRatio = bitmap.width.toDouble() / bitmap.height.toDouble()
+                        footerRatio = bitmap.width.toDouble() / bitmap.height.toDouble()
                     } catch (e:Exception) {
-                        configuration().footerRatio = 1.0
+                        footerRatio = 1.0
                     }
                 }
                 if(store.logoFile != "")
                     store.logoFile = "logo.jpg"
                 if(store.footerFile != "")
                     store.footerFile = "footer.jpg"
-                if(configuration().odfTemplateFile != "")
-                    configuration().odfTemplateFile = "custom_output_template.ott"
-                    save()
+                if(odfTemplateFile != "")
+                    odfTemplateFile = "custom_output_template.ott"
             } catch(e: Exception) {}
         }
     }
@@ -162,11 +127,6 @@ object Configuration {
         get(): Int = store.currentId
         set(value) {
             store.currentId = value}
-    fun allocateId() : Int {
-        val id = store.currentId
-        store.currentId++
-        return id
-    }
 
     var deviceName: String
         get(): String = store.deviceName
@@ -307,7 +267,7 @@ object Configuration {
             store.pdfUseLogo = value }
 
     var pdfUseFooter: Boolean
-        get(): Boolean = Configuration.store.pdfUseFooter
+        get(): Boolean = store.pdfUseFooter
         set(value) {
             store.pdfUseFooter = value }
 
@@ -322,7 +282,7 @@ object Configuration {
             store.xlsxLogoWidth = value }
 
     var xlsxUseFooter: Boolean
-        get(): Boolean = Configuration.store.xlsxUseFooter
+        get(): Boolean = store.xlsxUseFooter
         set(value) {
             store.xlsxUseFooter = value }
 
@@ -491,12 +451,5 @@ object Configuration {
         val decryptedByteArray = ciph.doFinal(encryptedByteArray)
         val decrypted = String(decryptedByteArray, Charsets.UTF_8)
         return decrypted
-    }
-
-    fun save() {
-        store.vers = (ArbeitsberichtApp.getVersionCode() +100) as Int
-        // Only temp until I rework the configuration data handling to copy to/from json/db similar as for reports
-        store.reportIdPattern = reportIdPattern.value?:""
-        StorageHandler.saveConfigurationToFile(ArbeitsberichtApp.appContext)
     }
 }

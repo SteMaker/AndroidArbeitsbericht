@@ -1,9 +1,7 @@
 package com.stemaker.arbeitsbericht.helpers
-
 import android.util.Base64
 import com.stemaker.arbeitsbericht.data.calendarToDateString
-import com.stemaker.arbeitsbericht.data.configuration.Configuration
-import com.stemaker.arbeitsbericht.data.configuration.configuration
+import com.stemaker.arbeitsbericht.data.preferences.AbPreferences
 import com.stemaker.arbeitsbericht.data.report.ReportData
 import java.io.File
 import java.io.FileInputStream
@@ -11,7 +9,11 @@ import java.io.IOException
 
 private const val TAG = "HtmlReport"
 
-object HtmlReport {
+class HtmlReport(
+    private val prefs: AbPreferences,
+    private val report: ReportData,
+    private val dir: File)
+{
 
     private fun readFileToBytes(f: File): ByteArray {
         val size = f.length().toInt()
@@ -21,11 +23,11 @@ object HtmlReport {
         try {
             var read = fis.read(bytes, 0, size)
             if (read < size) {
-                var remain = size - read;
+                var remain = size - read
                 while (remain > 0) {
-                    read = fis.read(tmpBuff, 0, remain);
-                    System.arraycopy(tmpBuff, 0, bytes, size - remain, read);
-                    remain -= read;
+                    read = fis.read(tmpBuff, 0, remain)
+                    System.arraycopy(tmpBuff, 0, bytes, size - remain, read)
+                    remain -= read
                 }
             }
         }  catch (e: IOException){
@@ -36,31 +38,31 @@ object HtmlReport {
         return bytes
     }
 
-    private fun alignmentToCss(a: Configuration.Alignment): String {
+    private fun alignmentToCss(a: AbPreferences.Alignment): String {
        return when(a) {
-           Configuration.Alignment.CENTER -> "margin-left:auto;margin-right:auto;display:block;"
-           Configuration.Alignment.LEFT -> "margin-right:auto;display:block;"
-           Configuration.Alignment.RIGHT -> "margin-left:auto;display:block;"
+           AbPreferences.Alignment.CENTER -> "margin-left:auto;margin-right:auto;display:block;"
+           AbPreferences.Alignment.LEFT -> "margin-right:auto;display:block;"
+           AbPreferences.Alignment.RIGHT -> "margin-left:auto;display:block;"
        }
     }
     private fun logoCssClass(): String {
         return ".logo {" +
-                "height:${configuration().pdfLogoWidthPercent}%;" +
-                "width: ${configuration().pdfLogoWidthPercent}%;" +
-                alignmentToCss(configuration().pdfLogoAlignment) +
+                "height:${prefs.pdfLogoWidthPercent}%;" +
+                "width: ${prefs.pdfLogoWidthPercent}%;" +
+                alignmentToCss(prefs.pdfLogoAlignment.value) +
                 "}"
     }
 
     private fun footerCssClass(): String {
         return ".footer {" +
-                "height:${configuration().pdfFooterWidthPercent}%;" +
-                "width: ${configuration().pdfFooterWidthPercent}%;" +
-                alignmentToCss(configuration().pdfFooterAlignment) +
+                "height:${prefs.pdfFooterWidthPercent}%;" +
+                "width: ${prefs.pdfFooterWidthPercent}%;" +
+                alignmentToCss(prefs.pdfFooterAlignment.value) +
                 "}"
     }
 
-    fun encodeReport(rep: ReportData, dir: File, inclSignatures: Boolean = true): String {
-        val fs = "font-size:${configuration().fontSize}px"
+    fun encodeReport(inclSignatures: Boolean = true): String {
+        val fs = "font-size:${prefs.fontSize}px"
         var html: String =
             "<!DOCTYPE html>" +
                     "<html lang=\"de\">" +
@@ -73,34 +75,34 @@ object HtmlReport {
                     footerCssClass() +
                     "</style>" +
                     "<body>"
-        if(configuration().logoFile != "" && configuration().pdfUseLogo) {
-            val logoFileContent = readFileToBytes(File(dir, configuration().logoFile))
+        if(prefs.logoFile.value != "" && prefs.pdfUseLogo.value) {
+            val logoFileContent = readFileToBytes(File(dir, prefs.logoFile.value))
             val logo = Base64.encodeToString(logoFileContent, Base64.DEFAULT)
             html += "<img src=\"data:image/jpg;base64,${logo}\" class=\"logo\"/>"
         }
-        html +=     "<h1>Arbeitsbericht Nr. ${rep.id.value}</h1>" +
+        html +=     "<h1>Arbeitsbericht Nr. ${report.id.value}</h1>" +
                     "<table style=\"border: 2px solid black;border-collapse: collapse;\">" +
                     "<tr>" +
                         "<th style=\"padding: 15px;$fs;text-align:left;border: 2px solid black;border-collapse: collapse;\">Kunde / Projekt</th>" +
                         "<th style=\"padding: 15px;$fs;text-align:left;border: 2px solid black;border-collapse: collapse;\">Rechnungsadresse</th>" +
                     "</tr>" +
                     "<tr>" +
-                        "<td style=\"padding: 10px;$fs;border: 2px solid black;border-collapse: collapse;\"> ${rep.project.name.value}</td>" +
-                        "<td style=\"padding: 10px;$fs;border: 2px solid black;border-collapse: collapse;\">${rep.bill.name.value}</td>" +
+                        "<td style=\"padding: 10px;$fs;border: 2px solid black;border-collapse: collapse;\"> ${report.project.name.value}</td>" +
+                        "<td style=\"padding: 10px;$fs;border: 2px solid black;border-collapse: collapse;\">${report.bill.name.value}</td>" +
                     "</tr>" +
                     "<tr>" +
-                        "<td style=\"padding: 10px;$fs;border: 2px solid black;border-collapse: collapse;\"> ${rep.project.extra1.value}</td>" +
-                        "<td style=\"padding: 10px;$fs;border: 2px solid black;border-collapse: collapse;\">${rep.bill.street.value}</td>" +
+                        "<td style=\"padding: 10px;$fs;border: 2px solid black;border-collapse: collapse;\"> ${report.project.extra1.value}</td>" +
+                        "<td style=\"padding: 10px;$fs;border: 2px solid black;border-collapse: collapse;\">${report.bill.street.value}</td>" +
                     "</tr>" +
                     "<tr>" +
                         "<td style=\"padding: 10px;$fs;border: 2px solid black;border-collapse: collapse;\"></td>" +
-                        "<td style=\"padding: 10px;$fs;border: 2px solid black;border-collapse: collapse;\">${rep.bill.zip.value} ${rep.bill.city.value}</td>" +
+                        "<td style=\"padding: 10px;$fs;border: 2px solid black;border-collapse: collapse;\">${report.bill.zip.value} ${report.bill.city.value}</td>" +
                     "</tr>" +
                 "</table><hr>"
 
 
         // Work times table
-        if(rep.workTimeContainer.items.size > 0) {
+        if(report.workTimeContainer.items.size > 0) {
             html += "<div class=\"nobreak\">"
             html += "<h2>Arbeits-/fahrzeiten und Fahrstrecken</h2>" +
                     "<table style=\"border: 2px solid black;border-collapse: collapse;\">" +
@@ -114,7 +116,7 @@ object HtmlReport {
                     "<th style=\"padding: 15px;$fs;text-align:left;border: 2px solid black;border-collapse: collapse;\">Pause<br>[h:m]</th>" +
                     "<th style=\"padding: 15px;$fs;text-align:left;border: 2px solid black;border-collapse: collapse;\">Arbeits-zeit [h:m]</th>" +
                     "</tr>"
-            rep.workTimeContainer.items.forEach {
+            report.workTimeContainer.items.forEach {
                 html += "<tr>" +
                         "<td style=\"padding: 10px;$fs;border: 2px solid black;border-collapse: collapse;\"> ${calendarToDateString(it.date.value)}</td>" +
                         "<td style=\"padding: 10px;$fs;border: 2px solid black;border-collapse: collapse;\">"
@@ -134,14 +136,14 @@ object HtmlReport {
         }
 
         // Work items table
-        if(rep.workItemContainer.items.size > 0) {
+        if(report.workItemContainer.items.size > 0) {
             html += "<div class=\"nobreak\">"
             html += "<h2>Durchgeführte Arbeiten</h2>" +
                     "<table style=\"border: 2px solid black;border-collapse: collapse;\">" +
                     "<tr>" +
                     "<th style=\"padding: 15px;$fs;text-align:left;border: 2px solid black;border-collapse: collapse;\">Arbeit</th>" +
                     "</tr>"
-            rep.workItemContainer.items.forEach {
+            report.workItemContainer.items.forEach {
                 html += "<tr>" +
                         "<td style=\"padding: 10px;$fs;border: 2px solid black;border-collapse: collapse;\"> ${it.item.value}</td>" +
                         "</tr>"
@@ -150,7 +152,7 @@ object HtmlReport {
             html += "</div>"
         }
 
-        if(rep.lumpSumContainer.items.size > 0) {
+        if(report.lumpSumContainer.items.size > 0) {
             // Lump sums
             html += "<div class=\"nobreak\">"
             html += "<h2>Pauschalen</h2>" +
@@ -160,7 +162,7 @@ object HtmlReport {
                     "<th style=\"padding: 15px;$fs;text-align:left;border: 2px solid black;border-collapse: collapse;\">Anzahl</th>" +
                     "<th style=\"padding: 15px;$fs;text-align:left;border: 2px solid black;border-collapse: collapse;\">Bemerkung</th>" +
                     "</tr>"
-            rep.lumpSumContainer.items.forEach {
+            report.lumpSumContainer.items.forEach {
                 html += "<tr>" +
                         "<td style=\"padding: 10px;$fs;border: 2px solid black;border-collapse: collapse;\"> ${it.item.value}</td>" +
                         "<td style=\"padding: 10px;$fs;border: 2px solid black;border-collapse: collapse;\"> ${it.amount.value}</td>" +
@@ -172,17 +174,17 @@ object HtmlReport {
         }
 
         // Material table
-        if(rep.materialContainer.items.size > 0) {
+        if(report.materialContainer.items.size > 0) {
             html += "<div class=\"nobreak\">"
             html += "<h2>Material</h2>" +
                     "<table style=\"border: 2px solid black;border-collapse: collapse;\">"
-            if (rep.materialContainer.isAnyMaterialUnitSet()) {
+            if (report.materialContainer.isAnyMaterialUnitSet()) {
                 html += "<tr>" +
                         "<th style=\"padding: 15px;$fs;text-align:left;border: 2px solid black;border-collapse: collapse;\">Material</th>" +
                         "<th style=\"padding: 15px;$fs;text-align:left;border: 2px solid black;border-collapse: collapse;\">Anzahl</th>" +
                         "<th style=\"padding: 15px;$fs;text-align:left;border: 2px solid black;border-collapse: collapse;\">Einheit</th>" +
                         "</tr>"
-                rep.materialContainer.items.forEach {
+                report.materialContainer.items.forEach {
                     html += "<tr>" +
                             "<td style=\"padding: 10px;$fs;border: 2px solid black;border-collapse: collapse;\"> ${it.item.value}</td>" +
                             "<td style=\"padding: 10px;$fs;border: 2px solid black;border-collapse: collapse;\"> ${it.amount.value}</td>" +
@@ -194,7 +196,7 @@ object HtmlReport {
                         "<th style=\"padding: 15px;$fs;text-align:left;border: 2px solid black;border-collapse: collapse;\">Material</th>" +
                         "<th style=\"padding: 15px;$fs;text-align:left;border: 2px solid black;border-collapse: collapse;\">Anzahl</th>" +
                         "</tr>"
-                rep.materialContainer.items.forEach {
+                report.materialContainer.items.forEach {
                     html += "<tr>" +
                             "<td style=\"padding: 10px;$fs;border: 2px solid black;border-collapse: collapse;\"> ${it.item.value}</td>" +
                             "<td style=\"padding: 10px;$fs;border: 2px solid black;border-collapse: collapse;\"> ${it.amount.value}</td>" +
@@ -205,9 +207,9 @@ object HtmlReport {
             html += "</div>"
         }
 
-        if(rep.photoContainer.items.size != 0) {
+        if(report.photoContainer.items.size != 0) {
             html += "<h2>Fotos</h2>"
-            rep.photoContainer.items.forEach {
+            report.photoContainer.items.forEach {
                 val fileName = File(it.file.value!!).name // old version stored full path
                 html += "<div class=\"nobreak\">"
                 html += "<img src=\"content://com.stemaker.arbeitsbericht.fileprovider/ArbeitsberichtPhotos/$fileName\" style=\"max-width:100%\">"
@@ -220,7 +222,7 @@ object HtmlReport {
             // Employee signature
             html += "<div class=\"nobreak\">"
             html += "<h2>Unterschriften</h2>"
-            if (rep.signatureData.clientSignatureSvg.value == "" && rep.signatureData.employeeSignatureSvg.value == "") {
+            if (report.signatureData.clientSignatureSvg.value == "" && report.signatureData.employeeSignatureSvg.value == "") {
                 html += "Keine Unterschriften vorhanden<hr>"
             } else {
                 html += "<table>" +
@@ -229,12 +231,12 @@ object HtmlReport {
                         "<th>Auftraggeber</th>" +
                         "</tr>" +
                         "<tr>"
-                if(rep.signatureData.employeeSignatureSvg.value != "" && rep.signatureData.employeeSignaturePngFile != null)
-                    html += "<th><img src=\"content://com.stemaker.arbeitsbericht.fileprovider/ArbeitsberichtSignatures/${rep.signatureData.employeeSignaturePngFile!!.name}\" style=\"max-width:50%\"></th>"
+                if(report.signatureData.employeeSignatureSvg.value != "" && report.signatureData.employeeSignaturePngFile != null)
+                    html += "<th><img src=\"content://com.stemaker.arbeitsbericht.fileprovider/ArbeitsberichtSignatures/${report.signatureData.employeeSignaturePngFile!!.name}\" style=\"max-width:50%\"></th>"
                 else
                     html += "<th>Keine Unterschrift</th>"
-                if(rep.signatureData.clientSignatureSvg.value != "" && rep.signatureData.clientSignaturePngFile != null)
-                    html += "<th><img src=\"content://com.stemaker.arbeitsbericht.fileprovider/ArbeitsberichtSignatures/${rep.signatureData.clientSignaturePngFile!!.name}\" style=\"max-width:50%\"></th>"
+                if(report.signatureData.clientSignatureSvg.value != "" && report.signatureData.clientSignaturePngFile != null)
+                    html += "<th><img src=\"content://com.stemaker.arbeitsbericht.fileprovider/ArbeitsberichtSignatures/${report.signatureData.clientSignaturePngFile!!.name}\" style=\"max-width:50%\"></th>"
                 else
                     html += "<th>Keine Unterschrift</th>"
                 html += "</tr>" +
@@ -242,8 +244,8 @@ object HtmlReport {
             }
             html += "</div>"
         }
-        if(configuration().footerFile != "" && configuration().pdfUseFooter) {
-            val footerFileContent = readFileToBytes(File(dir, configuration().footerFile))
+        if(prefs.footerFile.value != "" && prefs.pdfUseFooter.value) {
+            val footerFileContent = readFileToBytes(File(dir, prefs.footerFile.value))
             val footer = Base64.encodeToString(footerFileContent, Base64.DEFAULT)
             html += "<img src=\"data:image/jpg;base64,${footer}\" class=\"footer\"/>"
         }

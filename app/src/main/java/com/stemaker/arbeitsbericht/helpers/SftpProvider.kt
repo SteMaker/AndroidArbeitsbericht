@@ -65,7 +65,7 @@ class SftpProvider(val activity: Activity): UserInfo {
     private inner class FtpThreadHandler(looper: Looper): Handler(looper) {
         override fun handleMessage(msg: Message) {
             super.handleMessage(msg)
-            Log.d(TAG, "handleMessage ${msg.what?:-1} in FTP Thread")
+            Log.d(TAG, "handleMessage ${msg.what} in FTP Thread")
             when(msg.what) {
                 MSG_CONNECT -> handleConnect(msg)
                 MSG_DISCONNECT -> handleDisconnect(msg)
@@ -79,7 +79,7 @@ class SftpProvider(val activity: Activity): UserInfo {
     private inner class UiThreadHandler(looper: Looper): Handler(looper) {
         override fun handleMessage(msg: Message) {
             super.handleMessage(msg)
-            Log.d(TAG, "handleMessage ${msg.what?:-1} in UI Thread")
+            Log.d(TAG, "handleMessage ${msg.what} in UI Thread")
             when (msg.what) {
                 MSG_SHOW_TOAST -> {
                     val toast = Toast.makeText(activity, msg.obj as String, Toast.LENGTH_LONG)

@@ -17,7 +17,7 @@ class ClientSelectDialog(private val clientRepository: ClientRepository) : Dialo
     lateinit var binding: ClientSelectDialogBinding
     private var clientViewModel: ClientViewModel? = null
     private var listener: (client: Client) ->Unit = {}
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         binding = DataBindingUtil.inflate(LayoutInflater.from(context), R.layout.client_select_dialog, null, false)
         binding.lifecycleOwner = this
 
@@ -39,11 +39,11 @@ class ClientSelectDialog(private val clientRepository: ClientRepository) : Dialo
 
     override fun onStart()
     {
-        super.onStart();
+        super.onStart()
         dialog?.let {
-            val width = ViewGroup.LayoutParams.MATCH_PARENT;
-            val height = ViewGroup.LayoutParams.MATCH_PARENT;
-            it.window?.setLayout(width, height);
+            val width = ViewGroup.LayoutParams.MATCH_PARENT
+            val height = ViewGroup.LayoutParams.MATCH_PARENT
+            it.window?.setLayout(width, height)
         }
     }
 

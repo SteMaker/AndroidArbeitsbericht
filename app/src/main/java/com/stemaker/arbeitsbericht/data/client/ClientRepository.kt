@@ -1,7 +1,7 @@
 package com.stemaker.arbeitsbericht.data.client
 
 import androidx.lifecycle.MutableLiveData
-import com.stemaker.arbeitsbericht.data.configuration.configuration
+import com.stemaker.arbeitsbericht.data.preferences.AbPreferences
 import com.stemaker.arbeitsbericht.helpers.ListObserver
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Mutex
@@ -28,7 +28,10 @@ class Client(val id: Int, __name: String = "", __street: String = "", __zip: Str
     fun equal(other: Client): Boolean = other.id == id
 }
 
-class ClientRepository(private val dao: ClientDao) {
+class ClientRepository(
+    private val dao: ClientDao,
+    private val prefs: AbPreferences)
+{
     private val observers = mutableListOf<ListObserver<Client>>()
     val clients = mutableListOf<Client>()
     private val addedClients = mutableListOf<Client>()
@@ -54,10 +57,8 @@ class ClientRepository(private val dao: ClientDao) {
     }
 
     fun addClient() {
-        val c = Client(configuration().currentClientId)
+        val c = Client(prefs.allocateClientId())
         c.visible = true
-        configuration().currentClientId += 1
-        configuration().save()
         clients.add(c)
         for (obs in observers)
             obs.elementAdded(c, clients.size - 1)

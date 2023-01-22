@@ -8,9 +8,9 @@ import androidx.constraintlayout.widget.ConstraintLayout
 class ConstraintLayoutVisListener @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0) :
     ConstraintLayout(context, attrs, defStyleAttr) {
 
-    var visibilityListener: onVisibilityChange? = null
+    private var visibilityListener: OnVisibilityChange? = null
 
-    fun setVisibilityChangeListener(listener: onVisibilityChange) {
+    fun setVisibilityChangeListener(listener: OnVisibilityChange) {
         visibilityListener = listener
     }
 
@@ -19,7 +19,7 @@ class ConstraintLayoutVisListener @JvmOverloads constructor(context: Context, at
         visibilityListener?.visibilityChanged(changedView, visibility != View.GONE)
     }
 
-    interface onVisibilityChange {
+    interface OnVisibilityChange {
         fun visibilityChanged(view: View, visible: Boolean)
     }
 }

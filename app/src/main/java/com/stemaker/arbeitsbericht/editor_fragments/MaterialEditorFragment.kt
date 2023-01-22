@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import android.widget.AutoCompleteTextView
 import android.widget.LinearLayout
 import androidx.appcompat.app.AlertDialog
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModelProvider
 import com.stemaker.arbeitsbericht.R
 import com.stemaker.arbeitsbericht.data.report.ReportData
@@ -18,8 +19,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
-class MaterialEditorFragment(private val report: ReportData):
-    ReportEditorSectionFragment()
+class MaterialEditorFragment(
+    private val report: ReportData,
+    private val definedMaterials: LiveData<Set<String>>)
+    : ReportEditorSectionFragment()
 {
     lateinit var dataBinding: FragmentMaterialEditorBinding
 
@@ -36,7 +39,10 @@ class MaterialEditorFragment(private val report: ReportData):
 
         dataBinding.lifecycleOwner = viewLifecycleOwner
         val materialContainerData = report.materialContainer
-        val viewModelContainer = ViewModelProvider(this, MaterialContainerViewModelFactory(viewLifecycleOwner, materialContainerData)).get(MaterialContainerViewModel::class.java)
+        val viewModelContainer = ViewModelProvider(
+            this,
+            MaterialContainerViewModelFactory(viewLifecycleOwner, materialContainerData, definedMaterials))
+            .get(MaterialContainerViewModel::class.java)
         dataBinding.viewModel = viewModelContainer
 
         for (viewModel in viewModelContainer) {
@@ -45,7 +51,8 @@ class MaterialEditorFragment(private val report: ReportData):
 
         dataBinding.materialAddButton.setOnClickListener {
             val viewModel = viewModelContainer.addMaterial()
-            addMaterialView(viewModel, viewModelContainer)
+            val v = addMaterialView(viewModel, viewModelContainer)
+            listener?.scrollTo(v)
         }
         return root
     }
@@ -61,7 +68,7 @@ class MaterialEditorFragment(private val report: ReportData):
         return dataBinding.materialContentContainer.visibility != View.GONE
     }
 
-    private fun addMaterialView(viewModel: MaterialViewModel, viewModelContainer: MaterialContainerViewModel) {
+    private fun addMaterialView(viewModel: MaterialViewModel, viewModelContainer: MaterialContainerViewModel): View {
         val inflater = layoutInflater
         val container = dataBinding.materialContentContainer
         val materialDataBinding: MaterialLayoutBinding = MaterialLayoutBinding.inflate(inflater, null, false)
@@ -86,5 +93,6 @@ class MaterialEditorFragment(private val report: ReportData):
 
         val pos = container.childCount
         container.addView(materialDataBinding.root, pos)
+        return materialDataBinding.root
     }
 }

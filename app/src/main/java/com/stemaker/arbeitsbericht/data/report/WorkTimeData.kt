@@ -2,16 +2,19 @@ package com.stemaker.arbeitsbericht.data.report
 
 import androidx.lifecycle.MediatorLiveData
 import com.stemaker.arbeitsbericht.data.base.*
-import com.stemaker.arbeitsbericht.data.configuration.configuration
 import com.stemaker.arbeitsbericht.data.dateStringToCalendar
 import java.util.*
+import kotlin.Comparator
 
 const val WORK_TIME_CONTAINER_VISIBILITY = "wtcVis"
 const val WORK_TIME_CONTAINER = "wtc"
-class WorkTimeContainerData:
-    DataContainer<WorkTimeData>(WORK_TIME_CONTAINER) {
+class WorkTimeContainerData(
+    private val defaultEmployeeName: String)
+    : DataContainer<WorkTimeData>(WORK_TIME_CONTAINER)
+{
     val visibility = DataElement<Boolean>(WORK_TIME_CONTAINER_VISIBILITY) { false }
 
+    /*
     fun copyFromSerialized(w: WorkTimeContainerDataSerialized) {
         visibility.value = w.visibility
         clear()
@@ -21,12 +24,13 @@ class WorkTimeContainerData:
             add(item)
         }
     }
+    */
 
     fun copyFromDb(w: WorkTimeContainerDb) {
         visibility.value = w.wtVisibility
         clear()
         for(element in w.wtItems) {
-            val item = WorkTimeData()
+            val item = WorkTimeData(defaultEmployeeName)
             item.copyFromDb(element)
             add(item)
         }
@@ -36,14 +40,14 @@ class WorkTimeContainerData:
         visibility.value = w.visibility.value
         clear()
         for(element in w.items) {
-            val item = WorkTimeData()
+            val item = WorkTimeData(defaultEmployeeName)
             item.copy(element)
             add(item)
         }
     }
 
     fun addWorkTime(ref: WorkTimeData? = null): WorkTimeData {
-        val wt = WorkTimeData()
+        val wt = WorkTimeData(defaultEmployeeName)
         if(ref != null) {
             wt.clone(ref)
         }
@@ -52,7 +56,7 @@ class WorkTimeContainerData:
     }
 
     fun addWorkTime(def: DefaultValues): WorkTimeData {
-        val wt = WorkTimeData()
+        val wt = WorkTimeData(defaultEmployeeName)
         if(def.useDefaultDistance) wt.distance.value = def.defaultDistance
         if(def.useDefaultDriveTime) wt.driveTime.value = def.defaultDriveTime
         add(wt) // triggers LiveData update
@@ -61,6 +65,22 @@ class WorkTimeContainerData:
 
     fun removeWorkTime(wt: WorkTimeData) {
         remove(wt) // triggers LiveData update
+    }
+
+    fun sortByDate() {
+        val comparator = Comparator<WorkTimeData> { a: WorkTimeData, b: WorkTimeData ->
+            a.date.value?.let { ita ->
+                b.date.value?.let { itb ->
+                    ita.time.compareTo(itb.time)
+                }
+            } ?: 0
+        }
+        sortWith(comparator)
+    }
+    // Would be nice to have this in the base class and only the Comparator in the specific class, but I didn't succeed to do so
+    private fun sortWith(comparator: Comparator<WorkTimeData>): Unit {
+        items.sortWith(comparator)
+        containerModificationEvent.value = DataModificationEvent(DataModificationEvent.Type.CONTAINER_REORDER, this)
     }
 }
 
@@ -73,11 +93,13 @@ const val WORK_TIME_PAUSE_DURATION = "wtPauseDuration"
 const val WORK_TIME_DRIVE_TIME = "wtDriveTime"
 const val WORK_TIME_DISTANCE = "wtDistance"
 const val WORK_TIME_DATA = "workTimeData"
-class WorkTimeData: DataObject(WORK_TIME_DATA) {
-
+class WorkTimeData(
+    private val defaultEmployeeName: String)
+    : DataObject(WORK_TIME_DATA)
+{
     val date = DataElement<Calendar>(WORK_TIME_DATE) { Calendar.getInstance() }
     val employees = DataContainer<DataElement<String>>(WORK_TIME_EMPLOYEES).apply {
-        add(DataElement<String>(WORK_TIME_EMPLOYEE) { configuration().employeeName })
+        add(DataElement<String>(WORK_TIME_EMPLOYEE) { defaultEmployeeName })
     }
     // Empty string as startTime will lead to pre-setting current time when clicking the edit button
     val startTime = DataElement<String>(WORK_TIME_START_TIME) { "" }
@@ -143,7 +165,7 @@ class WorkTimeData: DataObject(WORK_TIME_DATA) {
 
 
     fun addEmployee(): DataElement<String> {
-        val emp = DataElement<String>(WORK_TIME_EMPLOYEE) { configuration().employeeName }
+        val emp = DataElement<String>(WORK_TIME_EMPLOYEE) { defaultEmployeeName }
         employees.add(emp)
         return emp
     }
@@ -152,6 +174,7 @@ class WorkTimeData: DataObject(WORK_TIME_DATA) {
         employees.remove(emp)
     }
 
+    /*
     fun copyFromSerialized(w: WorkTimeDataSerialized) {
         date.value = dateStringToCalendar(w.date)
         employees.clear()
@@ -165,10 +188,11 @@ class WorkTimeData: DataObject(WORK_TIME_DATA) {
         driveTime.value = w.driveTime
         distance.value = w.distance
     }
+     */
 
     fun copyFromDb(w: WorkTimeContainerDb.WorkTimeDb) {
         date.value = dateStringToCalendar(w.wtDate)
-        employees.clear()
+        employees.clear() // because we always add one during construction
         for(empSer in w.wtEmployees) {
             val emp = DataElement<String>(WORK_TIME_EMPLOYEE) { empSer }
             employees.add(emp)

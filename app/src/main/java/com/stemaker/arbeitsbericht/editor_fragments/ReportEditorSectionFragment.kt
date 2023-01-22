@@ -55,13 +55,14 @@ abstract class ReportEditorSectionFragment : Fragment() {
         rootView.findViewById<TextView>(R.id.resh_headline_textview).text = t
     }
 
-    fun onClickExpandContentButton(imgV: View) {
+    private fun onClickExpandContentButton(imgV: View) {
         if (getVisibility()) {
             imgV.rotation = 0.toFloat()
             setVisibility(false)
         } else {
             imgV.rotation = 180.toFloat()
             setVisibility(true)
+            listener?.scrollTo(rootView)
         }
     }
 
@@ -70,5 +71,6 @@ abstract class ReportEditorSectionFragment : Fragment() {
 
     interface OnReportEditorInteractionListener {
         val report: ReportData
+        fun scrollTo(v: View)
     }
 }

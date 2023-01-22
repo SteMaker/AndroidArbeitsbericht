@@ -25,7 +25,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:inputType="textCapSentences"
-                        app:dictionary="@{view_model_container.dictionary}"
+                        app:dictionary="@{view_model_container.definedWorkItems}"
                         android:text="@={view_model.item}"
                         android:hint="@string/work_item"
                         />

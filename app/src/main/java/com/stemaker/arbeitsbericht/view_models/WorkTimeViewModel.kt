@@ -5,12 +5,18 @@ import android.util.Log
 import androidx.lifecycle.*
 import com.stemaker.arbeitsbericht.R
 import com.stemaker.arbeitsbericht.data.base.DataElement
+import com.stemaker.arbeitsbericht.data.base.DataModificationEvent
 import com.stemaker.arbeitsbericht.data.report.*
 
 private const val TAG = "WorkTimeViewModel"
 
+interface WorkTimeInteractionFragment {
+    fun onReorder()
+}
+
 class WorkTimeContainerViewModel(
     private val lifecycleOwner: LifecycleOwner,
+    private val workTimeInteractionFragment: WorkTimeInteractionFragment,
     private val workTimeContainer: WorkTimeContainerData,
     private val defaultValues: DefaultValues)
     : ViewModel(),
@@ -22,6 +28,16 @@ class WorkTimeContainerViewModel(
         for(item in workTimeContainer.items) {
             itemViewModels.add(WorkTimeViewModel(lifecycleOwner, item))
         }
+        val containerObserver = Observer<DataModificationEvent> { event ->
+            if(event.type == DataModificationEvent.Type.CONTAINER_REORDER) {
+                itemViewModels.clear()
+                for(item in workTimeContainer.items) {
+                    itemViewModels.add(WorkTimeViewModel(lifecycleOwner, item))
+                }
+                workTimeInteractionFragment.onReorder()
+            }
+        }
+        workTimeContainer.containerModificationEvent.observe(lifecycleOwner, containerObserver)
     }
 
     fun addWorkTime(ctx: Context): Pair<String?, WorkTimeViewModel> {
@@ -48,14 +64,8 @@ class WorkTimeContainerViewModel(
     }
 
     fun sortByDate() {
-        val comparator = Comparator { a: WorkTimeViewModel, b: WorkTimeViewModel ->
-            a.date.value?.let { ita ->
-                b.date.value?.let { itb ->
-                    ita.time.compareTo(itb.time)
-                }
-            } ?: 0
-        }
-        itemViewModels.sortWith(comparator)
+        workTimeContainer.sortByDate()
+
     }
 
     override fun iterator(): Iterator<WorkTimeViewModel> {
@@ -75,6 +85,7 @@ class WorkTimeContainerViewModel(
 
 class WorkTimeContainerViewModelFactory(
     private val lifecycleOwner: LifecycleOwner,
+    private val workTimeInteractionFragment: WorkTimeInteractionFragment,
     private val workTimeContainer: WorkTimeContainerData,
     private val defaultValues: DefaultValues)
     : ViewModelProvider.Factory
@@ -82,7 +93,7 @@ class WorkTimeContainerViewModelFactory(
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(WorkTimeContainerViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return WorkTimeContainerViewModel(lifecycleOwner, workTimeContainer, defaultValues) as T
+            return WorkTimeContainerViewModel(lifecycleOwner, workTimeInteractionFragment, workTimeContainer, defaultValues) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

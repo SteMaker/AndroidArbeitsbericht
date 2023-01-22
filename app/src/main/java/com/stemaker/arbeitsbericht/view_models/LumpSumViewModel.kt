@@ -1,18 +1,19 @@
 package com.stemaker.arbeitsbericht.view_models
 
 import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.stemaker.arbeitsbericht.data.report.*
 
 class LumpSumContainerViewModel(
     private val lifecycleOwner: LifecycleOwner,
-    private val lumpSumContainer: LumpSumContainerData)
+    private val lumpSumContainer: LumpSumContainerData,
+    val definedLumpSums: LiveData<Set<String>>)
     : ViewModel(),
     Iterable<LumpSumViewModel>
 {
     val visibility = lumpSumContainer.visibility
-    val lumpSumList = lumpSumContainer.list
     private val itemViewModels = mutableListOf<LumpSumViewModel>()
     init {
         for(item in lumpSumContainer.items) {
@@ -44,11 +45,17 @@ class LumpSumContainerViewModel(
     }
 }
 
-class LumpSumContainerViewModelFactory(private val lifecycleOwner: LifecycleOwner, private val lumpSumContainer: LumpSumContainerData) : ViewModelProvider.Factory {
+class LumpSumContainerViewModelFactory(
+    private val lifecycleOwner: LifecycleOwner,
+    private val lumpSumContainer: LumpSumContainerData,
+    private val definedLumpSums: LiveData<Set<String>>
+)
+    : ViewModelProvider.Factory
+{
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(LumpSumContainerViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return LumpSumContainerViewModel(lifecycleOwner, lumpSumContainer) as T
+            return LumpSumContainerViewModel(lifecycleOwner, lumpSumContainer, definedLumpSums) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

@@ -1,4 +1,5 @@
 package com.stemaker.arbeitsbericht.data.report
+/*
 
 import com.stemaker.arbeitsbericht.data.calendarToDateString
 import com.stemaker.arbeitsbericht.data.configuration.configuration
@@ -131,7 +132,7 @@ class WorkItemContainerDataSerialized() {
 @Serializable
 class WorkTimeDataSerialized() {
     var date: String = ""
-    var employees = mutableListOf(configuration().employeeName)
+    var employees = mutableListOf(prefs.employeeName)
     var startTime: String = "00:00"
     var endTime: String = "00:00"
     var pauseDuration: String = "00:00"
@@ -231,3 +232,4 @@ class ReportDataSerialized() {
         signatureData.copyFromData(r.signatureData)
     }
 }
+ */

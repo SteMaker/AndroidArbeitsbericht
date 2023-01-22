@@ -22,6 +22,7 @@ class BillData: DataObject(BILL) {
         name, street, zip, city, visibility
     )
 
+    /*
     fun copyFromSerialized(b: BillDataSerialized) {
         name.value = b.name
         street.value = b.street
@@ -29,6 +30,7 @@ class BillData: DataObject(BILL) {
         city.value = b.city
         visibility.value = b.visibility
     }
+     */
 
     fun copyFromDb(b: BillDb) {
         name.value = b.billName

@@ -3,8 +3,7 @@ package com.stemaker.arbeitsbericht.data.report
 import android.util.Log
 import android.util.LruCache
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.Observer
-import com.stemaker.arbeitsbericht.data.configuration.configuration
+import com.stemaker.arbeitsbericht.data.preferences.AbPreferences
 import com.stemaker.arbeitsbericht.helpers.ReportFilter
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Mutex
@@ -13,8 +12,10 @@ import java.util.concurrent.atomic.AtomicInteger
 const val CACHE_SIZE = 10
 private const val TAG="ReportRepository"
 
-class ReportRepository(private val reportDao: ReportDao) {
-
+class ReportRepository(
+    private val reportDao: ReportDao,
+    private val prefs: AbPreferences)
+{
     class ReportListChangeEvent(val type: Type, val reportUid: Int = 0, val pos: Int = 0) {
         enum class Type {
             LIST_ADD, LIST_REMOVE, LIST_CHANGE
@@ -58,16 +59,13 @@ class ReportRepository(private val reportDao: ReportDao) {
     val live
         get() = _live
 
-    // Whenever the filter changes we read all the reportUids anew
-    private val filterObserver = Observer<Unit> { getReportUidsFromDb() }
-
-    var filter = ReportFilter.noneFilter
-        set(value) {
-            field.live.removeObserver(filterObserver)
-            field = value
-            field.live.observeForever(filterObserver)
-            getReportUidsFromDb()
-        }
+    // We setup a filter that is based directly on the preferences and will automatically adapt when the
+    // filter settings in the preferences are changed. Whenever the filter changes we read all the reportUids anew
+    val filter = ReportFilter(prefs.filterProjectName, prefs.filterProjectExtra, prefs.filterStates)
+    init {
+        filter.live.observeForever(){
+            getReportUidsFromDb()}
+    }
 
     private val runningJobs = AtomicInteger(0)
     private fun launchAndMaintain(fct: suspend () -> Unit) {
@@ -79,12 +77,18 @@ class ReportRepository(private val reportDao: ReportDao) {
     }
     val isJobRunning = runningJobs.get()!=0
 
-    suspend fun getMaxUid(): Int {
+    suspend fun initialize(): Int {
         var ret = 0
         runBlocking {
             scope.launch {
                 ret = withContext(Dispatchers.IO) {
                     val usedIds = reportDao.getReportUids()
+                    reportUidsMutex.lock() // most likely not needed here, but doesn't harm
+                    val uids = withContext(Dispatchers.IO) {
+                        reportDao.getFilteredReportIds(filter)
+                    }
+                    reportUids.addAll(uids)
+                    reportUidsMutex.unlock()
                     usedIds.maxOrNull() ?: 0 // If file didn't exist yet, initial value will be 1
                 }
             }
@@ -111,7 +115,7 @@ class ReportRepository(private val reportDao: ReportDao) {
         launchAndMaintain {
             reportUidsMutex.lock()
             reports.remove(r.cnt) // Remove from cache
-            val index = reportUids[r.cnt]
+            val index = reportUids.indexOf(r.cnt)
             reportUids.remove(r.cnt) // Remove from report cnt list
             reportUidsMutex.unlock()
             withContext(Dispatchers.IO) {
@@ -155,13 +159,13 @@ class ReportRepository(private val reportDao: ReportDao) {
             r
         } ?: run {
             // If we don't have it in the cache then create one and let it populate from the database
-            val report = ReportData.createReport(cnt)
+            val report = ReportData.createReport(cnt, prefs)
             reports.put(cnt, report)
             scope.launch {
                 val rDb = withContext(Dispatchers.IO) {
                     reportDao.getReportByCnt(cnt)
                 }
-                ReportData.getReportFromDb(rDb, report)
+                report.getReportFromDb(rDb)
                 Log.d(TAG, "Loaded report ${report.cnt} with ${report.id.value} from database")
                 onLoaded?.let { it(report) }
             }
@@ -177,16 +181,15 @@ class ReportRepository(private val reportDao: ReportDao) {
         activeReport = getReportByUid(cnt, onActivated)
     }
 
-    fun createReport(onCreated:((r: ReportData)->Unit)?): ReportData {
-        val r = ReportData.createReport(configuration().allocateId())
-        configuration().activeReportId = r.cnt
-        configuration().save()
+    private fun createReport(onCreated:((r: ReportData)->Unit)?): ReportData {
+        val r = ReportData.createReport(prefs.allocateReportId(), prefs)
         _addReport(r, onCreated)
         return r
     }
 
     fun createReportAndActivate(onCreated:((r: ReportData)->Unit)?): ReportData {
         val r = createReport(onCreated)
+        prefs.activeReportId.value = r.cnt
         activeReport = r
         return r
     }
@@ -196,9 +199,7 @@ class ReportRepository(private val reportDao: ReportDao) {
     }
 
     fun duplicateReport(origin: ReportData, onCreated:((r: ReportData)->Unit)?): ReportData {
-        val r = ReportData.createReport(configuration().allocateId())
-        configuration().activeReportId = r.cnt
-        configuration().save()
+        val r = ReportData.createReport(prefs.allocateReportId(), prefs)
         r.copy(origin, copyDate = false)
         _addReport(r, onCreated)
         return r
@@ -206,6 +207,7 @@ class ReportRepository(private val reportDao: ReportDao) {
 
     fun duplicateReportAndActivate(origin: ReportData, onCreated:((r: ReportData)->Unit)?): ReportData {
         val r = duplicateReport(origin, onCreated)
+        prefs.activeReportId.value = r.cnt
         activeReport = r
         return r
     }
@@ -235,13 +237,6 @@ class ReportRepository(private val reportDao: ReportDao) {
                     saveReportFromScope(report.value)
                 }
             }
-        }
-    }
-    // @TODO: Make lump sums in configuration LiveData to sync automatically
-    fun updateLumpSums() {
-        val cacheSnapshot = reports.snapshot()
-        cacheSnapshot.forEach { report ->
-            report.value.lumpSumContainer.updateLumpSums()
         }
     }
 }

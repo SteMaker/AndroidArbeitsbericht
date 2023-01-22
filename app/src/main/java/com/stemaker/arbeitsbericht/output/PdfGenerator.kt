@@ -9,6 +9,7 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.ProgressBar
 import android.widget.TextView
+import com.stemaker.arbeitsbericht.data.preferences.AbPreferences
 import com.stemaker.arbeitsbericht.data.report.ReportData
 import com.stemaker.arbeitsbericht.helpers.HtmlReport
 import com.stemaker.arbeitsbericht.output.ReportGenerator
@@ -16,8 +17,14 @@ import java.io.File
 
 private const val TAG = "PdfPrint"
 
-class PdfGenerator(activity: Activity, report: ReportData, progressBar: ProgressBar?, textView: TextView?) :
-    ReportGenerator(activity, report, progressBar, textView, true){
+class PdfGenerator(
+    activity: Activity,
+    report: ReportData,
+    prefs: AbPreferences,
+    progressBar: ProgressBar?,
+    textView: TextView?)
+    :ReportGenerator(activity, report, prefs, progressBar, textView, true)
+{
 
     val jobName = "pdf_print_" + report.id.value
     var webView: WebView? = null
@@ -29,7 +36,8 @@ class PdfGenerator(activity: Activity, report: ReportData, progressBar: Progress
         .build()
     override fun createDoc(files: Array<File>, done: (success:Boolean) -> Unit) {
         // Generate a webview including signatures and then print it to pdf
-        html = HtmlReport.encodeReport(report, activity.filesDir, true)
+        val htmlReport = HtmlReport(prefs, report, activity.filesDir)
+        html = htmlReport.encodeReport(true)
         webView = WebView(activity)
 
         webView?.let {

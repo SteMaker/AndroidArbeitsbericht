@@ -1,52 +1,76 @@
 <?xml version="1.0" encoding="utf-8"?>
-
-<LinearLayout
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tools="http://schemas.android.com/tools"
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        tools:context=".ConfigurationActivity">
+        xmlns:tools="http://schemas.android.com/tools"
+        >
+    <data>
+        <variable name="prefs" type="com.stemaker.arbeitsbericht.data.preferences.AbPreferences"/>
+    </data>
+    <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            tools:context=".ConfigurationActivity">
 
-    <com.google.android.material.appbar.AppBarLayout
-            android:id="@+id/configuration_activity_toolbar_container"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-        <com.google.android.material.appbar.MaterialToolbar
-                android:id="@+id/configuration_activity_toolbar"
+        <com.google.android.material.appbar.AppBarLayout
+                android:id="@+id/configuration_activity_toolbar_container"
                 android:layout_width="match_parent"
-                android:layout_height="?attr/actionBarSize"
-                app:title="Einstellungen"
-                app:menu="@menu/configuration_menu"
-                app:theme="@style/ArbeitsberichtAppTheme.ActionBar"
-                app:popupTheme="@style/ArbeitsberichtAppTheme.ActionBar"/>
-    </com.google.android.material.appbar.AppBarLayout>
-    <ProgressBar
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:visibility="gone"
-            android:id="@+id/sftp_progress"
-            />
-    <ScrollView
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:paddingLeft="16dp"
-            android:paddingRight="16dp">
-        <LinearLayout
-                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+            <com.google.android.material.appbar.MaterialToolbar
+                    android:id="@+id/configuration_activity_toolbar"
+                    android:layout_width="match_parent"
+                    android:layout_height="?attr/actionBarSize"
+                    app:title="Einstellungen"
+                    app:menu="@menu/configuration_menu"
+                    app:theme="@style/ArbeitsberichtAppTheme.ActionBar"
+                    app:popupTheme="@style/ArbeitsberichtAppTheme.ActionBar"/>
+        </com.google.android.material.appbar.AppBarLayout>
+        <ProgressBar
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="vertical">
+                android:visibility="gone"
+                android:id="@+id/sftp_progress"
+                />
+        <ScrollView
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:paddingLeft="16dp"
+                android:paddingRight="16dp">
+            <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
 
-            <include layout="@layout/config_general"/>
-            <include layout="@layout/config_sftp"/>
-            <include layout="@layout/config_output"/>
-            <include layout="@layout/config_odt"/>
-            <include layout="@layout/config_pdf"/>
-            <include layout="@layout/config_excel"/>
-            <include layout="@layout/config_photo"/>
-
-        </LinearLayout>
-    </ScrollView>
-</LinearLayout>
+                <include
+                        layout="@layout/config_general"
+                        app:prefs="@{prefs}"
+                        />
+                <include
+                        layout="@layout/config_sftp"
+                        app:prefs="@{prefs}"
+                        />
+                <include
+                        layout="@layout/config_output"
+                        app:prefs="@{prefs}"
+                        />
+                <include
+                        layout="@layout/config_odt"
+                        app:prefs="@{prefs}"
+                        />
+                <include
+                        layout="@layout/config_pdf"
+                        app:prefs="@{prefs}"
+                        />
+                <include
+                        layout="@layout/config_excel"
+                        app:prefs="@{prefs}"
+                        />
+                <include
+                        layout="@layout/config_photo"
+                        app:prefs="@{prefs}"
+                        />
+            </LinearLayout>
+        </ScrollView>
+    </LinearLayout>
+</layout>

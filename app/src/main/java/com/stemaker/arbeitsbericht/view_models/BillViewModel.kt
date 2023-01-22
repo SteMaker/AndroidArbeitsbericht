@@ -5,7 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.stemaker.arbeitsbericht.data.report.*
 
-class BillViewModel(private val lifecycleOwner: LifecycleOwner, private val bill: BillData): ViewModel() {
+class BillViewModel(private val lifecycleOwner: LifecycleOwner, bill: BillData): ViewModel() {
     val name = bill.name
     val street = bill.street
     val zip = bill.zip

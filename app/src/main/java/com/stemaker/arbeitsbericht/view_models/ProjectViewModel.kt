@@ -4,7 +4,7 @@ import androidx.lifecycle.*
 import com.stemaker.arbeitsbericht.data.report.*
 
 
-class ProjectViewModel(val lifecycleOwner: LifecycleOwner, private val project: ProjectData): ViewModel() {
+class ProjectViewModel(val lifecycleOwner: LifecycleOwner, project: ProjectData): ViewModel() {
     var name = project.name
     var extra1 = project.extra1
     var visibility = project.visibility

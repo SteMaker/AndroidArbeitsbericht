@@ -20,7 +20,6 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModelProvider
-import com.stemaker.arbeitsbericht.data.configuration.configuration
 import com.stemaker.arbeitsbericht.data.report.ReportData
 import com.stemaker.arbeitsbericht.databinding.ActivitySummaryBinding
 import com.stemaker.arbeitsbericht.helpers.*
@@ -54,7 +53,7 @@ class SummaryActivity:
         binding = DataBindingUtil.setContentView(this, R.layout.activity_summary)
         binding.lifecycleOwner = this
 
-        requestedOrientation = when(configuration().lockScreenOrientation) {
+        requestedOrientation = when(prefs.lockScreenOrientation.value) {
             true -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
             else -> ActivityInfo.SCREEN_ORIENTATION_FULL_USER
         }
@@ -107,7 +106,8 @@ class SummaryActivity:
             onBackPressed()
         }
 
-        val html = HtmlReport.encodeReport(report, this@SummaryActivity.filesDir, false)
+        val htmlReport = HtmlReport(prefs, report, this@SummaryActivity.filesDir)
+        val html = htmlReport.encodeReport(false)
         binding.webview.loadDataWithBaseURL("", html, "text/html", "UTF-8", "")
 
         // In landscape limiting the width of the signature pad to the max width possible in portrait,
@@ -299,9 +299,9 @@ class SummaryActivity:
     // TODO: Currently only supporting a single output file, currently no other use case
     private suspend fun createReport(): Pair<File?, OutputType> {
         val type = when {
-            configuration().useXlsxOutput -> OutputType.XLSX
-            configuration().useOdfOutput -> OutputType.ODT
-            configuration().selectOutput -> showOutputSelectDialog(this@SummaryActivity)
+            prefs.useXlsxOutput.value -> OutputType.XLSX
+            prefs.useOdfOutput.value -> OutputType.ODT
+            prefs.selectOutput.value -> showOutputSelectDialog(this@SummaryActivity)
             else -> OutputType.PDF
         }
         if(type == OutputType.UNKNOWN)
@@ -309,11 +309,11 @@ class SummaryActivity:
 
         val generator = when(type) {
             // FIXME: Add support for select !!!!
-            OutputType.XLSX -> XlsxGenerator(this@SummaryActivity, report, binding.createReportProgressbar,
+            OutputType.XLSX -> XlsxGenerator(this@SummaryActivity, report, prefs, binding.createReportProgressbar,
                 binding.createReportProgressText)
-            OutputType.ODT -> OdfGenerator(this@SummaryActivity, report, binding.createReportProgressbar,
+            OutputType.ODT -> OdfGenerator(this@SummaryActivity, report, prefs, binding.createReportProgressbar,
                 binding.createReportProgressText)
-            else -> PdfGenerator(this@SummaryActivity, report, binding.createReportProgressbar,
+            else -> PdfGenerator(this@SummaryActivity, report, prefs, binding.createReportProgressbar,
                 binding.createReportProgressText)
         }
         val files = generator.getFilesForGeneration()
@@ -394,7 +394,7 @@ class SummaryActivity:
     }
 
     private fun showReport(file: File, type: OutputType) {
-        if(configuration().useInlinePdfViewer && type == OutputType.PDF)
+        if(prefs.useInlinePdfViewer.value && type == OutputType.PDF)
             showReportInternal(file, type)
         else
             showReportExternal(file)
@@ -416,9 +416,9 @@ class SummaryActivity:
                 return
             }
         }
-        val subj = "Arbeitsbericht von ${configuration().employeeName}: Kunde: ${report.project.name.value}, Berichtsnr: ${report.id.value}"
+        val subj = "Arbeitsbericht von ${prefs.employeeName.value}: Kunde: ${report.project.name.value}, Berichtsnr: ${report.id.value}"
         val emailIntent = Intent(Intent.ACTION_SENDTO).apply {
-            data = Uri.parse("mailto:" + configuration().recvMail)
+            data = Uri.parse("mailto:" + prefs.recvMail.value)
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             putExtra(Intent.EXTRA_SUBJECT, subj)
             fileUri?.let {
@@ -426,7 +426,8 @@ class SummaryActivity:
                 putExtra(Intent.EXTRA_STREAM, fileUri)
                 clipData = ClipData.newUri(this@SummaryActivity.contentResolver, xdfFile?.name?:"file", it)
             } ?: run {
-                putExtra(Intent.EXTRA_TEXT, HtmlReport.encodeReport(report, this@SummaryActivity.filesDir, true))
+                val htmlReport = HtmlReport(prefs, report, this@SummaryActivity.filesDir)
+                putExtra(Intent.EXTRA_TEXT, htmlReport.encodeReport(true))
             }
         }
 
@@ -453,9 +454,9 @@ class SummaryActivity:
             return
         }
 
-        val subj = "Arbeitsbericht von ${configuration().employeeName}: Kunde: ${report.project.name.value}, Berichtsnr: ${report.id.value}"
+        val subj = "Arbeitsbericht von ${prefs.employeeName.value}: Kunde: ${report.project.name.value}, Berichtsnr: ${report.id.value}"
         val shareIntent = Intent(Intent.ACTION_SEND).apply {
-            type = when(configuration().useOdfOutput) {
+            type = when(prefs.useOdfOutput.value) {
                 true -> "application/vnd.oasis.opendocument.text"
                 else -> "application/pdf"
             }
@@ -463,7 +464,7 @@ class SummaryActivity:
             putExtra(Intent.EXTRA_SUBJECT, subj)
             putExtra(Intent.EXTRA_TEXT, "Bericht im Anhang")
             putExtra(Intent.EXTRA_STREAM, fileUri)
-            putExtra(Intent.EXTRA_EMAIL, arrayOf(configuration().recvMail))
+            putExtra(Intent.EXTRA_EMAIL, arrayOf(prefs.recvMail.value))
         }
 
         try {

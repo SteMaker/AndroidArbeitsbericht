@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import androidx.appcompat.app.AlertDialog
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModelProvider
 import com.stemaker.arbeitsbericht.R
 import com.stemaker.arbeitsbericht.data.report.ReportData
@@ -17,8 +18,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
-class LumpSumEditorFragment(private val report: ReportData):
-    ReportEditorSectionFragment()
+class LumpSumEditorFragment(
+    private val report: ReportData,
+    private val definedLumpSums: LiveData<Set<String>>
+)
+    : ReportEditorSectionFragment()
 {
     lateinit var dataBinding: FragmentLumpSumEditorBinding
 
@@ -39,7 +43,10 @@ class LumpSumEditorFragment(private val report: ReportData):
 
         dataBinding.lifecycleOwner = viewLifecycleOwner
         val lumpSumContainerData = report.lumpSumContainer
-        val viewModelContainer = ViewModelProvider(this, LumpSumContainerViewModelFactory(viewLifecycleOwner, lumpSumContainerData)).get(LumpSumContainerViewModel::class.java)
+        val viewModelContainer = ViewModelProvider(
+            this,
+            LumpSumContainerViewModelFactory(viewLifecycleOwner, lumpSumContainerData, definedLumpSums))
+            .get(LumpSumContainerViewModel::class.java)
         dataBinding.viewModel = viewModelContainer
 
         for (viewModel in viewModelContainer) {
@@ -48,7 +55,8 @@ class LumpSumEditorFragment(private val report: ReportData):
 
         dataBinding.lumpSumAddButton.setOnClickListener {
             val viewModel = viewModelContainer.addLumpSum()
-            addLumpSumView(viewModel, viewModelContainer)
+            val v = addLumpSumView(viewModel, viewModelContainer)
+            listener?.scrollTo(v)
         }
 
         return root
@@ -65,7 +73,7 @@ class LumpSumEditorFragment(private val report: ReportData):
         return dataBinding.lumpSumContentContainer.visibility != View.GONE
     }
 
-    private fun addLumpSumView(viewModel: LumpSumViewModel, viewModelContainer: LumpSumContainerViewModel) {
+    private fun addLumpSumView(viewModel: LumpSumViewModel, viewModelContainer: LumpSumContainerViewModel): View {
         val inflater = layoutInflater
         val container = dataBinding.lumpSumContentContainer
         val lumpSumDataBinding: LumpSumEditLayoutBinding = LumpSumEditLayoutBinding.inflate(inflater, null, false)
@@ -86,8 +94,7 @@ class LumpSumEditorFragment(private val report: ReportData):
 
         val pos = container.childCount
         container.addView(lumpSumDataBinding.root, pos)
-
-        // TODO: Scroll to new element. Should use ListView instead of LinearLayout
+        return lumpSumDataBinding.root
     }
 
 }

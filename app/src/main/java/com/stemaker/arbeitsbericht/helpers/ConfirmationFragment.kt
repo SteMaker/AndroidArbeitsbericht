@@ -18,7 +18,7 @@ suspend fun showConfirmationDialog(title: String, context: Context, msg: String=
         .setMessage(msg)
         .setPositiveButton(R.string.ok) { _, button -> continuation!!.resume(button) }
         .setNegativeButton(R.string.cancel) { _, button -> continuation!!.resume(button) }
-        .setOnCancelListener() { _ -> continuation!!.resume(AlertDialog.BUTTON_NEUTRAL) }
+        .setOnCancelListener() { continuation!!.resume(AlertDialog.BUTTON_NEUTRAL) }
         .create()
     alert.show()
     return suspendCoroutine<Int> {
@@ -32,8 +32,8 @@ suspend fun showInfoDialog(title: String, context: Context, msg: String=""): Int
         .setIcon(R.drawable.ic_info_outline_black_24dp)
         .setTitle(title)
         .setMessage(msg)
-        .setPositiveButton(R.string.ok) { _, button -> continuation!!.resume(AlertDialog.BUTTON_NEUTRAL) }
-        .setOnCancelListener() { _ -> continuation!!.resume(AlertDialog.BUTTON_NEUTRAL) }
+        .setPositiveButton(R.string.ok) { _, _ -> continuation!!.resume(AlertDialog.BUTTON_NEUTRAL) }
+        .setOnCancelListener() { continuation!!.resume(AlertDialog.BUTTON_NEUTRAL) }
         .create()
     return try {
         alert.show()
@@ -52,7 +52,7 @@ enum class OutputType(val value: Int) {
     UNKNOWN(0xFF);
 
     companion object {
-        private val map = OutputType.values().associateBy(OutputType::value)
+        private val map = values().associateBy(OutputType::value)
         fun fromInt(type: Int) = map[type]
     }
 }

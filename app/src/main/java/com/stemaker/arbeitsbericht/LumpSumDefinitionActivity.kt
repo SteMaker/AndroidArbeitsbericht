@@ -13,7 +13,6 @@ import androidx.appcompat.app.AlertDialog
 import androidx.cardview.widget.CardView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.stemaker.arbeitsbericht.data.configuration.configuration
 import com.stemaker.arbeitsbericht.databinding.ActivityLumpSumDefinitionBinding
 import com.stemaker.arbeitsbericht.helpers.SftpProvider
 import com.stemaker.arbeitsbericht.helpers.showConfirmationDialog
@@ -33,7 +32,6 @@ class LumpSumDefinitionActivity:
     private var internetPermissionContinuation: Continuation<Boolean>? = null
     private lateinit var binding: ActivityLumpSumDefinitionBinding
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         if(!onCreateWrapper(savedInstanceState))
             return
@@ -43,12 +41,12 @@ class LumpSumDefinitionActivity:
         binding = ActivityLumpSumDefinitionBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        requestedOrientation = when(configuration().lockScreenOrientation) {
+        requestedOrientation = when(prefs.lockScreenOrientation.value) {
             true -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
             else -> ActivityInfo.SCREEN_ORIENTATION_FULL_USER
         }
-        binding.lumpSumFtpPath.setText(configuration().lumpSumServerPath)
-        val lumpSums = configuration().lumpSums
+        binding.lumpSumFtpPath.setText(prefs.lumpSumServerPath.value)
+        val lumpSums = prefs.lumpSums.value
         for (ls in lumpSums) {
             addLumpSumView(ls)
         }
@@ -105,13 +103,8 @@ class LumpSumDefinitionActivity:
                 lumpSums.add(lumpSum)
                 Log.d(TAG, "saving $pos")
             }
-            configuration().lock()
-            configuration().lumpSums = lumpSums
-            configuration().lumpSumServerPath = findViewById<EditText>(R.id.lump_sum_ftp_path).text.toString()
-            configuration().save()
-            app.reportRepo.updateLumpSums()
-            configuration().unlock()
-            storageHandler().saveConfigurationToFile(getApplicationContext())
+            prefs.lumpSums.setValue(lumpSums.toSet())
+            prefs.lumpSumServerPath.value = findViewById<EditText>(R.id.lump_sum_ftp_path).text.toString()
         }
     }
 
@@ -180,10 +173,10 @@ class LumpSumDefinitionActivity:
         GlobalScope.launch(Dispatchers.Main) {
             if(checkAndObtainInternetPermission()) {
                 findViewById<ProgressBar>(R.id.load_progress).visibility = View.VISIBLE
-                val host = configuration().sFtpHost
-                val port = configuration().sFtpPort
-                val user = configuration().sFtpUser
-                val pwd = configuration().sFtpEncryptedPassword
+                val host = prefs.sFtpHost.value
+                val port = prefs.sFtpPort.value
+                val user = prefs.sFtpUser.value
+                val pwd = prefs.sFtpPassword.value
                 val path = findViewById<EditText>(R.id.lump_sum_ftp_path).text.toString()
                 try {
                     val sftpProvider = SftpProvider(this@LumpSumDefinitionActivity)

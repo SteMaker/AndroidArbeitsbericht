@@ -6,7 +6,7 @@ import android.util.Log
 import android.widget.ProgressBar
 import android.widget.TextView
 import com.stemaker.arbeitsbericht.data.calendarToDateString
-import com.stemaker.arbeitsbericht.data.configuration.configuration
+import com.stemaker.arbeitsbericht.data.preferences.AbPreferences
 import com.stemaker.arbeitsbericht.data.report.ReportData
 import com.stemaker.arbeitsbericht.output.ReportGenerator
 import org.apache.poi.ss.usermodel.*
@@ -24,8 +24,14 @@ import kotlin.math.roundToInt
 
 private const val TAG = "XlsxGenerator"
 
-class XlsxGenerator(activity: Activity, report: ReportData, progressBar: ProgressBar?, textView: TextView?):
-    ReportGenerator(activity, report, progressBar, textView) {
+class XlsxGenerator(
+    activity: Activity,
+    report: ReportData,
+    prefs: AbPreferences,
+    progressBar: ProgressBar?,
+    textView: TextView?)
+    :ReportGenerator(activity, report, prefs, progressBar, textView)
+{
 
     enum class StyleTypes { HEAD1, HEAD2, HEAD3, NORMAL,
         TABLEHEAD_LEFT, TABLEHEAD_MIDDLE, TABLEHEAD_RIGHT, TABLEHEAD_1COL,
@@ -54,13 +60,13 @@ class XlsxGenerator(activity: Activity, report: ReportData, progressBar: Progres
         var rown = 0
         sheetGeneral.setColumnWidth(0, (12.5f*256).toInt())
 
-        if(configuration().logoFile != "" && configuration().xlsxUseLogo)
+        if(prefs.logoFile.value != "" && prefs.xlsxUseLogo.value)
             rown = rown.plus(setLogo(wb, sheetGeneral, rown)+1)
         rown = rown.plus(setHeadline(sheetGeneral, rown)+1)
         rown = rown.plus(setBaseData(sheetGeneral, rown)+1)
         rown =  rown.plus(setBillData(sheetGeneral, rown)+1)
         rown = rown.plus(setSignatures(wb, sheetGeneral, rown+1, clientSigFile, employeeSigFile)+1)
-        if(configuration().footerFile != "" && configuration().xlsxUseFooter)
+        if(prefs.footerFile.value != "" && prefs.xlsxUseFooter.value)
             rown = rown.plus(setFooter(wb, sheetGeneral, rown)+1)
 
         rown = setWorkTime(sheetData, 0) + 1
@@ -84,33 +90,33 @@ class XlsxGenerator(activity: Activity, report: ReportData, progressBar: Progres
     }
 
     private fun createStyles(wb: XSSFWorkbook) {
-        styles.put(StyleTypes.HEAD1, wb.createCellStyle().also {
+        styles[StyleTypes.HEAD1] = wb.createCellStyle().also {
             val font = wb.createFont()
-            font.setFontHeight(16*20)
+            font.fontHeight = (16*20).toShort()
             font.bold = true
             it.setFont(font)
-        })
-        styles.put(StyleTypes.HEAD2, wb.createCellStyle().also {
+        }
+        styles[StyleTypes.HEAD2] = wb.createCellStyle().also {
             val font = wb.createFont()
-            font.setFontHeight(14*20)
+            font.fontHeight = (14*20).toShort()
             font.bold = true
             it.setFont(font)
-        })
-        styles.put(StyleTypes.HEAD3, wb.createCellStyle().also {
+        }
+        styles[StyleTypes.HEAD3] = wb.createCellStyle().also {
             val font = wb.createFont()
-            font.setFontHeight(12*20)
+            font.fontHeight= (12*20).toShort()
             font.bold = true
             it.setFont(font)
             it.wrapText = true
-        })
-        styles.put(StyleTypes.NORMAL, wb.createCellStyle().also {
+        }
+        styles[StyleTypes.NORMAL] = wb.createCellStyle().also {
             val font = wb.createFont()
-            font.setFontHeight(12*20)
+            font.fontHeight = (12*20).toShort()
             it.setFont(font)
-        })
-        styles.put(StyleTypes.TABLEHEAD_LEFT, wb.createCellStyle().also {
+        }
+        styles[StyleTypes.TABLEHEAD_LEFT] = wb.createCellStyle().also {
             val font = wb.createFont()
-            font.setFontHeight(12*20)
+            font.fontHeight = (12*20).toShort()
             font.bold = true
             it.setFont(font)
             it.fillForegroundColor = IndexedColors.GREY_25_PERCENT.index
@@ -119,15 +125,15 @@ class XlsxGenerator(activity: Activity, report: ReportData, progressBar: Progres
             it.setBorderBottom(BorderStyle.THIN)
             it.setBorderLeft(BorderStyle.THICK)
             it.setBorderRight(BorderStyle.THIN)
-            it.setTopBorderColor(IndexedColors.BLACK.index)
-            it.setBottomBorderColor(IndexedColors.BLACK.index)
-            it.setLeftBorderColor(IndexedColors.BLACK.index)
-            it.setRightBorderColor(IndexedColors.BLACK.index)
+            it.topBorderColor = IndexedColors.BLACK.index
+            it.bottomBorderColor = IndexedColors.BLACK.index
+            it.leftBorderColor = IndexedColors.BLACK.index
+            it.rightBorderColor = IndexedColors.BLACK.index
             it.wrapText = true
-        })
+        }
         styles.put(StyleTypes.TABLEHEAD_MIDDLE, wb.createCellStyle().also {
             val font = wb.createFont()
-            font.setFontHeight(12*20)
+            font.fontHeight = (12*20).toShort()
             font.bold = true
             it.setFont(font)
             it.fillForegroundColor = IndexedColors.GREY_25_PERCENT.index
@@ -136,15 +142,15 @@ class XlsxGenerator(activity: Activity, report: ReportData, progressBar: Progres
             it.setBorderBottom(BorderStyle.THIN)
             it.setBorderLeft(BorderStyle.THIN)
             it.setBorderRight(BorderStyle.THIN)
-            it.setTopBorderColor(IndexedColors.BLACK.index)
-            it.setBottomBorderColor(IndexedColors.BLACK.index)
-            it.setLeftBorderColor(IndexedColors.BLACK.index)
-            it.setRightBorderColor(IndexedColors.BLACK.index)
+            it.topBorderColor = IndexedColors.BLACK.index
+            it.bottomBorderColor = IndexedColors.BLACK.index
+            it.leftBorderColor = IndexedColors.BLACK.index
+            it.rightBorderColor = IndexedColors.BLACK.index
             it.wrapText = true
         })
         styles.put(StyleTypes.TABLEHEAD_RIGHT, wb.createCellStyle().also {
             val font = wb.createFont()
-            font.setFontHeight(12*20)
+            font.fontHeight = (12*20).toShort()
             font.bold = true
             it.setFont(font)
             it.fillForegroundColor = IndexedColors.GREY_25_PERCENT.index
@@ -153,15 +159,15 @@ class XlsxGenerator(activity: Activity, report: ReportData, progressBar: Progres
             it.setBorderBottom(BorderStyle.THIN)
             it.setBorderLeft(BorderStyle.THIN)
             it.setBorderRight(BorderStyle.THICK)
-            it.setTopBorderColor(IndexedColors.BLACK.index)
-            it.setBottomBorderColor(IndexedColors.BLACK.index)
-            it.setLeftBorderColor(IndexedColors.BLACK.index)
-            it.setRightBorderColor(IndexedColors.BLACK.index)
+            it.topBorderColor = IndexedColors.BLACK.index
+            it.bottomBorderColor = IndexedColors.BLACK.index
+            it.leftBorderColor = IndexedColors.BLACK.index
+            it.rightBorderColor = IndexedColors.BLACK.index
             it.wrapText = true
         })
         styles.put(StyleTypes.TABLEHEAD_1COL, wb.createCellStyle().also {
             val font = wb.createFont()
-            font.setFontHeight(12*20)
+            font.fontHeight = (12*20).toShort()
             font.bold = true
             it.setFont(font)
             it.fillForegroundColor = IndexedColors.GREY_25_PERCENT.index
@@ -170,129 +176,129 @@ class XlsxGenerator(activity: Activity, report: ReportData, progressBar: Progres
             it.setBorderBottom(BorderStyle.THIN)
             it.setBorderLeft(BorderStyle.THICK)
             it.setBorderRight(BorderStyle.THICK)
-            it.setTopBorderColor(IndexedColors.BLACK.index)
-            it.setBottomBorderColor(IndexedColors.BLACK.index)
-            it.setLeftBorderColor(IndexedColors.BLACK.index)
-            it.setRightBorderColor(IndexedColors.BLACK.index)
+            it.topBorderColor = IndexedColors.BLACK.index
+            it.bottomBorderColor = IndexedColors.BLACK.index
+            it.leftBorderColor = IndexedColors.BLACK.index
+            it.rightBorderColor = IndexedColors.BLACK.index
             it.wrapText = true
         })
         styles.put(StyleTypes.TABLEBOTTOM_LEFT, wb.createCellStyle().also {
             val font = wb.createFont()
-            font.setFontHeight(12*20)
+            font.fontHeight = (12*20).toShort()
             it.setFont(font)
             it.setBorderTop(BorderStyle.THIN)
             it.setBorderBottom(BorderStyle.THICK)
             it.setBorderLeft(BorderStyle.THICK)
             it.setBorderRight(BorderStyle.THIN)
-            it.setTopBorderColor(IndexedColors.BLACK.index)
-            it.setBottomBorderColor(IndexedColors.BLACK.index)
-            it.setLeftBorderColor(IndexedColors.BLACK.index)
-            it.setRightBorderColor(IndexedColors.BLACK.index)
+            it.topBorderColor = IndexedColors.BLACK.index
+            it.bottomBorderColor = IndexedColors.BLACK.index
+            it.leftBorderColor = IndexedColors.BLACK.index
+            it.rightBorderColor = IndexedColors.BLACK.index
             it.wrapText = true
         })
         styles.put(StyleTypes.TABLEBOTTOM_MIDDLE, wb.createCellStyle().also {
             val font = wb.createFont()
-            font.setFontHeight(12*20)
+            font.fontHeight = (12*20).toShort()
             it.setFont(font)
             it.setBorderTop(BorderStyle.THIN)
             it.setBorderBottom(BorderStyle.THICK)
             it.setBorderLeft(BorderStyle.THIN)
             it.setBorderRight(BorderStyle.THIN)
-            it.setTopBorderColor(IndexedColors.BLACK.index)
-            it.setBottomBorderColor(IndexedColors.BLACK.index)
-            it.setLeftBorderColor(IndexedColors.BLACK.index)
-            it.setRightBorderColor(IndexedColors.BLACK.index)
+            it.topBorderColor = IndexedColors.BLACK.index
+            it.bottomBorderColor = IndexedColors.BLACK.index
+            it.leftBorderColor = IndexedColors.BLACK.index
+            it.rightBorderColor = IndexedColors.BLACK.index
             it.wrapText = true
         })
         styles.put(StyleTypes.TABLEBOTTOM_RIGHT, wb.createCellStyle().also {
             val font = wb.createFont()
-            font.setFontHeight(12*20)
+            font.fontHeight = (12*20).toShort()
             it.setFont(font)
             it.setBorderTop(BorderStyle.THIN)
             it.setBorderBottom(BorderStyle.THICK)
             it.setBorderLeft(BorderStyle.THIN)
             it.setBorderRight(BorderStyle.THICK)
-            it.setTopBorderColor(IndexedColors.BLACK.index)
-            it.setBottomBorderColor(IndexedColors.BLACK.index)
-            it.setLeftBorderColor(IndexedColors.BLACK.index)
-            it.setRightBorderColor(IndexedColors.BLACK.index)
+            it.topBorderColor = IndexedColors.BLACK.index
+            it.bottomBorderColor = IndexedColors.BLACK.index
+            it.leftBorderColor = IndexedColors.BLACK.index
+            it.rightBorderColor = IndexedColors.BLACK.index
             it.wrapText = true
         })
         styles.put(StyleTypes.TABLEBOTTOM_1COL, wb.createCellStyle().also {
             val font = wb.createFont()
-            font.setFontHeight(12*20)
+            font.fontHeight = (12*20).toShort()
             it.setFont(font)
             it.setBorderTop(BorderStyle.THIN)
             it.setBorderBottom(BorderStyle.THICK)
             it.setBorderLeft(BorderStyle.THICK)
             it.setBorderRight(BorderStyle.THICK)
-            it.setTopBorderColor(IndexedColors.BLACK.index)
-            it.setBottomBorderColor(IndexedColors.BLACK.index)
-            it.setLeftBorderColor(IndexedColors.BLACK.index)
-            it.setRightBorderColor(IndexedColors.BLACK.index)
+            it.topBorderColor = IndexedColors.BLACK.index
+            it.bottomBorderColor = IndexedColors.BLACK.index
+            it.leftBorderColor = IndexedColors.BLACK.index
+            it.rightBorderColor = IndexedColors.BLACK.index
             it.wrapText = true
         })
         styles.put(StyleTypes.TABLE_LEFT, wb.createCellStyle().also {
             val font = wb.createFont()
-            font.setFontHeight(12*20)
+            font.fontHeight = (12*20).toShort()
             it.setFont(font)
             it.setBorderTop(BorderStyle.THIN)
             it.setBorderBottom(BorderStyle.THIN)
             it.setBorderLeft(BorderStyle.THICK)
             it.setBorderRight(BorderStyle.THIN)
-            it.setTopBorderColor(IndexedColors.BLACK.index)
-            it.setBottomBorderColor(IndexedColors.BLACK.index)
-            it.setLeftBorderColor(IndexedColors.BLACK.index)
-            it.setRightBorderColor(IndexedColors.BLACK.index)
+            it.topBorderColor = IndexedColors.BLACK.index
+            it.bottomBorderColor = IndexedColors.BLACK.index
+            it.leftBorderColor = IndexedColors.BLACK.index
+            it.rightBorderColor = IndexedColors.BLACK.index
             it.wrapText = true
         })
         styles.put(StyleTypes.TABLE_MIDDLE, wb.createCellStyle().also {
             val font = wb.createFont()
-            font.setFontHeight(12*20)
+            font.fontHeight = (12*20).toShort()
             it.setFont(font)
             it.setBorderTop(BorderStyle.THIN)
             it.setBorderBottom(BorderStyle.THIN)
             it.setBorderLeft(BorderStyle.THIN)
             it.setBorderRight(BorderStyle.THIN)
-            it.setTopBorderColor(IndexedColors.BLACK.index)
-            it.setBottomBorderColor(IndexedColors.BLACK.index)
-            it.setLeftBorderColor(IndexedColors.BLACK.index)
-            it.setRightBorderColor(IndexedColors.BLACK.index)
+            it.topBorderColor = IndexedColors.BLACK.index
+            it.bottomBorderColor = IndexedColors.BLACK.index
+            it.leftBorderColor = IndexedColors.BLACK.index
+            it.rightBorderColor = IndexedColors.BLACK.index
             it.wrapText = true
         })
         styles.put(StyleTypes.TABLE_RIGHT, wb.createCellStyle().also {
             val font = wb.createFont()
-            font.setFontHeight(12*20)
+            font.fontHeight = (12*20).toShort()
             it.setFont(font)
             it.setBorderTop(BorderStyle.THIN)
             it.setBorderBottom(BorderStyle.THIN)
             it.setBorderLeft(BorderStyle.THIN)
             it.setBorderRight(BorderStyle.THICK)
-            it.setTopBorderColor(IndexedColors.BLACK.index)
-            it.setBottomBorderColor(IndexedColors.BLACK.index)
-            it.setLeftBorderColor(IndexedColors.BLACK.index)
-            it.setRightBorderColor(IndexedColors.BLACK.index)
+            it.topBorderColor = IndexedColors.BLACK.index
+            it.bottomBorderColor = IndexedColors.BLACK.index
+            it.leftBorderColor = IndexedColors.BLACK.index
+            it.rightBorderColor = IndexedColors.BLACK.index
             it.wrapText = true
         })
         styles.put(StyleTypes.TABLE_1COL, wb.createCellStyle().also {
             val font = wb.createFont()
-            font.setFontHeight(12*20)
+            font.fontHeight = (12*20).toShort()
             it.setFont(font)
             it.setBorderTop(BorderStyle.THIN)
             it.setBorderBottom(BorderStyle.THIN)
             it.setBorderLeft(BorderStyle.THICK)
             it.setBorderRight(BorderStyle.THICK)
-            it.setTopBorderColor(IndexedColors.BLACK.index)
-            it.setBottomBorderColor(IndexedColors.BLACK.index)
-            it.setLeftBorderColor(IndexedColors.BLACK.index)
-            it.setRightBorderColor(IndexedColors.BLACK.index)
+            it.topBorderColor = IndexedColors.BLACK.index
+            it.bottomBorderColor = IndexedColors.BLACK.index
+            it.leftBorderColor = IndexedColors.BLACK.index
+            it.rightBorderColor = IndexedColors.BLACK.index
             it.wrapText = true
         })
     }
 
     private fun setLogo(wb: XSSFWorkbook, sheet: XSSFSheet, rown: Int): Int {
         // The factor of 1.1 is found by trail and error :(
-        val logoWidth = (configuration().xlsxLogoWidth * Units.EMU_PER_CENTIMETER / 10f / 1.1f).roundToInt() // in EMU
+        val logoWidth = (prefs.xlsxLogoWidth.value * Units.EMU_PER_CENTIMETER / 10f / 1.1f).roundToInt() // in EMU
         var width = 0
         var columns = 0
         while(width < logoWidth) {
@@ -301,7 +307,7 @@ class XlsxGenerator(activity: Activity, report: ReportData, progressBar: Progres
         }
         val dx2 = logoWidth-width
         try {
-            val iStream = FileInputStream("${activity.filesDir}/${configuration().logoFile}")
+            val iStream = FileInputStream("${activity.filesDir}/${prefs.logoFile}")
             val bytes = IOUtils.toByteArray(iStream)
             val picIdx = wb.addPicture(bytes, Workbook.PICTURE_TYPE_PNG)
             iStream.close()
@@ -316,7 +322,7 @@ class XlsxGenerator(activity: Activity, report: ReportData, progressBar: Progres
             anchor.setCol2(columns)
             anchor.dx2 = dx2
             val picture = drawing.createPicture(anchor, picIdx)
-            val rowHeight = (logoWidth * 20 / configuration().logoRatio)/Units.EMU_PER_POINT
+            val rowHeight = (logoWidth * 20 / prefs.logoRatio.value)/Units.EMU_PER_POINT
             row.height = rowHeight.toInt().toShort()
             return 1
         } catch(e: Exception) {}
@@ -324,7 +330,7 @@ class XlsxGenerator(activity: Activity, report: ReportData, progressBar: Progres
     }
     private fun setFooter(wb: XSSFWorkbook, sheet: XSSFSheet, rown: Int): Int {
             // The factor of 1.1 is found by trail and error :(
-            val footerWidth = (configuration().xlsxFooterWidth * Units.EMU_PER_CENTIMETER / 10f / 1.1f).roundToInt() // in EMU
+            val footerWidth = (prefs.xlsxFooterWidth.value * Units.EMU_PER_CENTIMETER / 10f / 1.1f).roundToInt() // in EMU
             var width = 0
             var columns = 0
             while(width < footerWidth) {
@@ -333,7 +339,7 @@ class XlsxGenerator(activity: Activity, report: ReportData, progressBar: Progres
             }
             val dx2 = footerWidth-width
             try {
-                val iStream = FileInputStream("${activity.filesDir}/${configuration().footerFile}")
+                val iStream = FileInputStream("${activity.filesDir}/${prefs.footerFile}")
                 val bytes = IOUtils.toByteArray(iStream)
                 val picIdx = wb.addPicture(bytes, Workbook.PICTURE_TYPE_PNG)
                 iStream.close()
@@ -348,7 +354,7 @@ class XlsxGenerator(activity: Activity, report: ReportData, progressBar: Progres
                 anchor.setCol2(columns)
                 anchor.dx2 = dx2
                 val picture = drawing.createPicture(anchor, picIdx)
-                val rowHeight = (footerWidth * 20 / configuration().footerRatio)/Units.EMU_PER_POINT
+                val rowHeight = (footerWidth * 20 / prefs.footerRatio.value)/Units.EMU_PER_POINT
                 row.height = rowHeight.toInt().toShort()
                 return 1
             } catch(e: Exception) {}

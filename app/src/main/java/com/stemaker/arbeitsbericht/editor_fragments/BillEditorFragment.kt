@@ -46,10 +46,10 @@ class BillEditorFragment(private val clientRepository: ClientRepository,
                 toast.show()
             } else {
                 clientSelectDialog.setOnSelectListener { client ->
-                    viewModel.name.setValue(client.name.value?:"")
-                    viewModel.street.setValue(client.street.value?:"")
-                    viewModel.zip.setValue(client.zip.value?:"")
-                    viewModel.city.setValue(client.city.value?:"")
+                    viewModel.name.value = client.name.value?:""
+                    viewModel.street.value = client.street.value?:""
+                    viewModel.zip.value = client.zip.value?:""
+                    viewModel.city.value = client.city.value?:""
                     report.defaultValues.useDefaultDistance = client.useDistance.value ?: false
                     report.defaultValues.useDefaultDriveTime = client.useDriveTime.value ?: false
                     report.defaultValues.defaultDriveTime = client.driveTime.value ?: "00:00"

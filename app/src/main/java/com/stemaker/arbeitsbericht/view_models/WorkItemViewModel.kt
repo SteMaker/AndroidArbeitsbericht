@@ -1,6 +1,7 @@
 package com.stemaker.arbeitsbericht.view_models
 
 import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.stemaker.arbeitsbericht.data.report.WorkItemData
@@ -8,12 +9,12 @@ import com.stemaker.arbeitsbericht.data.report.WorkItemContainerData
 
 class WorkItemContainerViewModel(
     private val lifecycleOwner: LifecycleOwner,
-    private val workItemContainer: WorkItemContainerData)
+    private val workItemContainer: WorkItemContainerData,
+    val definedWorkItems: LiveData<Set<String>>)
     : ViewModel(),
     Iterable<WorkItemViewModel>
 {
     val visibility = workItemContainer.visibility
-    val dictionary = workItemContainer.dictionary
 
     private val itemViewModels = mutableListOf<WorkItemViewModel>()
     init {
@@ -44,11 +45,17 @@ class WorkItemContainerViewModel(
     }
 }
 
-class WorkItemContainerViewModelFactory(private val lifecycleOwner: LifecycleOwner, private val workItemContainer: WorkItemContainerData) : ViewModelProvider.Factory {
+class WorkItemContainerViewModelFactory(
+    private val lifecycleOwner: LifecycleOwner,
+    private val workItemContainer: WorkItemContainerData,
+    private val definedWorkItems: LiveData<Set<String>>
+)
+    : ViewModelProvider.Factory
+{
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(WorkItemContainerViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return WorkItemContainerViewModel(lifecycleOwner, workItemContainer) as T
+            return WorkItemContainerViewModel(lifecycleOwner, workItemContainer, definedWorkItems) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

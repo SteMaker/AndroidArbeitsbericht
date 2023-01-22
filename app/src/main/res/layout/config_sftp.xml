@@ -1,101 +1,111 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        style="@style/ArbeitsberichtAppTheme.CardLevel1"
-        android:clickable="false">
-    <androidx.constraintlayout.widget.ConstraintLayout
+        >
+    <data>
+        <variable name="prefs" type="com.stemaker.arbeitsbericht.data.preferences.AbPreferences"/>
+    </data>
+    <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
-        <TextView
-                android:id="@+id/sftp_setting_text"
+            style="@style/ArbeitsberichtAppTheme.CardLevel1"
+            android:clickable="false">
+        <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintLeft_toLeftOf="parent"
-                android:text="@string/sftp_settings"
-                android:textStyle="bold"
-                android:textSize="21sp"
-                />
-        <com.stemaker.arbeitsbericht.helpers.InfoButton
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintRight_toRightOf="parent"
-                android:src="@drawable/ic_outline_info_24"
-                app:infoUrl="file:///android_asset/help_sftp.html"
-                />
-        <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/sftp_host_layout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/sftp_setting_text"
-                >
-            <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/sftp_host"
+                android:orientation="vertical">
+            <TextView
+                    android:id="@+id/sftp_setting_text"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="textUri"
-                    android:hint="@string/sftp_host"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    android:text="@string/sftp_settings"
+                    android:textStyle="bold"
+                    android:textSize="21sp"
                     />
-        </com.google.android.material.textfield.TextInputLayout>
-        <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/sftp_port_layout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/sftp_host_layout"
-                >
-            <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/sftp_port"
+            <com.stemaker.arbeitsbericht.helpers.InfoButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintRight_toRightOf="parent"
+                    android:src="@drawable/ic_outline_info_24"
+                    app:infoUrl="file:///android_asset/help_sftp.html"
+                    />
+            <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/sftp_host_layout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="numberDecimal"
-                    android:hint="@string/sftp_port"
-                    />
-        </com.google.android.material.textfield.TextInputLayout>
-        <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/sftp_user_layout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/sftp_port_layout"
-                >
-            <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/sftp_user"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/sftp_setting_text"
+                    >
+                <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/sftp_host"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textUri"
+                        android:text="@={prefs.SFtpHost}"
+                        android:hint="@string/sftp_host"
+                        />
+            </com.google.android.material.textfield.TextInputLayout>
+            <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/sftp_port_layout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="text"
-                    android:hint="@string/sftp_user"
-                    />
-        </com.google.android.material.textfield.TextInputLayout>
-        <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/sftp_pwd_layout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/sftp_user_layout"
-                >
-            <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/sftp_pwd"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/sftp_host_layout"
+                    >
+                <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/sftp_port"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="numberDecimal"
+                        app:textInt="@={prefs.SFtpPort}"
+                        android:hint="@string/sftp_port"
+                        />
+            </com.google.android.material.textfield.TextInputLayout>
+            <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/sftp_user_layout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="textPassword"
-                    android:hint="@string/sftp_pwd"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/sftp_port_layout"
+                    >
+                <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/sftp_user"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="text"
+                        android:text="@={prefs.SFtpUser}"
+                        android:hint="@string/sftp_user"
+                        />
+            </com.google.android.material.textfield.TextInputLayout>
+            <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/sftp_pwd_layout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/sftp_user_layout"
+                    >
+                <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/sftp_pwd"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textPassword"
+                        android:text="@={prefs.SFtpPassword}"
+                        android:hint="@string/sftp_pwd"
+                        />
+            </com.google.android.material.textfield.TextInputLayout>
+            <Button
+                    android:id="@+id/sftp_connect"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/sftp_pwd_layout"
+                    android:text="@string/sftp_connect_test"
+                    style="@style/ArbeitsberichtAppTheme.TextButtons"
+                    android:onClick="onClickConnect"
                     />
-        </com.google.android.material.textfield.TextInputLayout>
-        <Button
-                android:id="@+id/sftp_connect"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/sftp_pwd_layout"
-                android:text="@string/sftp_connect_test"
-                style="@style/ArbeitsberichtAppTheme.TextButtons"
-                android:onClick="onClickConnect"
-                />
-    </androidx.constraintlayout.widget.ConstraintLayout>
-</androidx.cardview.widget.CardView>
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.cardview.widget.CardView>
+</layout>

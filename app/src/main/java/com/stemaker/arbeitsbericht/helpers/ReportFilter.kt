@@ -1,117 +1,105 @@
 package com.stemaker.arbeitsbericht.helpers
 
 import androidx.lifecycle.*
-import com.stemaker.arbeitsbericht.data.configuration.configuration
+import com.stemaker.arbeitsbericht.data.preferences.ConfigElement
 import com.stemaker.arbeitsbericht.data.report.ReportData
 
-open class ReportFilter() {
-    var projectName = ""
+// The 3 parameters are the globally stored ones in the preferences
+// There is no other internal storage here, it is all directly derived from
+// and written to those 3 pars
+open class ReportFilter(
+    private val _projectName: ConfigElement<String>,
+    private val _projectExtra: ConfigElement<String>,
+    private val _filterStates: ConfigElement<Int>)
+{
+    var projectName: String
+        get() = _projectName.value
         set(value) {
-            val u = field != value
-            field = value
-            if(u) update()
+            if(value != _projectName.value) {
+                _projectName.value = value
+                update()
+            }
         }
-    var projectExtra = ""
+    var projectExtra: String
+        get() = _projectExtra.value
         set(value) {
-            val u = field != value
-            field = value
-            if(u) update()
+            if(value != _projectExtra.value) {
+                _projectExtra.value = value
+                update()
+            }
         }
-    val remainingStates = mutableSetOf<Int>()
+    private var filterStates
+        get() = _filterStates.value
+        set(value) {
+            _filterStates.value = value
+        }
+
+    val remainingStates: MutableSet<Int>
+        get() {
+            val theSet = mutableSetOf<Int>()
+            val states = filterStates
+            for(i in 0..3) {
+                if ((states and (1 shl 1)) != 0) {
+                    theSet.add(i)
+                }
+            }
+            return theSet
+        }
 
     var blockUpdate = false
 
-    var inWork = true
-        get() = remainingStates.contains(ReportData.ReportState.toInt(ReportData.ReportState.IN_WORK))
-        set(v: Boolean) {
-            val u = field != v
-            field = v
-            if (v) remainingStates.add(ReportData.ReportState.toInt(ReportData.ReportState.IN_WORK))
-            else remainingStates.remove(ReportData.ReportState.toInt(ReportData.ReportState.IN_WORK))
-            if(u) update()
-        }
-    var onHold = true
-        get() = remainingStates.contains(ReportData.ReportState.toInt(ReportData.ReportState.ON_HOLD))
-        set(v: Boolean) {
-            val u = field != v
-            field = v
-            if (v) remainingStates.add(ReportData.ReportState.toInt(ReportData.ReportState.ON_HOLD))
-            else remainingStates.remove(ReportData.ReportState.toInt(ReportData.ReportState.ON_HOLD))
-            if(u) update()
-        }
-    var done = true
-        get() = remainingStates.contains(ReportData.ReportState.toInt(ReportData.ReportState.DONE))
-        set(v: Boolean) {
-            val u = field != v
-            field = v
-            if (v) remainingStates.add(ReportData.ReportState.toInt(ReportData.ReportState.DONE))
-            else remainingStates.remove(ReportData.ReportState.toInt(ReportData.ReportState.DONE))
-            if(u) update()
-        }
-    var archived = false
-        get() = remainingStates.contains(ReportData.ReportState.toInt(ReportData.ReportState.ARCHIVED))
-        set(v: Boolean) {
-            val u = field != v
-            field = v
-            if (v) remainingStates.add(ReportData.ReportState.toInt(ReportData.ReportState.ARCHIVED))
-            else remainingStates.remove(ReportData.ReportState.toInt(ReportData.ReportState.ARCHIVED))
-            if(u) update()
+    private fun isStateSet(state: ReportData.ReportState): Boolean {
+        return (filterStates and (1 shl state.ordinal) != 0)
+    }
+    private fun setMaskFromState(state: ReportData.ReportState): Int {
+        return (1 shl state.ordinal)
+    }
+    private fun clearMaskFromState(state: ReportData.ReportState): Int {
+        return ((1 shl ReportData.ReportState.max)-1) and (1 shl state.ordinal)
+    }
+    private fun setState(value: Boolean, state: ReportData.ReportState) {
+        val currentlySet = isStateSet(state)
+        if(value && !currentlySet) {
+            filterStates = filterStates or setMaskFromState(state)
+            update()
+        } else if(!value && currentlySet) {
+            filterStates = filterStates and clearMaskFromState(state)
+            update()
         }
 
+    }
+
+    var inWork: Boolean
+        get() = isStateSet(ReportData.ReportState.IN_WORK)
+        set(value) {
+            setState(value, ReportData.ReportState.IN_WORK)
+        }
+
+    var onHold: Boolean
+        get() = isStateSet(ReportData.ReportState.ON_HOLD)
+        set(value) {
+            setState(value, ReportData.ReportState.ON_HOLD)
+        }
+
+    var done: Boolean
+        get() = isStateSet(ReportData.ReportState.DONE)
+        set(value) {
+            setState(value, ReportData.ReportState.DONE)
+        }
+
+    var archived: Boolean
+        get() = isStateSet(ReportData.ReportState.ARCHIVED)
+        set(value) {
+            setState(value, ReportData.ReportState.ARCHIVED)
+        }
+
+    // This is updated whenever the filter changes, except when blockUpdate == false
     private val _live = MutableLiveData<Unit>()
     val live: LiveData<Unit>
         get() = _live
 
-    open fun isFiltered(r: ReportData): Boolean {
-        if(!remainingStates.contains(ReportData.ReportState.toInt(r.state.value!!)))
-            return true
-        if(projectName != "" && !r.project.name.value!!.contains(projectName))
-            return true
-        if(projectExtra != "" && !r.project.extra1.value!!.contains(projectExtra))
-            return true
-        return false
-    }
-
-    fun update() {
+    private fun update() {
         if(!blockUpdate)
             _live.value = Unit
-    }
-
-    fun fromStore(pN: String, pE: String, states: Int) {
-        blockUpdate = true
-        projectName = pN
-        projectExtra = pE
-        if(states and (1 shl ReportData.ReportState.toInt(ReportData.ReportState.IN_WORK)) != 0)
-            inWork = true
-        if(states and (1 shl ReportData.ReportState.toInt(ReportData.ReportState.ON_HOLD)) != 0)
-            onHold = true
-        if(states and (1 shl ReportData.ReportState.toInt(ReportData.ReportState.DONE)) != 0)
-            done = true
-        if(states and (1 shl ReportData.ReportState.toInt(ReportData.ReportState.ARCHIVED)) != 0)
-            archived = true
-        blockUpdate = true
-        update()
-    }
-
-    fun save() {
-        var filterStates = 0
-        for(i in remainingStates) {
-            filterStates = filterStates or (1 shl i)
-        }
-        configuration().filterProjectName = projectName
-        configuration().filterProjectExtra = projectExtra
-        configuration().filterStates = filterStates
-        configuration().save()
-    }
-
-    companion object {
-        val noneFilter = object: ReportFilter() {
-            init {
-                inWork = true
-                onHold = true
-                done = true
-                archived = true
-            }
-        }
     }
 }

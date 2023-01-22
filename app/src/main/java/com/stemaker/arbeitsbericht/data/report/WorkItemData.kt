@@ -1,20 +1,13 @@
 package com.stemaker.arbeitsbericht.data.report
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import com.stemaker.arbeitsbericht.data.base.*
-import com.stemaker.arbeitsbericht.storageHandler
 
 const val WORK_ITEM_CONTAINER_VISIBILITY = "wtcVis"
 const val WORK_ITEM_CONTAINER = "wic"
 class WorkItemContainerData: DataContainer<WorkItemData>(WORK_ITEM_CONTAINER) {
     val visibility = DataElement<Boolean>(WORK_ITEM_CONTAINER_VISIBILITY) { false }
 
-    /* The list below won't go into the json / serialized data */
-    private var _dictionary = MutableLiveData<Set<String>>().apply { value = storageHandler().workItemDictionary }
-    val dictionary: LiveData<Set<String>>
-        get() = _dictionary
-
+    /*
     fun copyFromSerialized(w: WorkItemContainerDataSerialized) {
         visibility.value = w.visibility
         clear()
@@ -24,6 +17,7 @@ class WorkItemContainerData: DataContainer<WorkItemData>(WORK_ITEM_CONTAINER) {
             add(item)
         }
     }
+     */
 
     fun copyFromDb(w: WorkItemContainerDb) {
         visibility.value = w.wiVisibility
@@ -64,9 +58,11 @@ class WorkItemData: DataObject(WORK_ITEM_DATA)  {
         item
     )
 
+    /*
     fun copyFromSerialized(w: WorkItemDataSerialized) {
         item.value = w.item
     }
+    */
     fun copyFromDb(w: WorkItemContainerDb.WorkItemDb) {
         item.value = w.wiItem
     }

@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import androidx.appcompat.app.AlertDialog
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModelProvider
 import com.stemaker.arbeitsbericht.R
 import com.stemaker.arbeitsbericht.data.report.ReportData
@@ -17,8 +18,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
-class WorkItemEditorFragment(private val report: ReportData):
-    ReportEditorSectionFragment()
+class WorkItemEditorFragment(
+    private val report: ReportData,
+    private val definedWorkItems: LiveData<Set<String>>
+)
+    : ReportEditorSectionFragment()
 {
     lateinit var dataBinding: FragmentWorkItemEditorBinding
 
@@ -35,7 +39,10 @@ class WorkItemEditorFragment(private val report: ReportData):
 
         dataBinding.lifecycleOwner = viewLifecycleOwner
         val workItemContainerData = report.workItemContainer
-        val viewModelContainer = ViewModelProvider(this, WorkItemContainerViewModelFactory(viewLifecycleOwner, workItemContainerData)).get(WorkItemContainerViewModel::class.java)
+        val viewModelContainer = ViewModelProvider(
+            this,
+            WorkItemContainerViewModelFactory(viewLifecycleOwner, workItemContainerData, definedWorkItems))
+            .get(WorkItemContainerViewModel::class.java)
         dataBinding.viewModelContainer = viewModelContainer
 
         for (viewModel in viewModelContainer) {
@@ -44,7 +51,8 @@ class WorkItemEditorFragment(private val report: ReportData):
 
         dataBinding.workItemAddButton.setOnClickListener {
             val viewModel = viewModelContainer.addWorkItem()
-            addWorkItemView(viewModel, viewModelContainer)
+            val v = addWorkItemView(viewModel, viewModelContainer)
+            listener?.scrollTo(v)
         }
         return root
     }
@@ -60,7 +68,7 @@ class WorkItemEditorFragment(private val report: ReportData):
         return dataBinding.workItemContentContainer.visibility != View.GONE
     }
 
-    private fun addWorkItemView(viewModel: WorkItemViewModel, viewModelContainer: WorkItemContainerViewModel) {
+    private fun addWorkItemView(viewModel: WorkItemViewModel, viewModelContainer: WorkItemContainerViewModel): View {
         val inflater = layoutInflater
         val container = dataBinding.workItemContentContainer
         val workItemDataBinding: WorkItemLayoutBinding = WorkItemLayoutBinding.inflate(inflater, null, false)
@@ -81,6 +89,7 @@ class WorkItemEditorFragment(private val report: ReportData):
 
         val pos = container.childCount
         container.addView(workItemDataBinding.root, pos)
+        return workItemDataBinding.root
     }
 
 }

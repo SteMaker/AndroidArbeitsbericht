@@ -1,6 +1,5 @@
 package com.stemaker.arbeitsbericht
 
-import android.graphics.drawable.PictureDrawable
 import android.os.Environment
 import android.text.Editable
 import android.text.TextWatcher
@@ -9,11 +8,9 @@ import android.widget.*
 import androidx.databinding.BindingAdapter
 import androidx.databinding.InverseBindingAdapter
 import androidx.databinding.InverseBindingListener
-import com.caverock.androidsvg.SVG
 import com.google.android.material.textfield.TextInputEditText
 import com.stemaker.arbeitsbericht.data.base.DataElement
 import com.stemaker.arbeitsbericht.data.calendarToDateString
-import com.stemaker.arbeitsbericht.data.configuration.configuration
 import com.stemaker.arbeitsbericht.data.report.ReportData
 import com.stemaker.arbeitsbericht.helpers.ConstraintLayoutVisListener
 import com.stemaker.arbeitsbericht.helpers.LinearLayoutVisListener
@@ -126,34 +123,35 @@ object BindingAdapters {
     /***************************************/
     /* Binding Adapters for a Spinner View */
     /***************************************/
+    /* Unused
     @JvmStatic
     @BindingAdapter("selectedItemAttrChanged")
     fun setListener(spinner: Spinner, listener: InverseBindingListener?) {
         if (listener != null) {
-            spinner.setOnItemSelectedListener(object : AdapterView.OnItemSelectedListener {
+            spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
                 override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                     listener.onChange()
                 }
+
                 override fun onNothingSelected(parent: AdapterView<*>?) {
                 }
-            })
+            }
         }
     }
 
     @JvmStatic
     @BindingAdapter("selectedItem")
     fun setSelectedItemText(spinner: Spinner, value: String) {
-        val idx = configuration().lumpSums.indexOf(value)
+        val idx = prefs.lumpSums.indexOf(value)
         if(idx >= 0) {
             spinner.setSelection(idx)
         }
     }
 
     @JvmStatic
-    @InverseBindingAdapter(attribute="selectedItem")
+    @InverseBindingAdapter(attribute = "selectedItem")
     fun getSelectedItemText(spinner: Spinner): String {
-        val value = configuration().lumpSums[spinner.selectedItemPosition]
-        return value
+        return prefs.lumpSums[spinner.selectedItemPosition]
     }
 
     @JvmStatic
@@ -161,9 +159,10 @@ object BindingAdapters {
     fun setSelectionList(spinner: Spinner, value: List<String>) {
         // Create the adapter and set it to the AutoCompleteTextView
         ArrayAdapter<String>(spinner.context, android.R.layout.simple_list_item_1, value).also { adapter ->
-            spinner.setAdapter(adapter)
+            spinner.adapter = adapter
         }
     }
+     */
 
     /**********************************************************/
     /* Binding Adapter to define a dictionary for an EditText */
@@ -192,6 +191,7 @@ object BindingAdapters {
     /********************************************************/
     /* Binding Adapter to bind a svg string to an ImageView */
     /********************************************************/
+    /* Unused
     @JvmStatic
     @BindingAdapter("svgString")
     fun setSvgString(imgView: ImageView, svgString: String) {
@@ -201,6 +201,7 @@ object BindingAdapters {
             imgView.setImageDrawable(pd)
         }
     }
+    */
 
     /*************************************************************/
     /* Binding Adapters to bind a View's visibility to a Boolean */
@@ -209,7 +210,7 @@ object BindingAdapters {
     @BindingAdapter("visibilityAttrChanged")
     fun setListener(view: LinearLayoutVisListener, listener: InverseBindingListener?) {
         if (listener != null) {
-            view.setVisibilityChangeListener(object: LinearLayoutVisListener.onVisibilityChange {
+            view.setVisibilityChangeListener(object: LinearLayoutVisListener.OnVisibilityChange {
                 override fun visibilityChanged(view: View, visible: Boolean) {
                     listener.onChange()
                 }
@@ -237,7 +238,7 @@ object BindingAdapters {
     @BindingAdapter("visibilityAttrChanged")
     fun setListener(view: ConstraintLayoutVisListener, listener: InverseBindingListener?) {
         if (listener != null) {
-            view.setVisibilityChangeListener(object: ConstraintLayoutVisListener.onVisibilityChange {
+            view.setVisibilityChangeListener(object: ConstraintLayoutVisListener.OnVisibilityChange {
                 override fun visibilityChanged(view: View, visible: Boolean) {
                     listener.onChange()
                 }

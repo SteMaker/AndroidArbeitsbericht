@@ -3,18 +3,14 @@ package com.stemaker.arbeitsbericht
 import android.app.Application
 import android.content.Context
 import android.content.pm.PackageManager
-import android.graphics.Bitmap.Config
 import android.os.Build
 import android.util.Log
 import androidx.room.Room
-import androidx.room.RoomDatabase
 import com.stemaker.arbeitsbericht.data.ReportDatabase
 import com.stemaker.arbeitsbericht.data.client.ClientRepository
 import com.stemaker.arbeitsbericht.data.configuration.Configuration
-import com.stemaker.arbeitsbericht.data.configuration.configuration
 import com.stemaker.arbeitsbericht.data.preferences.AbPreferences
 import com.stemaker.arbeitsbericht.data.report.ReportRepository
-import com.stemaker.arbeitsbericht.helpers.ReportFilter
 import kotlinx.coroutines.*
 
 private const val TAG = "ArbeitsberichtApp"
@@ -27,7 +23,6 @@ class ArbeitsberichtApp: Application() {
     private lateinit var db: ReportDatabase
     var initJob: Job? = null
     lateinit var reportRepo: ReportRepository
-    lateinit var reportFilter: ReportFilter
     lateinit var clientRepo: ClientRepository
     lateinit var prefs: AbPreferences
 
@@ -42,7 +37,7 @@ class ArbeitsberichtApp: Application() {
         System.setProperty("org.apache.poi.javax.xml.stream.XMLOutputFactory", "com.fasterxml.aalto.stax.OutputFactoryImpl")
         System.setProperty("org.apache.poi.javax.xml.stream.XMLEventFactory", "com.fasterxml.aalto.stax.EventFactoryImpl")
         appContext = applicationContext
-        // Activities need to wait for this initJob before they are allowed to access the storageHandler() or the reportRepository
+        // Activities need to wait for this initJob before they are allowed to access the preferences or one of the repositories
         initJob = initialize()
     }
 
@@ -63,39 +58,33 @@ class ArbeitsberichtApp: Application() {
         return GlobalScope.launch(Dispatchers.Main) {
             Log.d(TAG, "initializing storage")
             // Read the configuration. This needs to be low level -> no configuration() invocation yet
-            if(StorageHandler.loadConfigurationFromFile(applicationContext)) {
-                // Handle switch to using preferences for storing configuration
-                if (configuration().previousVersionCode <= 131) {
-                    prefs = AbPreferences(appContext)
-                    prefs.fromConfig(configuration())
-                } else {
-                    prefs = AbPreferences(appContext)
+            prefs = AbPreferences(appContext)
+            if(prefs.isNewlyCreated) {
+                if(StorageHandler.loadConfigurationFromFile(applicationContext)) {
+                    prefs.fromConfig(Configuration)
+                    StorageHandler.deleteConfigurationFile(applicationContext)
                 }
             }
-            appUpdateWasDone = prefs.previousVersionCode < prefs.versionCode.value!!
-
-            reportRepo = ReportRepository(db.reportDao())
-            clientRepo = ClientRepository(db.clientDao())
-            // Check if highest uid of reports is > currentId, then something went wrong
-            val maxUid = reportRepo.getMaxUid()
-            if (maxUid >= configuration().currentId) {
-                Log.e(TAG, "nextCnt  of configuration is less than max Report ID (cnt). Seems the configuration was lost.")
-                configuration().currentId = maxUid + 1
-                configuration().save()
+            appUpdateWasDone = prefs.versionCode.value < getVersionCode()
+            if(appUpdateWasDone) {
+                prefs.versionCode.value = getVersionCode()
             }
 
-            // apply the filter
-            reportFilter = ReportFilter()
-            reportFilter.fromStore(configuration().filterProjectName, configuration().filterProjectExtra, configuration().filterStates)
-            // At this point the reportRepo will be filled!!
-            reportRepo.filter = reportFilter
+            reportRepo = ReportRepository(db.reportDao(), prefs)
+            clientRepo = ClientRepository(db.clientDao(), prefs)
+            // Check if highest uid of reports is > currentId, then something went wrong
+            val maxUid = reportRepo.initialize()
+            if (maxUid >= prefs.currentId) {
+                Log.e(TAG, "nextCnt  of configuration is less than max Report ID (cnt). Seems the configuration was lost.")
+                prefs.overrideCurrentId(maxUid + 1)
+            }
 
             // Now we should be ready to do more
-            if (configuration().activeReportId != -1) {
-                if (reportRepo.isReportVisible(configuration().activeReportId)) {
-                    reportRepo.setActiveReport(configuration().activeReportId)
+            if (prefs.activeReportId.value != -1) {
+                if (reportRepo.isReportVisible(prefs.activeReportId.value)) {
+                    reportRepo.setActiveReport(prefs.activeReportId.value)
                 } else {
-                    configuration().activeReportId = -1
+                    prefs.activeReportId.value = -1
                 }
             }
             clientRepo.initialize()
@@ -105,13 +94,12 @@ class ArbeitsberichtApp: Application() {
         lateinit var appContext: Context
 
         fun getVersionCode(): Long {
-            val info = when {
+            return when {
                 Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU ->
-                    appContext.packageManager.getPackageInfo(appContext.packageName, PackageManager.PackageInfoFlags.of(0))
+                    appContext.packageManager.getPackageInfo(appContext.packageName, PackageManager.PackageInfoFlags.of(0)).longVersionCode
                 else ->
-                    appContext.packageManager.getPackageInfo(appContext.packageName, 0)
+                    appContext.packageManager.getPackageInfo(appContext.packageName, 0).versionCode.toLong()
             }
-            return info.longVersionCode
         }
         fun getInWorkIconDrawable() = R.drawable.ic_baseline_handyman_24
         fun getOnHoldIconDrawable() = R.drawable.ic_baseline_pause_24

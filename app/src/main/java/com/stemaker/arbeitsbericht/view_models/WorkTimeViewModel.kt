@@ -43,6 +43,7 @@ class WorkTimeContainerViewModel(
     fun addWorkTime(ctx: Context): Pair<String?, WorkTimeViewModel> {
         val wt = workTimeContainer.addWorkTime(defaultValues)
         val viewModel = WorkTimeViewModel(lifecycleOwner, wt)
+        itemViewModels.add(viewModel)
         val infoText = when {
             defaultValues.useDefaultDriveTime && defaultValues.useDefaultDistance ->
                 ctx.getString(R.string.preset_used_drive_distance, defaultValues.defaultDriveTime, defaultValues.defaultDistance)

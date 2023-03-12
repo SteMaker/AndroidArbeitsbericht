@@ -29,7 +29,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:inputType="textCapSentences"
-                        app:dictionary="@{view_model_container.definedMaterials}"
+                        app:dictionary="@{view_model_container.materialDictionary}"
                         android:text="@={view_model.item}"
                         android:hint="@string/material"
                         />

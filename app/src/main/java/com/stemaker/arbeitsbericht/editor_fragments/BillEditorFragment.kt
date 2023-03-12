@@ -24,11 +24,6 @@ class BillEditorFragment(private val clientRepository: ClientRepository,
 {
     lateinit var dataBinding: FragmentBillEditorBinding
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        Log.d("Arbeitsbericht","BillEditorFragment.onCreate called")
-    }
-
     override fun onCreateView( inflater: LayoutInflater, container: ViewGroup?,
                                savedInstanceState: Bundle? ):
             View

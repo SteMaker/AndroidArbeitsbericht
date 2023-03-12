@@ -1,9 +1,11 @@
 package com.stemaker.arbeitsbericht.helpers
 
+import android.util.Log
 import androidx.lifecycle.*
 import com.stemaker.arbeitsbericht.data.preferences.ConfigElement
 import com.stemaker.arbeitsbericht.data.report.ReportData
 
+private const val TAG = "ReportFilter"
 // The 3 parameters are the globally stored ones in the preferences
 // There is no other internal storage here, it is all directly derived from
 // and written to those 3 pars
@@ -39,31 +41,45 @@ open class ReportFilter(
             val theSet = mutableSetOf<Int>()
             val states = filterStates
             for(i in 0..3) {
-                if ((states and (1 shl 1)) != 0) {
+                if ((states and (1 shl i)) != 0) {
                     theSet.add(i)
                 }
             }
             return theSet
         }
 
-    var blockUpdate = false
+    var blockUpdate: Boolean = false
+        set(value) {
+            field = value
+            if(!value) {
+                update()
+            }
+        }
 
     private fun isStateSet(state: ReportData.ReportState): Boolean {
         return (filterStates and (1 shl state.ordinal) != 0)
     }
     private fun setMaskFromState(state: ReportData.ReportState): Int {
-        return (1 shl state.ordinal)
+        val ret = (1 shl state.ordinal)
+        Log.d(TAG, "setMaskFromState($state) -> $ret")
+        return ret
     }
     private fun clearMaskFromState(state: ReportData.ReportState): Int {
-        return ((1 shl ReportData.ReportState.max)-1) and (1 shl state.ordinal)
+        val ret = ((1 shl (ReportData.ReportState.max+1))-1) and (1 shl state.ordinal).inv()
+        Log.d(TAG, "clearMaskFromState($state) -> $ret")
+        return ret
     }
     private fun setState(value: Boolean, state: ReportData.ReportState) {
         val currentlySet = isStateSet(state)
         if(value && !currentlySet) {
+            Log.d(TAG, "pre setState($value, $state), filterStates = $filterStates")
             filterStates = filterStates or setMaskFromState(state)
+            Log.d(TAG, "post setState($value, $state), filterStates = $filterStates")
             update()
         } else if(!value && currentlySet) {
+            Log.d(TAG, "pre setState($value, $state), filterStates = $filterStates")
             filterStates = filterStates and clearMaskFromState(state)
+            Log.d(TAG, "post setState($value, $state), filterStates = $filterStates")
             update()
         }
 

@@ -1,15 +1,19 @@
 package com.stemaker.arbeitsbericht.data.report
 
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
 import com.stemaker.arbeitsbericht.data.base.*
 import com.stemaker.arbeitsbericht.data.dateStringToCalendar
+import org.joda.time.*
+import org.joda.time.format.PeriodFormatterBuilder
 import java.util.*
 import kotlin.Comparator
 
 const val WORK_TIME_CONTAINER_VISIBILITY = "wtcVis"
 const val WORK_TIME_CONTAINER = "wtc"
 class WorkTimeContainerData(
-    private val defaultEmployeeName: String)
+    private val defaultEmployeeName: LiveData<String>
+)
     : DataContainer<WorkTimeData>(WORK_TIME_CONTAINER)
 {
     val visibility = DataElement<Boolean>(WORK_TIME_CONTAINER_VISIBILITY) { false }
@@ -94,12 +98,12 @@ const val WORK_TIME_DRIVE_TIME = "wtDriveTime"
 const val WORK_TIME_DISTANCE = "wtDistance"
 const val WORK_TIME_DATA = "workTimeData"
 class WorkTimeData(
-    private val defaultEmployeeName: String)
+    private val defaultEmployeeName: LiveData<String>)
     : DataObject(WORK_TIME_DATA)
 {
     val date = DataElement<Calendar>(WORK_TIME_DATE) { Calendar.getInstance() }
     val employees = DataContainer<DataElement<String>>(WORK_TIME_EMPLOYEES).apply {
-        add(DataElement<String>(WORK_TIME_EMPLOYEE) { defaultEmployeeName })
+        add(DataElement<String>(WORK_TIME_EMPLOYEE) { defaultEmployeeName.value?:"" })
     }
     // Empty string as startTime will lead to pre-setting current time when clicking the edit button
     val startTime = DataElement<String>(WORK_TIME_START_TIME) { "" }
@@ -118,42 +122,34 @@ class WorkTimeData(
     val workDuration = MediatorLiveData<String>()
 
     private fun calcWorkDuration(): String {
-        var h: Int
-        var m: Int
+        var duration: Duration
         try {
-            val etH = endTime.value!!.substring(0,2).toInt()
-            val etM = endTime.value!!.substring(3,5).toInt()
-            val stH = startTime.value!!.substring(0,2).toInt()
-            val stM = startTime.value!!.substring(3,5).toInt()
-            val pH = pauseDuration.value!!.substring(0,2).toInt()
-            val pM = pauseDuration.value!!.substring(3,5).toInt()
-            h = etH - stH
-            if(h < 0)
-                h += 24
-            m = etM - stM
-            if(m < 0) {
-                m += 60
-                h--
-            }
-            h -= pH
-            m -= pM
-            if(m < 0) {
-                m += 60
-                h--
-            }
+            val startHour = startTime.value!!.substring(0, 2).toInt()
+            val startMinute = startTime.value!!.substring(3, 5).toInt()
+            val endHour = endTime.value!!.substring(0, 2).toInt()
+            val endMinute = endTime.value!!.substring(3, 5).toInt()
+            val endOnNextDay = (endHour < startHour) || ((endHour == startHour) && (endMinute < startMinute))
+            val startDate = DateTime(2000, 1, 1, startHour, startMinute)
+            val endDate = DateTime(2000, 1, if (endOnNextDay) 2 else 1, endHour, endMinute)
+            val pauseMinutes = pauseDuration.value!!.substring(0, 2).toInt() * 60 + pauseDuration.value!!.substring(3, 5).toInt()
+            val pauseDuration = Duration((pauseMinutes * 60 * 1000).toLong())
+            duration = Duration(startDate, endDate).minus(pauseDuration)
             // multiply by amount of employees
-            if(employees.size > 1) {
-                m *= employees.size
-                h *= employees.size
-                while(m >= 60) {
-                    m -= 60
-                    h++
-                }
+            if (employees.getSize() > 1) {
+                duration = duration.multipliedBy(employees.getSize().toLong())
             }
-        } catch(e: Exception) {
+        } catch (e: Exception) {
             return "00:00"
         }
-        return "${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}"
+        val formatter = PeriodFormatterBuilder()
+            .printZeroAlways()
+            .minimumPrintedDigits(2)
+            .appendHours()
+            .appendSuffix(":")
+            .appendMinutes()
+            .toFormatter();
+
+        return formatter.print(duration.toPeriod().normalizedStandard(PeriodType.dayTime()))
     }
 
     init {
@@ -165,7 +161,7 @@ class WorkTimeData(
 
 
     fun addEmployee(): DataElement<String> {
-        val emp = DataElement<String>(WORK_TIME_EMPLOYEE) { defaultEmployeeName }
+        val emp = DataElement<String>(WORK_TIME_EMPLOYEE) { defaultEmployeeName.value?:"" }
         employees.add(emp)
         return emp
     }

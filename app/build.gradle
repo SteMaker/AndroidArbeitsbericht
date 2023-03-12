@@ -91,6 +91,8 @@ dependencies {
     // POI Toolkit
     implementation files('../poi-android-fat/build/libs/poi-android-fat-all.jar')
 
+    implementation "joda-time:joda-time:2.12.2"
+
     // Large tests using Espresso
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.0'
     androidTestImplementation 'androidx.test:runner:1.5.1'

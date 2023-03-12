@@ -28,8 +28,8 @@ class ReportFilterDialog(val filter: ReportFilter): DialogFragment() {
             filter.done = dataBinding.done.isChecked
             filter.archived = dataBinding.archived.isChecked
             filter.projectName = dataBinding.projectName.text.toString()
-            filter.blockUpdate = false
             filter.projectExtra = dataBinding.projectExtra.text.toString()
+            filter.blockUpdate = false
             dismiss()
         }
         dataBinding.cancelButton.setOnClickListener {

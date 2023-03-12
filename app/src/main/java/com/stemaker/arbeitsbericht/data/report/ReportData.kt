@@ -34,7 +34,7 @@ class ReportData private constructor(var cnt: Int = 0, private val prefs: AbPref
     val state = DataElement<ReportState>("state") { ReportState.IN_WORK }
     var project = ProjectData()
     var bill = BillData()
-    val workTimeContainer = WorkTimeContainerData(prefs.employeeName.value)
+    val workTimeContainer = WorkTimeContainerData(prefs.employeeName)
     val workItemContainer = WorkItemContainerData()
     val materialContainer = MaterialContainerData()
     val lumpSumContainer = LumpSumContainerData()
@@ -66,7 +66,6 @@ class ReportData private constructor(var cnt: Int = 0, private val prefs: AbPref
 
         // Any change within the report will be propagated here
         dataModificationEvent.observeForever { value ->
-            Log.d(TAG, "${value.elem.elementName} has been modified")
             modified = true
         }
     }

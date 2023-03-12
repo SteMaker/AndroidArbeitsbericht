@@ -230,7 +230,7 @@ class AbPreferences(private val ctx: Context)
             a.toSet()
         },
         { value -> with(sharedPrefs.edit()) {
-            putStringSet("footerServerPath", value)
+            putStringSet("lumpSums", value)
             apply()
         } })
     val activeReportId = ConfigElement<Int>(

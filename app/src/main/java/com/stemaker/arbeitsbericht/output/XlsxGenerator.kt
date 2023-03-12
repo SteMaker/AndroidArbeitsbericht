@@ -307,7 +307,7 @@ class XlsxGenerator(
         }
         val dx2 = logoWidth-width
         try {
-            val iStream = FileInputStream("${activity.filesDir}/${prefs.logoFile}")
+            val iStream = FileInputStream("${activity.filesDir}/${prefs.logoFile.value}")
             val bytes = IOUtils.toByteArray(iStream)
             val picIdx = wb.addPicture(bytes, Workbook.PICTURE_TYPE_PNG)
             iStream.close()
@@ -339,7 +339,7 @@ class XlsxGenerator(
             }
             val dx2 = footerWidth-width
             try {
-                val iStream = FileInputStream("${activity.filesDir}/${prefs.footerFile}")
+                val iStream = FileInputStream("${activity.filesDir}/${prefs.footerFile.value}")
                 val bytes = IOUtils.toByteArray(iStream)
                 val picIdx = wb.addPicture(bytes, Workbook.PICTURE_TYPE_PNG)
                 iStream.close()

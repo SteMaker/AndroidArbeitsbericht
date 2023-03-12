@@ -23,10 +23,13 @@ class LumpSumContainerViewModel(
 
     fun addLumpSum(): LumpSumViewModel {
         val ls = lumpSumContainer.addLumpSum()
-        return LumpSumViewModel(lifecycleOwner, ls)
+        val viewModel = LumpSumViewModel(lifecycleOwner, ls)
+        itemViewModels.add(viewModel)
+        return viewModel
     }
 
     fun removeLumpSum(l: LumpSumViewModel) {
+        itemViewModels.remove(l)
         lumpSumContainer.removeLumpSum(l.getData())
     }
 

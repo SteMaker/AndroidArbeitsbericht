@@ -21,7 +21,9 @@ class PhotoContainerViewModel(
 
     fun addPhoto(): PhotoViewModel {
         val p = photoContainer.addPhoto()
-        return PhotoViewModel(lifecycleOwner, p)
+        val viewModel = PhotoViewModel(lifecycleOwner, p)
+        itemViewModels.add(viewModel)
+        return viewModel
     }
     fun removePhoto(p: PhotoViewModel) {
         itemViewModels.remove(p)

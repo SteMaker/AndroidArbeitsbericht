@@ -28,9 +28,6 @@ class DataElement<T>(n: String, initFct: (() -> T) ):
     }
     override var elementName: String = n
     override val dataModificationEvent = Transformations.map(this) {
-        if(this.elementName == "report.bill.billVis") {
-            Log.d("abc", "here we are")
-        }
         DataModificationEvent(DataModificationEvent.Type.ELEMENT_CHANGE, this)
     }
     fun copy(origin: DataElement<T>) {
@@ -94,7 +91,9 @@ open class DataContainer<T: DataBasicIf>(n: String):
         dataModificationEvent.removeSource(elem.dataModificationEvent)
         containerModificationEvent.value = DataModificationEvent(DataModificationEvent.Type.CONTAINER_REMOVE, elem)
     }
-    val size = items.size
+    fun getSize(): Int {
+        return items.size
+    }
 
     override fun iterator(): Iterator<T> {
         return object: Iterator<T> {

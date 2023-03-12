@@ -91,14 +91,14 @@ class ConfigurationActivity:
         val pdfLogoWidthSlider = findViewById<Slider>(R.id.pdf_logo_width_slider)
         pdfLogoWidthSlider.value = prefs.pdfLogoWidthPercent.value.toFloat()
         val pdfLogoWidthText = findViewById<TextView>(R.id.pdf_logo_width_text)
-        pdfLogoWidthText.text = "Breite ${prefs.pdfLogoWidthPercent.toString()}%"
+        pdfLogoWidthText.text = "Breite ${prefs.pdfLogoWidthPercent.value.toString()}%"
         pdfLogoWidthSlider.addOnChangeListener { _, value, _ ->
             pdfLogoWidthText.text = "Breite ${value.toInt().toString()}%"
         }
         val pdfFooterWidthSlider = findViewById<Slider>(R.id.pdf_footer_width_slider)
         pdfFooterWidthSlider.value = prefs.pdfFooterWidthPercent.value.toFloat()
         val pdfFooterWidthText = findViewById<TextView>(R.id.pdf_footer_width_text)
-        pdfFooterWidthText.text = "Breite ${prefs.pdfFooterWidthPercent.toString()}%"
+        pdfFooterWidthText.text = "Breite ${prefs.pdfFooterWidthPercent.value.toString()}%"
         pdfFooterWidthSlider.addOnChangeListener { _, value, _ ->
             pdfFooterWidthText.text = "Breite ${value.toInt().toString()}%"
         }

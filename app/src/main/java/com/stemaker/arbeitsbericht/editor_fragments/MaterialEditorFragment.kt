@@ -5,11 +5,12 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.AutoCompleteTextView
+import android.widget.EditText
 import android.widget.LinearLayout
 import androidx.appcompat.app.AlertDialog
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModelProvider
 import com.stemaker.arbeitsbericht.R
+import com.stemaker.arbeitsbericht.data.preferences.ConfigElement
 import com.stemaker.arbeitsbericht.data.report.ReportData
 import com.stemaker.arbeitsbericht.databinding.FragmentMaterialEditorBinding
 import com.stemaker.arbeitsbericht.databinding.MaterialLayoutBinding
@@ -21,10 +22,12 @@ import kotlinx.coroutines.launch
 
 class MaterialEditorFragment(
     private val report: ReportData,
-    private val definedMaterials: LiveData<Set<String>>)
+    private val definedMaterials: ConfigElement<Set<String>>
+)
     : ReportEditorSectionFragment()
 {
     lateinit var dataBinding: FragmentMaterialEditorBinding
+    private val elementDataBindings = mutableListOf<MaterialLayoutBinding>()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -57,6 +60,18 @@ class MaterialEditorFragment(
         return root
     }
 
+    override fun onPause() {
+        super.onPause()
+        val newDefinedMaterials: MutableSet<String> = definedMaterials.value.toMutableSet()
+        for(element in elementDataBindings) {
+            val text = element.materialItem.text.toString()
+            if(text != "") {
+                newDefinedMaterials.add(text)
+            }
+        }
+        definedMaterials.value = newDefinedMaterials
+    }
+
     override fun setVisibility(vis: Boolean) {
         dataBinding.materialContentContainer.visibility = when(vis) {
             true -> View.VISIBLE
@@ -82,6 +97,7 @@ class MaterialEditorFragment(
                 if (answer == AlertDialog.BUTTON_POSITIVE) {
                     container.removeView(materialDataBinding.root)
                     viewModelContainer.removeMaterial(viewModel)
+                    elementDataBindings.remove(materialDataBinding)
                 } else {
                 }
             }
@@ -90,6 +106,12 @@ class MaterialEditorFragment(
             val tv = v as AutoCompleteTextView
             if(hasFocus && tv.text.toString() == "") tv.showDropDown()
         } }
+        materialDataBinding.materialItem.onFocusChangeListener = (View.OnFocusChangeListener { v, hasFocus ->
+            if (!hasFocus && v is EditText) {
+                viewModelContainer.addToDictionary(v.text.toString())
+            }
+        })
+        elementDataBindings.add(materialDataBinding)
 
         val pos = container.childCount
         container.addView(materialDataBinding.root, pos)

@@ -3,12 +3,14 @@ package com.stemaker.arbeitsbericht.editor_fragments
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
+import android.view.View.OnFocusChangeListener
 import android.view.ViewGroup
+import android.widget.EditText
 import android.widget.LinearLayout
 import androidx.appcompat.app.AlertDialog
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModelProvider
 import com.stemaker.arbeitsbericht.R
+import com.stemaker.arbeitsbericht.data.preferences.ConfigElement
 import com.stemaker.arbeitsbericht.data.report.ReportData
 import com.stemaker.arbeitsbericht.databinding.FragmentWorkItemEditorBinding
 import com.stemaker.arbeitsbericht.databinding.WorkItemLayoutBinding
@@ -20,11 +22,12 @@ import kotlinx.coroutines.launch
 
 class WorkItemEditorFragment(
     private val report: ReportData,
-    private val definedWorkItems: LiveData<Set<String>>
+    private val definedWorkItems: ConfigElement<Set<String>>
 )
     : ReportEditorSectionFragment()
 {
     lateinit var dataBinding: FragmentWorkItemEditorBinding
+    private val elementDataBindings = mutableListOf<WorkItemLayoutBinding>()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -57,6 +60,18 @@ class WorkItemEditorFragment(
         return root
     }
 
+    override fun onPause() {
+        super.onPause()
+        val newDefinedWorkItems: MutableSet<String> = definedWorkItems.value.toMutableSet()
+        for(element in elementDataBindings) {
+            val text = element.workItemItem.text.toString()
+            if(text != "") {
+                newDefinedWorkItems.add(text)
+            }
+        }
+        definedWorkItems.value = newDefinedWorkItems
+    }
+
     override fun setVisibility(vis: Boolean) {
         dataBinding.workItemContentContainer.visibility = when(vis) {
             true -> View.VISIBLE
@@ -82,14 +97,20 @@ class WorkItemEditorFragment(
                 if (answer == AlertDialog.BUTTON_POSITIVE) {
                     container.removeView(workItemDataBinding.root)
                     viewModelContainer.removeWorkItem(viewModel)
+                    elementDataBindings.remove(workItemDataBinding)
                 } else {
                 }
             }
         }
+        workItemDataBinding.workItemItem.onFocusChangeListener = (OnFocusChangeListener { v, hasFocus ->
+            if(!hasFocus && v is EditText) {
+                viewModelContainer.addToDictionary(v.text.toString())
+            }
+        })
+        elementDataBindings.add(workItemDataBinding)
 
         val pos = container.childCount
         container.addView(workItemDataBinding.root, pos)
         return workItemDataBinding.root
     }
-
 }

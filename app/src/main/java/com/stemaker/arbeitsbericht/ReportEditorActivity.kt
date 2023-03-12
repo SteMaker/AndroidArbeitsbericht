@@ -107,11 +107,10 @@ class ReportEditorActivity : ArbeitsberichtActivity(),
 
     override fun scrollTo(v: View) {
         GlobalScope.launch {
-            delay(500)
+            delay(300)
             val rect = Rect()
             v.getDrawingRect(rect)
             topBinding.editorScrollView.offsetDescendantRectToMyCoords(v, rect)
-            Log.d("abc", "${rect.top}")
             topBinding.editorScrollView.scrollTo(0, rect.top)
         }
     }

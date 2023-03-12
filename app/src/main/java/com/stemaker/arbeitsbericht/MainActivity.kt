@@ -25,8 +25,6 @@ interface ReportCardInterface {
     fun onClickDeleteReport(report: ReportData)
     fun onSetReportState(report: ReportData, pos: Int, state: ReportData.ReportState)
     fun onClickDuplicateReport(report:ReportData)
-    /* This is only for test purposes to create many reports. All are marked with MANY_REPORTS */
-    /*fun onCopyReport(report: ReportData)*/
 }
 fun Boolean.toInt() = if (this) 1 else 0
 
@@ -138,6 +136,7 @@ class MainActivity:
         }
     }
 
+    //Das report repository sollte selber rausfinden dass der filter geändert wurde oder der report state seine visibility ändert und das automatisch machen
     override fun onClickDuplicateReport(report:ReportData) {
         // On creating a new report, we should make in work reports visible
         app.reportRepo.filter.inWork = true
@@ -149,10 +148,8 @@ class MainActivity:
 
     override fun onSetReportState(report: ReportData, pos: Int, state: ReportData.ReportState) {
         report.state.value = state
-        // Not clear why I'd have to save here
-        //GlobalScope.launch(Dispatchers.Main) {
-        //    storageHandler().saveReport(report, true)
-        //}
+        // Store the report since a query might be done from the database
+        app.reportRepo.saveReport(report)
     }
 
     private fun showFilterDialog() {

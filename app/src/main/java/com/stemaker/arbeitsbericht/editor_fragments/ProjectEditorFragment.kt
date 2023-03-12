@@ -19,12 +19,6 @@ class ProjectEditorFragment(private val report: ReportData):
 {
     lateinit var dataBinding: FragmentProjectEditorBinding
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        Log.d("Arbeitsbericht","ProjectEditorFragment.onCreate called")
-
-    }
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?

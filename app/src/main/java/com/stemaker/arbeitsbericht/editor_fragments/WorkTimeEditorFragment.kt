@@ -72,6 +72,7 @@ class WorkTimeEditorFragment(private val report: ReportData):
     }
 
     override fun onReorder() {
+        Log.d("ABCDEF", "onReorder entry")
         val c = dataBinding.workTimeContentContainer
         for (v in workTimeViews)
             c.removeView(v)
@@ -79,6 +80,7 @@ class WorkTimeEditorFragment(private val report: ReportData):
         for (viewModel in viewModelContainer) {
             addWorkTimeView(viewModel, viewModelContainer)
         }
+        Log.d("ABCDEF", "onReorder exit")
     }
 
 
@@ -94,6 +96,7 @@ class WorkTimeEditorFragment(private val report: ReportData):
     }
 
     private fun addWorkTimeView(viewModel: WorkTimeViewModel, viewModelContainer: WorkTimeContainerViewModel): View {
+        Log.d("ABCDEF", "Start addWorkTimeView")
         val inflater = layoutInflater
         val container = dataBinding.workTimeContentContainer
         val workTimeDataBinding: WorkTimeLayoutBinding = WorkTimeLayoutBinding.inflate(inflater, null, false)
@@ -136,7 +139,8 @@ class WorkTimeEditorFragment(private val report: ReportData):
         }
         workTimeDataBinding.workTimeCopyButton.setOnClickListener {
             val clone = viewModelContainer.cloneWorkTime(viewModel)
-            addWorkTimeView(clone, viewModelContainer)
+            val v = addWorkTimeView(clone, viewModelContainer)
+            listener?.scrollTo(v)
         }
         workTimeDataBinding.workTimeDelButton.setOnClickListener { btn ->
             GlobalScope.launch(Dispatchers.Main) {
@@ -153,6 +157,8 @@ class WorkTimeEditorFragment(private val report: ReportData):
 
         val pos = container.childCount
         container.addView(workTimeDataBinding.root, pos)
+
+        Log.d("ABCDEF", "End addWorkTimeView")
         return workTimeDataBinding.root
     }
 

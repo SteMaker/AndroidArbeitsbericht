@@ -47,16 +47,16 @@ class HtmlReport(
     }
     private fun logoCssClass(): String {
         return ".logo {" +
-                "height:${prefs.pdfLogoWidthPercent}%;" +
-                "width: ${prefs.pdfLogoWidthPercent}%;" +
+                "height:${prefs.pdfLogoWidthPercent.value}%;" +
+                "width: ${prefs.pdfLogoWidthPercent.value}%;" +
                 alignmentToCss(prefs.pdfLogoAlignment.value) +
                 "}"
     }
 
     private fun footerCssClass(): String {
         return ".footer {" +
-                "height:${prefs.pdfFooterWidthPercent}%;" +
-                "width: ${prefs.pdfFooterWidthPercent}%;" +
+                "height:${prefs.pdfFooterWidthPercent.value}%;" +
+                "width: ${prefs.pdfFooterWidthPercent.value}%;" +
                 alignmentToCss(prefs.pdfFooterAlignment.value) +
                 "}"
     }
@@ -248,6 +248,8 @@ class HtmlReport(
             val footerFileContent = readFileToBytes(File(dir, prefs.footerFile.value))
             val footer = Base64.encodeToString(footerFileContent, Base64.DEFAULT)
             html += "<img src=\"data:image/jpg;base64,${footer}\" class=\"footer\"/>"
+        } else if(!inclSignatures) {
+            html += "<br><br><br>"
         }
 
         html += "</body></html>"

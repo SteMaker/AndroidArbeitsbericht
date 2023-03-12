@@ -100,7 +100,9 @@ class ReportRepository(
     // Internal report list handling
     ////////////////////////////////////////////////////
     private fun getReportUidsFromDb() {
+        Log.d(TAG, "getReportUidsFromDb")
         scope.launch {
+            Log.d(TAG, "getReportUidsFromDb2")
             reportUidsMutex.lock()
             val uids = withContext(Dispatchers.IO) {
                 reportDao.getFilteredReportIds(filter)

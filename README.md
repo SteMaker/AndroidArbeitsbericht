@@ -86,9 +86,12 @@ Folgende Daten verwenden Feldbefehle für einfache Daten und können beliebig of
   - project_name -> Projektname
   - project_extra1 -> Projektzusatz
 
+# Datenschutz
 **Verwendung der Daten**
 Die App speichert die eingegebenen Berichtsdaten in einer Datenbank (ältere Versionen im json Format) und die erstellten Berichte (pdf, odf oder xlsx) auf dem Gerät. Beides liegt im App-eigenen Ordner, der für andere Apps nicht zugänglich ist. Beim Teilen oder Versenden wird der Bericht an die entsprechende App weitergereicht. Ausserdem werden "Wörterbücher" der bisher verwendeten Eingaben erstellt, um Eingabevorschläge beim Erstellen der Berichte zu machen. Auch diese Wörterbücher werden im App-eigenen Ordner auf dem Gerät gespeichert. Für das Versenden bzw. Teilen der Berichte sind entsprechend weitere Apps nötig. Die App selber versendet/teilt nicht direkt, sondern reicht den Bericht nur an die vom Benutzer ausgewählte App weiter. Falls eine Verschlüsselung der Daten für den Versand notwendig ist, muss diese durch die ausgewählte App durchgeführt werden - die Arbeitsbericht App bietet keine derartige Möglichkeit. Die vorgenommenen Einstellungen im Einstellungsdialog werden wiederum auf dem Gerät abgelegt. Zum Herunterladen von Pauschalenlisten, Vorlagen und Weiterem wird ein SFTP Zugang verwendet, der vom Benutzer zur Verfügung gestellt werden muss.
 
 Die App verwendet ab Version 2.4.0 Google Firebase Crashlytics, um im Falle eines Absturzes einen Bericht an den Entwickler zu schicken. Diese Funktion ist standardmäßig deaktiviert und muss vom Nutzer im Einstellungsdialog explizit aktiviert werden.
 
 Es findet neben der Kommunikation mit dem vom Benutzer definierten SFTP Server und den Google Analytics servern (Google Firebase Crashlytics) keine weitere Kommunikation mit irgendwelchen anderen Servern statt.
+
+Die im Play Store unter Datensicherheit hinterlegten Angaben, dass z.B. e-mail Adressen oder Namen geteilt werden, bezieht sich darauf, dass die e-mail Adresse als Zieladresse an ein Mailprogramm weitergegeben wird und Namen, Fotos, ... aus dem Bericht geteilt werden können. Diese Daten werden aber ausschließlich an den vom Benutzer ausgewählten Dienst (Mail, chat, cloud server, ...) weitergegeben. Und auch nur in dem Moment, wenn der Benutzer explizit das Versenden / Teilen des Berichts auswählt.

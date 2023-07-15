@@ -17,6 +17,11 @@ class ReportData private constructor(var cnt: Int = 0, private val prefs: AbPref
 {
     // Purpose of this var is to remember if the report needs to be stored
     var modified: Boolean = false
+    enum class CacheState {
+        CACHE_STATE_LOAD_ONGOING, CACHE_STATE_READY
+    }
+    // The cache state is maintained by the Repo
+    var cacheState: CacheState = CacheState.CACHE_STATE_LOAD_ONGOING
 
     private val _create_date = MutableLiveData<String>()
     val create_date: LiveData<String>
@@ -133,7 +138,7 @@ class ReportData private constructor(var cnt: Int = 0, private val prefs: AbPref
         signatureData.copyFromDb(r.signatures)
         defaultValues.copyFromDb(r.defaultValues)
         modified = false
-        Log.d(TAG, "copyFromDb done for report ${cnt}")
+        Log.d(TAG, "copyFromDb done for report ${cnt} with project ${project.name.value}")
     }
 
 

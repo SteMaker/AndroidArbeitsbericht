@@ -59,6 +59,7 @@ class ReportEditorActivity : ArbeitsberichtActivity(),
         // Here we expect that the app initialization is done
         supportFragmentManager.fragmentFactory = ReportEditorFragmentFactory(app.clientRepo, app.reportRepo, app.prefs)
         report = app.reportRepo.activeReport
+        Log.d(TAG, "Editing report $report")
         super.onCreate(savedInstanceState)
 
         topBinding = DataBindingUtil.setContentView(this, R.layout.activity_report_editor)

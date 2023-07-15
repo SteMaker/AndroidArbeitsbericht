@@ -9,7 +9,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Mutex
 import java.util.concurrent.atomic.AtomicInteger
 
-const val CACHE_SIZE = 10
+const val CACHE_SIZE = 50
 private const val TAG="ReportRepository"
 
 class ReportRepository(
@@ -25,22 +25,24 @@ class ReportRepository(
     // The reports cache
     private val reports = object : LruCache<Int, ReportData>(CACHE_SIZE) {
         override fun entryRemoved(evicted: Boolean, key: Int?, oldValue: ReportData?, newValue: ReportData?) {
-            Log.d(TAG, "Report ${oldValue?.cnt} evicted")
-            if (oldValue?.modified != false) {
-                scope.launch {
-                    oldValue?.let {
-                        saveReport(it)
-                    } ?: also {
-                        Log.e(TAG, "Error: report evicted in cache, but no oldValue provided")
-                        key?.let {
-                            saveReport(getReportByUid(key))
+            if(evicted) {
+                Log.d(TAG, "Report ${oldValue?.cnt} with project ${oldValue?.project?.name?.value} evicted")
+                if (oldValue?.modified != false) {
+                    scope.launch {
+                        oldValue?.let {
+                            saveReport(it)
                         } ?: also {
-                            Log.e(TAG, "Error: And also no key is provided")
+                            Log.e(TAG, "Error: report evicted in cache, but no oldValue provided")
+                            key?.let {
+                                saveReport(getReportByUid(key))
+                            } ?: also {
+                                Log.e(TAG, "Error: And also no key is provided")
+                            }
                         }
                     }
                 }
-                super.entryRemoved(evicted, key, oldValue, newValue)
             }
+            super.entryRemoved(evicted, key, oldValue, newValue)
         }
     }
 
@@ -130,6 +132,7 @@ class ReportRepository(
     private fun _addReport(r: ReportData, onAdded:((r: ReportData)->Unit)? = null) {
         launchAndMaintain {
             reportUidsMutex.lock()
+            Log.d(TAG, "Adding new report ${r.cnt} with project ${r.project.name?.value} to cache")
             reports.put(r.cnt, r) // Add to cache
             reportUids.add(0, r.cnt) // Add to report cnt list
             reportUidsMutex.unlock()
@@ -154,7 +157,7 @@ class ReportRepository(
         return reportUids.contains(uid)
     }
 
-    fun getReportByUid(cnt: Int, onLoaded:((r: ReportData)->Unit)? = null): ReportData {
+    private fun getReportByUid(cnt: Int, onLoaded:((r: ReportData)->Unit)? = null): ReportData {
         // If we have it in the cache, take if from there, else query the database and push it in the cache
         return reports.get(cnt)?.let { r ->
             onLoaded?.let { it(r) }
@@ -162,6 +165,8 @@ class ReportRepository(
         } ?: run {
             // If we don't have it in the cache then create one and let it populate from the database
             val report = ReportData.createReport(cnt, prefs)
+            report.cacheState = ReportData.CacheState.CACHE_STATE_LOAD_ONGOING
+            Log.d(TAG, "Adding report ${cnt} with project ${report.project.name.value} to cache")
             reports.put(cnt, report)
             scope.launch {
                 val rDb = withContext(Dispatchers.IO) {
@@ -170,6 +175,7 @@ class ReportRepository(
                 report.getReportFromDb(rDb)
                 Log.d(TAG, "Loaded report ${report.cnt} with ${report.id.value} from database")
                 onLoaded?.let { it(report) }
+                report.cacheState = ReportData.CacheState.CACHE_STATE_READY
             }
             return report
         }
@@ -186,6 +192,7 @@ class ReportRepository(
     private fun createReport(onCreated:((r: ReportData)->Unit)?): ReportData {
         val r = ReportData.createReport(prefs.allocateReportId(), prefs)
         _addReport(r, onCreated)
+        r.cacheState = ReportData.CacheState.CACHE_STATE_READY
         return r
     }
 
@@ -204,6 +211,7 @@ class ReportRepository(
         val r = ReportData.createReport(prefs.allocateReportId(), prefs)
         r.copy(origin, copyDate = false)
         _addReport(r, onCreated)
+        r.cacheState = ReportData.CacheState.CACHE_STATE_READY
         return r
     }
 
@@ -216,18 +224,21 @@ class ReportRepository(
 
     private suspend fun saveReportFromScope(r: ReportData) {
         withContext(Dispatchers.IO) {
-                reportDao.update(ReportDb.fromReport(r))
+            Log.d(TAG, "Saving report with project name ${r.project.name.value}")
+            reportDao.update(ReportDb.fromReport(r))
         }
-        Log.d(TAG, "Saved report ${r.cnt} to database")
+        Log.d(TAG, "Saved report ${r.cnt} with project ${r.project.name.value} to database")
         r.modified = false
     }
 
     fun saveReport(r: ReportData) {
-        if(!r.modified) {
-            Log.w(TAG, "Warning: Saving a report which is not marked as modified")
-        }
-        launchAndMaintain {
-            saveReportFromScope(r)
+        if(r.cacheState == ReportData.CacheState.CACHE_STATE_READY) {
+            if(!r.modified) {
+                Log.w(TAG, "Warning: Saving a report which is not marked as modified")
+            }
+            launchAndMaintain {
+                saveReportFromScope(r)
+            }
         }
     }
 
@@ -235,7 +246,7 @@ class ReportRepository(
         val cacheSnapshot = reports.snapshot()
         launchAndMaintain {
             cacheSnapshot.forEach { report ->
-                if(report.value.modified) {
+                if(report.value.modified && report.value.cacheState == ReportData.CacheState.CACHE_STATE_READY) {
                     saveReportFromScope(report.value)
                 }
             }

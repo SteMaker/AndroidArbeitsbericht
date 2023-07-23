@@ -261,27 +261,8 @@ class SummaryActivity:
             if(ask)
                 askAndSetDone()
 
-            var permissionGranted = true
-            val writeExternalStoragePermission = ContextCompat.checkSelfPermission(this@SummaryActivity, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-
-            // If we do not have external storage write permissions
-            if(writeExternalStoragePermission!= PackageManager.PERMISSION_GRANTED) {
-                // Request user to grant write external storage permission.
-                Log.d(TAG, "Need to query user for permissions, starting coroutine")
-                ActivityCompat.requestPermissions(
-                    this@SummaryActivity,
-                    arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
-                    REQUEST_CODE_WRITE_EXTERNAL_STORAGE_PERMISSION
-                )
-                permissionGranted = suspendCoroutine<Boolean> {
-                    Log.d(TAG, "Coroutine: suspended")
-                    writePermissionContinuation = it
-                }
-            }
-            if(permissionGranted) {
-                val fileAndType = createReport()
-                distribute(fileAndType.first, fileAndType.second)
-            }
+            val fileAndType = createReport()
+            distribute(fileAndType.first, fileAndType.second)
         }
 
     }

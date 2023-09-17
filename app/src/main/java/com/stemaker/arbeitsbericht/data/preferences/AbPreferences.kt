@@ -476,7 +476,7 @@ class AbPreferences(private val ctx: Context)
         lockScreenOrientation.value = cfg.lockScreenOrientation
         lockScreenOrientationNoInfo.value = cfg.lockScreenOrientationNoInfo
         pdfLogoWidthPercent.value = cfg.pdfLogoWidthPercent
-        pdfLogoAlignment.value = when(cfg.pdfFooterAlignment) {
+        pdfLogoAlignment.value = when(cfg.pdfLogoAlignment) {
             Configuration.Alignment.CENTER -> Alignment.CENTER
             Configuration.Alignment.RIGHT -> Alignment.RIGHT
             else -> Alignment.LEFT

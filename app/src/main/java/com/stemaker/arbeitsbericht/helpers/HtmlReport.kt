@@ -1,5 +1,6 @@
 package com.stemaker.arbeitsbericht.helpers
 import android.util.Base64
+import android.util.Log
 import com.stemaker.arbeitsbericht.data.calendarToDateString
 import com.stemaker.arbeitsbericht.data.preferences.AbPreferences
 import com.stemaker.arbeitsbericht.data.report.ReportData
@@ -62,7 +63,7 @@ class HtmlReport(
     }
 
     fun encodeReport(inclSignatures: Boolean = true): String {
-        val fs = "font-size:${prefs.fontSize}px"
+        val fs = "font-size:${prefs.fontSize.value}px"
         var html: String =
             "<!DOCTYPE html>" +
                     "<html lang=\"de\">" +

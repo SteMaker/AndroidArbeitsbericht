@@ -81,12 +81,6 @@ class SummaryActivity:
                     }
                     true
                 }
-                R.id.send_report -> {
-                    prepareAndShare(true) {
-                            file, _ -> sendMail(file, report)
-                    }
-                    true
-                }
                 R.id.share_report -> {
                     prepareAndShare(true) {
                             file, _ ->

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<full-backup-content>
+ <include domain="sharedpref" path="."/>
+ <exclude domain="sharedpref" path="ArbeitsberichtEncryptedPrefs.xml"/>
+ <include domain="file" path="files/logo.jpg"/>
+ <include domain="file" path="files/footer.jpg"/>
+</full-backup-content>

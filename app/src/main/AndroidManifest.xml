@@ -17,8 +17,8 @@
             android:label="@string/app_name"
             android:roundIcon="@mipmap/ic_launcher_round"
             android:supportsRtl="true"
-            android:fullBackupContent="@xml/backup_rules_up_to_a11"
-            android:dataExtractionRules="@xml/backup_rules"
+            android:fullBackupContent="@xml/full_backup_content"
+            android:dataExtractionRules="@xml/data_extraction_rules"
             android:theme="@style/ArbeitsberichtAppTheme">
         <activity android:name=".ClientListActivity"></activity>
 

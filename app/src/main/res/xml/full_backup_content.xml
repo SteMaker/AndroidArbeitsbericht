@@ -2,6 +2,7 @@
 <full-backup-content>
  <include domain="sharedpref" path="."/>
  <exclude domain="sharedpref" path="ArbeitsberichtEncryptedPrefs.xml"/>
- <include domain="file" path="files/logo.jpg"/>
- <include domain="file" path="files/footer.jpg"/>
+ <include domain="file" path="logo.jpg"/>
+ <include domain="file" path="footer.jpg"/>
+ <include domain="file" path="custom_output_template.ott"/>
 </full-backup-content>

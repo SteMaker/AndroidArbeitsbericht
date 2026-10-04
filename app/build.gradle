@@ -147,6 +147,11 @@ dependencies {
     androidTestImplementation libs.espresso.intents
     androidTestImplementation libs.uiautomator
     androidTestImplementation libs.truth
+    androidTestImplementation libs.androidx.arch.core.testing
+    // Espresso pulls hamcrest-core 1.3 while the runtime resolves to hamcrest 2.2,
+    // where the fixed-arity allOf() overloads no longer exist. Pin one version so
+    // what is compiled against is what runs.
+    androidTestImplementation libs.hamcrest
     androidTestImplementation libs.mockk.android
     androidTestImplementation libs.kotlinx.coroutines.test
     androidTestImplementation libs.androidx.room.testing

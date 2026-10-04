@@ -31,6 +31,9 @@ class AbPreferencesTest {
     @Before
     fun setUp() {
         PreferenceManager.getDefaultSharedPreferences(context).edit().clear().commit()
+        // The SFTP password lives in a separate, encrypted preferences file, which would
+        // otherwise carry over between tests in this class.
+        context.deleteSharedPreferences("ArbeitsberichtEncryptedPrefs")
     }
 
     private fun prefs() = AbPreferences(context)
@@ -38,12 +41,12 @@ class AbPreferencesTest {
     // ---------------------------------------------------------------- defaults
 
     @Test
-    fun `a fresh install reports itself as newly created`() {
+    fun aFreshInstallReportsItselfAsNewlyCreated() {
         assertThat(prefs().isNewlyCreated).isTrue()
     }
 
     @Test
-    fun `the documented defaults apply on a fresh install`() {
+    fun theDocumentedDefaultsApplyOnAFreshInstall() {
         val p = prefs()
 
         assertThat(p.employeeName.value).isEmpty()
@@ -66,7 +69,7 @@ class AbPreferencesTest {
     }
 
     @Test
-    fun `the default report filter hides archived reports only`() {
+    fun theDefaultReportFilterHidesArchivedReportsOnly() {
         val states = prefs().filterStates.value
 
         fun isSet(s: ReportData.ReportState) = states and (1 shl s.ordinal) != 0
@@ -77,7 +80,7 @@ class AbPreferencesTest {
     }
 
     @Test
-    fun `alignment defaults to centre`() {
+    fun alignmentDefaultsToCentre() {
         val p = prefs()
 
         assertThat(p.pdfLogoAlignment.value).isEqualTo(AbPreferences.Alignment.CENTER)
@@ -89,14 +92,14 @@ class AbPreferencesTest {
     // ---------------------------------------------------------------- persistence
 
     @Test
-    fun `a written string is read back by a new instance`() {
+    fun aWrittenStringIsReadBackByANewInstance() {
         prefs().employeeName.value = "Hans Mueller"
 
         assertThat(prefs().employeeName.value).isEqualTo("Hans Mueller")
     }
 
     @Test
-    fun `written values of every type are read back by a new instance`() {
+    fun writtenValuesOfEveryTypeAreReadBackByANewInstance() {
         with(prefs()) {
             deviceName.value = "Tablet"
             reportIdPattern.value = "%p-%4c"
@@ -124,7 +127,7 @@ class AbPreferencesTest {
     }
 
     @Test
-    fun `the logo ratio survives the float round trip it is stored as`() {
+    fun theLogoRatioSurvivesTheFloatRoundTripItIsStoredAs() {
         // Stored as a Float but exposed as a Double, so some precision is expected to be lost
         prefs().logoRatio.value = 1.75
 
@@ -132,7 +135,7 @@ class AbPreferencesTest {
     }
 
     @Test
-    fun `an empty lump sum set is read back as empty, not as null`() {
+    fun anEmptyLumpSumSetIsReadBackAsEmptyNotAsNull() {
         prefs().lumpSums.value = emptySet()
 
         assertThat(prefs().lumpSums.value).isEmpty()
@@ -141,7 +144,7 @@ class AbPreferencesTest {
     // ---------------------------------------------------------------- id allocation
 
     @Test
-    fun `allocateReportId hands out consecutive ids`() {
+    fun allocateReportIdHandsOutConsecutiveIds() {
         val p = prefs()
 
         val ids = (1..5).map { p.allocateReportId() }
@@ -151,7 +154,7 @@ class AbPreferencesTest {
     }
 
     @Test
-    fun `allocated report ids are not reused after a restart`() {
+    fun allocatedReportIdsAreNotReusedAfterARestart() {
         // Report ids are primary keys, so handing one out twice would overwrite a report
         val first = prefs().allocateReportId()
 
@@ -161,7 +164,7 @@ class AbPreferencesTest {
     }
 
     @Test
-    fun `overrideCurrentId moves the counter so existing reports are not overwritten`() {
+    fun overrideCurrentIdMovesTheCounterSoExistingReportsAreNotOverwritten() {
         val p = prefs()
         p.allocateReportId()
 
@@ -173,7 +176,7 @@ class AbPreferencesTest {
     }
 
     @Test
-    fun `allocateClientId hands out consecutive ids independently of report ids`() {
+    fun allocateClientIdHandsOutConsecutiveIdsIndependentlyOfReportIds() {
         val p = prefs()
         p.allocateReportId()
         p.allocateReportId()
@@ -186,7 +189,7 @@ class AbPreferencesTest {
     // ---------------------------------------------------------------- version tracking
 
     @Test
-    fun `a stored version code is reported back`() {
+    fun aStoredVersionCodeIsReportedBack() {
         prefs().versionCode.value = 33L
 
         val p = prefs()
@@ -197,7 +200,7 @@ class AbPreferencesTest {
     // ---------------------------------------------------------------- encrypted store
 
     @Test
-    fun `the sftp password is stored outside the plain preferences`() {
+    fun theSftpPasswordIsStoredOutsideThePlainPreferences() {
         // It must not end up in the backed-up SharedPreferences file
         prefs().sFtpPassword.value = "s3cret"
 
@@ -208,7 +211,7 @@ class AbPreferencesTest {
     }
 
     @Test
-    fun `the sftp password defaults to empty`() {
+    fun theSftpPasswordDefaultsToEmpty() {
         assertThat(prefs().sFtpPassword.value).isEmpty()
     }
 }

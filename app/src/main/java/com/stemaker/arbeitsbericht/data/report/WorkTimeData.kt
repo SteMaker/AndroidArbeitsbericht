@@ -214,17 +214,18 @@ class WorkTimeData(
         distance.copy(w.distance)
     }
 
+    /* Advances to the next weekday, skipping Saturday and Sunday.
+     *
+     * The previous loop added a day, then added another one if it had landed on a weekend
+     * day, and then looped and added a day again. Starting from a Saturday that produced
+     * Tuesday instead of Monday.
+     */
     private fun incDateByOneWeekday(dateIn: Calendar): Calendar {
-        var isWeekDay = true
         val dateOut = dateIn.clone() as Calendar
-        while(isWeekDay) {
+        do {
             dateOut.add(Calendar.DATE, 1)
             val dow = dateOut.get(Calendar.DAY_OF_WEEK)
-            if(dow == Calendar.SATURDAY || dow == Calendar.SUNDAY)
-                dateOut.add(Calendar.DATE, 1)
-            else
-                isWeekDay = false
-        }
+        } while(dow == Calendar.SATURDAY || dow == Calendar.SUNDAY)
         return dateOut
     }
 

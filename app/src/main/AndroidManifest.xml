@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.CAMERA" android:required="false" />
     <uses-permission android:name="android.permission.INTERNET" />
 
@@ -20,7 +18,10 @@
             android:fullBackupContent="@xml/full_backup_content"
             android:dataExtractionRules="@xml/data_extraction_rules"
             android:theme="@style/ArbeitsberichtAppTheme">
-        <activity android:name=".ClientListActivity"></activity>
+        <activity
+                android:name=".ClientListActivity"
+                android:parentActivityName=".MainActivity"
+                android:exported="false" />
 
         <meta-data
                 android:name="firebase_crashlytics_collection_enabled"
@@ -28,15 +29,19 @@
 
         <activity
                 android:name=".LumpSumDefinitionActivity"
+                android:exported="false"
                 android:parentActivityName=".MainActivity" />
         <activity
                 android:name=".SummaryActivity"
+                android:exported="false"
                 android:parentActivityName=".ReportEditorActivity"/>
         <activity
                 android:name=".ConfigurationActivity"
+                android:exported="false"
                 android:parentActivityName=".MainActivity"/>
         <activity
                 android:name=".ReportEditorActivity"
+                android:exported="false"
                 android:parentActivityName=".MainActivity"
                 android:screenOrientation="fullUser"
                 android:configChanges="orientation|screenSize|screenLayout"/>

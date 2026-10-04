@@ -194,5 +194,8 @@
     values-round/strings.xml for round devices.
     -->
     <string name="hello_world">Hello Square World!</string>
-
+    <!-- Photo capture / selection -->
+    <string name="camera_permission_denied">Berechtigungen abgelehnt, Foto kann nicht erstellt werden</string>
+    <string name="photo_file_create_failed">Konnte Datei für Foto nicht erstellen</string>
+    <string name="no_camera_app">Konnte keine Kamera-App starten</string>
 </resources>

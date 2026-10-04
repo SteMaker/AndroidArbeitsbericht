@@ -31,7 +31,8 @@ class ArbeitsberichtApp: Application() {
         db = Room.databaseBuilder(
             applicationContext,
             ReportDatabase::class.java, "Arbeitsbericht-Reports"
-        ).fallbackToDestructiveMigration().addMigrations(ReportDatabase.migr_2_3).build()
+        ).fallbackToDestructiveMigration(dropAllTables = true)
+            .addMigrations(ReportDatabase.migr_2_3).build()
         // Required for ApachePOI to work
         System.setProperty("org.apache.poi.javax.xml.stream.XMLInputFactory", "com.fasterxml.aalto.stax.InputFactoryImpl")
         System.setProperty("org.apache.poi.javax.xml.stream.XMLOutputFactory", "com.fasterxml.aalto.stax.OutputFactoryImpl")
@@ -98,6 +99,7 @@ class ArbeitsberichtApp: Application() {
                 Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU ->
                     appContext.packageManager.getPackageInfo(appContext.packageName, PackageManager.PackageInfoFlags.of(0)).longVersionCode
                 else ->
+                    @Suppress("DEPRECATION")
                     appContext.packageManager.getPackageInfo(appContext.packageName, 0).versionCode.toLong()
             }
         }

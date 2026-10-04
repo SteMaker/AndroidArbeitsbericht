@@ -43,6 +43,7 @@ interface ReportDao {
     fun deleteTable()
 }
 
+@OptIn(ExperimentalSerializationApi::class)
 class Converters {
     @TypeConverter
     fun workTimeContainerSerializer(wtc: WorkTimeContainerDb): ByteArray {

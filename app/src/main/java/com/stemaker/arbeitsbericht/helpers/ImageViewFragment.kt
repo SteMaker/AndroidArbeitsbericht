@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import androidx.core.os.BundleCompat
 import androidx.fragment.app.DialogFragment
 import com.bumptech.glide.Glide
 import com.stemaker.arbeitsbericht.R
@@ -16,8 +17,7 @@ class ImageViewFragment : DialogFragment() {
     var file: File? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        val savedFile = savedInstanceState?.getSerializable("FILE")?:null
-        savedFile?.let { file = it as File }
+        savedInstanceState?.let { file = BundleCompat.getSerializable(it, "FILE", File::class.java) }
         // Inflate the layout for this fragment
         val v = inflater.inflate(R.layout.fragment_image_view, container, false)
         val imgV: ImageView = v.findViewById(R.id.photo_view)

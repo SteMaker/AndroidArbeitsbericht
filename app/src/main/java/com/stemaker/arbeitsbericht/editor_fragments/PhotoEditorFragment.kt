@@ -16,6 +16,9 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.Toast
+import androidx.activity.result.ActivityResult
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
@@ -48,9 +51,63 @@ class PhotoEditorFragment(
     : ReportEditorSectionFragment()
 {
     lateinit var dataBinding: FragmentPhotoEditorBinding
-    private var contCnt = 1
-    private val activityResultContinuation = mutableMapOf<Int, Continuation<Uri?>>()
-    var cameraPermissionContinuation: Continuation<Boolean>? = null
+
+    /* Camera and gallery are driven from coroutines, so each launcher resumes whatever
+     * coroutine is currently waiting for it. Only one picker can be on screen at a time,
+     * so a single pending continuation per kind is enough.
+     *
+     * The previous implementation keyed continuations by request code and only resumed
+     * them in onActivityResult when resultCode was RESULT_OK, so cancelling the camera
+     * or the file chooser left the coroutine suspended forever. The Activity Result API
+     * always reports a result, cancellation included.
+     */
+    private var pendingActivityResult: Continuation<ActivityResult>? = null
+    private var pendingPermissionResult: Continuation<Boolean>? = null
+
+    private val takePictureLauncher = registerActivityResultLauncher()
+    private val pickPhotoLauncher = registerActivityResultLauncher()
+
+    private val cameraPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            pendingPermissionResult?.also {
+                pendingPermissionResult = null
+                it.resume(granted)
+            }
+        }
+
+    private fun registerActivityResultLauncher(): ActivityResultLauncher<Intent> =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            pendingActivityResult?.also {
+                pendingActivityResult = null
+                it.resume(result)
+            }
+        }
+
+    private suspend fun launchForResult(
+        launcher: ActivityResultLauncher<Intent>,
+        intent: Intent
+    ): ActivityResult = suspendCoroutine { cont ->
+        pendingActivityResult = cont
+        launcher.launch(intent)
+    }
+
+    /* Returns true if the camera permission is (now) held. */
+    private suspend fun ensureCameraPermission(): Boolean {
+        val ctx = activity ?: return false
+        if (ContextCompat.checkSelfPermission(ctx, Manifest.permission.CAMERA) ==
+            PackageManager.PERMISSION_GRANTED) {
+            return true
+        }
+        val granted = suspendCoroutine<Boolean> { cont ->
+            pendingPermissionResult = cont
+            cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+        }
+        if (!granted) {
+            Log.d(TAG, "Access to camera denied")
+            Toast.makeText(activity, R.string.camera_permission_denied, Toast.LENGTH_LONG).show()
+        }
+        return granted
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -93,21 +150,6 @@ class PhotoEditorFragment(
         return dataBinding.photoContentContainer.visibility != View.GONE
     }
 
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if(requestCode == REQUEST_CODE_CAMERA_PERMISSION) {
-            if(grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Log.d(TAG, "Access to camera granted")
-                cameraPermissionContinuation?.resume(true)
-            } else {
-                Log.d(TAG, "Access to camera denied")
-                val toast = Toast.makeText(this.activity, "Berechtigungen abgelehnt, Foto kann nicht erstellt werden", Toast.LENGTH_LONG)
-                toast.show()
-                cameraPermissionContinuation?.resume(false)
-            }
-        }
-    }
-
     private fun addPhotoView(viewModel: PhotoViewModel, viewModelContainer: PhotoContainerViewModel): View {
         val inflater = layoutInflater
         val container = dataBinding.photoContentContainer
@@ -127,53 +169,40 @@ class PhotoEditorFragment(
 
         photoDataBinding.photoTakeButton.setOnClickListener {
             GlobalScope.launch(Dispatchers.Main) {
-                var permissionGranted = true
-                val ctx = this@PhotoEditorFragment.activity
-                ctx?.also { ctxNotNull ->
-                    if (ContextCompat.checkSelfPermission(ctxNotNull, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-                        // Request user to grant write external storage permission.
-                        Log.d(TAG, "Need to query user for permissions, starting coroutine")
-                        requestPermissions(arrayOf(Manifest.permission.CAMERA), REQUEST_CODE_CAMERA_PERMISSION)
-                        permissionGranted = suspendCoroutine<Boolean> {
-                            Log.d(TAG, "Coroutine: suspended")
-                            cameraPermissionContinuation = it
-                        }
-                    }
+                if (!ensureCameraPermission()) return@launch
+
+                // Create the file the camera app is supposed to write into
+                val photoFile = try {
+                    createImageFile()
+                } catch (ex: IOException) {
+                    Toast.makeText(activity, R.string.photo_file_create_failed, Toast.LENGTH_LONG).show()
+                    return@launch
                 }
-                if (permissionGranted) {
-                    Intent(MediaStore.ACTION_IMAGE_CAPTURE).also { takePictureIntent ->
-                        try {
-                            // Create the File where the photo should go
-                            val photoFile: File? = try {
-                                createImageFile()
-                            } catch (ex: IOException) {
-                                val toast = Toast.makeText(activity, "Konnte Datei für Foto nicht erstellen", Toast.LENGTH_LONG)
-                                toast.show()
-                                null
-                            }
-                            // Continue only if the File was successfully created
-                            photoFile?.also { photoFile ->
-                                val photoURI: Uri =
-                                    FileProvider.getUriForFile(requireActivity().applicationContext, "com.stemaker.arbeitsbericht.fileprovider", photoFile)
-                                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
-                                startActivityForResult(takePictureIntent, contCnt)
-                                // result is null, if it really failed we'll catch an exception below
-                                val result = suspendCoroutine<Uri?> {
-                                    activityResultContinuation[contCnt] = it
-                                    contCnt++
-                                }
-                                try {
-                                    applyPhotoFile(viewModel, photoFile)
-                                } catch (ex: Exception) {
-                                    val toast = Toast.makeText(activity, "Konnte Datei für Foto nicht erstellen", Toast.LENGTH_LONG)
-                                    toast.show()
-                                }
-                            }
-                        } catch (e: Exception) {
-                            val toast = Toast.makeText(activity, "Konnte keine Kamera-App starten", Toast.LENGTH_LONG)
-                            toast.show()
-                        }
-                    }
+
+                val result = try {
+                    val photoURI = FileProvider.getUriForFile(
+                        requireActivity().applicationContext,
+                        "com.stemaker.arbeitsbericht.fileprovider", photoFile)
+                    val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+                        .putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
+                    launchForResult(takePictureLauncher, takePictureIntent)
+                } catch (e: Exception) {
+                    photoFile.delete()
+                    Toast.makeText(activity, R.string.no_camera_app, Toast.LENGTH_LONG).show()
+                    return@launch
+                }
+
+                if (result.resultCode != RESULT_OK) {
+                    // Cancelled; the camera app left us an empty placeholder file
+                    Log.d(TAG, "Taking a photo was cancelled")
+                    photoFile.delete()
+                    return@launch
+                }
+
+                try {
+                    applyPhotoFile(viewModel, photoFile)
+                } catch (ex: Exception) {
+                    Toast.makeText(activity, R.string.photo_file_create_failed, Toast.LENGTH_LONG).show()
                 }
             }
         }
@@ -186,11 +215,9 @@ class PhotoEditorFragment(
                     .putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes)
                     .setAction(Intent.ACTION_GET_CONTENT)
 
-                startActivityForResult(Intent.createChooser(intent, getString(R.string.select_photo)), contCnt)
-                val file = suspendCoroutine<Uri?> {
-                    activityResultContinuation[contCnt] = it
-                    contCnt++
-                }
+                val result = launchForResult(
+                    pickPhotoLauncher, Intent.createChooser(intent, getString(R.string.select_photo)))
+                val file = if (result.resultCode == RESULT_OK) result.data?.data else null
                 if (file == null) {
                     Log.d(TAG, "No photo file was selected")
                 } else {
@@ -200,8 +227,7 @@ class PhotoEditorFragment(
                         copyUriToFile(file, photoFile)
                         applyPhotoFile(viewModel, photoFile)
                     } catch (ex: Exception) {
-                        val toast = Toast.makeText(activity, "Konnte Datei für Foto nicht erstellen", Toast.LENGTH_LONG)
-                        toast.show()
+                        Toast.makeText(activity, R.string.photo_file_create_failed, Toast.LENGTH_LONG).show()
                     }
                 }
             }
@@ -269,16 +295,4 @@ class PhotoEditorFragment(
         return File.createTempFile("Arbeitsbericht_${timeStamp}", ".jpg", storageDir)
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        if (resultCode == RESULT_OK) {
-            activityResultContinuation[requestCode]?.let {
-                it.resume(data?.data)
-                activityResultContinuation.remove(requestCode)
-            }
-        }
-    }
-
-    companion object {
-        const val REQUEST_CODE_CAMERA_PERMISSION = 1
-    }
 }

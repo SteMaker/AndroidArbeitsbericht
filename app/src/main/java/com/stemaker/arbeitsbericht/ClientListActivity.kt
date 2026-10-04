@@ -25,6 +25,8 @@ class ClientListActivity:
         binding = DataBindingUtil.setContentView(this, R.layout.activity_client_list)
         binding.lifecycleOwner = this
 
+        addBackPressedHandler { saveData() }
+
         val recyclerView = binding.clientListRv
         clientViewModel = ViewModelProvider(this@ClientListActivity, ClientViewModelFactory(app.clientRepo)).get(ClientViewModel::class.java)
         val adapter = ClientListAdapter(this@ClientListActivity, clientViewModel!!)
@@ -54,10 +56,6 @@ class ClientListActivity:
         saveData()
     }
 
-    override fun onBackPressed() {
-        super.onBackPressed()
-        saveData()
-    }
 
     fun onClickNewClient(v_: View) {
         clientViewModel?.addClient()

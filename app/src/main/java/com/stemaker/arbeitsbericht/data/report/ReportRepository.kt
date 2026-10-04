@@ -77,7 +77,12 @@ class ReportRepository(
             runningJobs.decrementAndGet()
         }
     }
-    val isJobRunning = runningJobs.get()!=0
+    /* This has to be a computed property. As a plain val it was evaluated once during
+     * construction, when no job can possibly be running, so it was permanently false and
+     * ArbeitsberichtApp.waitForShutdown() never waited for pending saves to finish.
+     */
+    val isJobRunning: Boolean
+        get() = runningJobs.get() != 0
 
     suspend fun initialize(): Int {
         var ret = 0
@@ -132,7 +137,7 @@ class ReportRepository(
     private fun _addReport(r: ReportData, onAdded:((r: ReportData)->Unit)? = null) {
         launchAndMaintain {
             reportUidsMutex.lock()
-            Log.d(TAG, "Adding new report ${r.cnt} with project ${r.project.name?.value} to cache")
+            Log.d(TAG, "Adding new report ${r.cnt} with project ${r.project.name.value} to cache")
             reports.put(r.cnt, r) // Add to cache
             reportUids.add(0, r.cnt) // Add to report cnt list
             reportUidsMutex.unlock()

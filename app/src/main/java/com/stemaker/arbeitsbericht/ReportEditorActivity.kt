@@ -81,7 +81,7 @@ class ReportEditorActivity : ArbeitsberichtActivity(),
             }
         }
         topBinding.reportEditorActivityToolbar.setNavigationOnClickListener {
-            onBackPressed()
+            onBackPressedDispatcher.onBackPressed()
         }
         if(!prefs.lockScreenOrientationNoInfo.value && !prefs.lockScreenOrientation.value &&
             resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {

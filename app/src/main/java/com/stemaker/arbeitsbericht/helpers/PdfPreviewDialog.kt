@@ -9,6 +9,7 @@ import android.os.ParcelFileDescriptor
 import android.view.*
 import android.widget.ImageView
 import android.widget.Toast
+import androidx.core.os.BundleCompat
 import androidx.fragment.app.DialogFragment
 import com.stemaker.arbeitsbericht.R
 import java.io.File
@@ -30,7 +31,7 @@ class PdfPreviewDialog : DialogFragment() {
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         if(file == null) {
-            savedInstanceState?.getSerializable("FILE")?.let { file = it as File }
+            savedInstanceState?.let { file = BundleCompat.getSerializable(it, "FILE", File::class.java) }
         }
         val v = inflater.inflate(R.layout.fragment_pdf_preview_dialog, container, false)
         val btnClose: View = v.findViewById(R.id.close_button)

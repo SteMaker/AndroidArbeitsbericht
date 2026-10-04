@@ -53,6 +53,8 @@ class SummaryActivity:
         binding = DataBindingUtil.setContentView(this, R.layout.activity_summary)
         binding.lifecycleOwner = this
 
+        addBackPressedHandler { saveSignatures() }
+
         requestedOrientation = when(prefs.lockScreenOrientation.value) {
             true -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
             else -> ActivityInfo.SCREEN_ORIENTATION_FULL_USER
@@ -97,7 +99,7 @@ class SummaryActivity:
             }
         }
         binding.summaryActivityToolbar.setNavigationOnClickListener {
-            onBackPressed()
+            onBackPressedDispatcher.onBackPressed()
         }
 
         val htmlReport = HtmlReport(prefs, report, this@SummaryActivity.filesDir)
@@ -106,7 +108,6 @@ class SummaryActivity:
 
         // In landscape limiting the width of the signature pad to the max width possible in portrait,
         // to make sure the same area is accessible in both
-        // @TODO getRealSize was deprecated in Android12, need to find the correct way to handle this
         val size = Point()
         getDisplaySize(size)
         if(size.x > size.y) {
@@ -116,13 +117,6 @@ class SummaryActivity:
         }
     }
 
-    override fun onBackPressed() {
-        Log.d(TAG, "called")
-        GlobalScope.launch(Dispatchers.Main) {
-            saveSignatures()
-            super.onBackPressed()
-        }
-    }
 
     override fun onPause() {
         super.onPause()
@@ -146,8 +140,9 @@ class SummaryActivity:
             size.x = b.width() - insetsWidth
             size.y = b.height() - insetsHeight
         } else {
-            val display = wm.defaultDisplay // deprecated in API 30
-            display?.getSize(size) // deprecated in API 30
+            // WindowMetrics only exists from API 30 on, so API 24..29 still needs this.
+            @Suppress("DEPRECATION")
+            wm.defaultDisplay.getSize(size)
         }
     }
     fun onClickClearEmployeeSignature(@Suppress("UNUSED_PARAMETER") btn: View) {
@@ -248,7 +243,6 @@ class SummaryActivity:
         app.reportRepo.saveReport(report)
     }
 
-    var writePermissionContinuation: Continuation<Boolean>? = null
     private fun prepareAndShare(ask: Boolean, distribute: (file: File?, type: OutputType)->Unit) {
         GlobalScope.launch(Dispatchers.Main) {
             saveSignatures()
@@ -331,21 +325,6 @@ class SummaryActivity:
         sigPadE.visibility = sigPadEV
     }
 
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if(requestCode == REQUEST_CODE_WRITE_EXTERNAL_STORAGE_PERMISSION) {
-            if(grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Log.d(TAG, "Access to external storage granted")
-                writePermissionContinuation?.resume(true)
-            } else {
-                Log.d(TAG, "Access to external storage denied")
-                val toast = Toast.makeText(this, "Berechtigungen abgelehnt, PDF Bericht kann nicht erstellt werden", Toast.LENGTH_LONG)
-                toast.show()
-                writePermissionContinuation?.resume(false)
-            }
-        }
-    }
-
     private fun showReportExternal(file: File) {
         val intent = Intent(Intent.ACTION_VIEW)
         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
@@ -357,7 +336,7 @@ class SummaryActivity:
             startActivity(intent)
         } catch (e: Exception) {
             GlobalScope.launch(Dispatchers.Main) {
-                showInfoDialog(getString(R.string.no_xdf_viewer, extension.capitalize()), this@SummaryActivity)
+                showInfoDialog(getString(R.string.no_xdf_viewer, extension.replaceFirstChar { it.uppercase() }), this@SummaryActivity)
             }
         }
     }
@@ -399,7 +378,7 @@ class SummaryActivity:
             fileUri?.let {
                 putExtra(Intent.EXTRA_TEXT, "Bericht im Anhang")
                 putExtra(Intent.EXTRA_STREAM, fileUri)
-                clipData = ClipData.newUri(this@SummaryActivity.contentResolver, xdfFile?.name?:"file", it)
+                clipData = ClipData.newUri(this@SummaryActivity.contentResolver, xdfFile.name, it)
             } ?: run {
                 val htmlReport = HtmlReport(prefs, report, this@SummaryActivity.filesDir)
                 putExtra(Intent.EXTRA_TEXT, htmlReport.encodeReport(true))
@@ -451,7 +430,4 @@ class SummaryActivity:
         }
     }
 
-    companion object {
-        const val REQUEST_CODE_WRITE_EXTERNAL_STORAGE_PERMISSION = 1
-    }
 }

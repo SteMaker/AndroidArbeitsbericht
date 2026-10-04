@@ -97,11 +97,18 @@ class AbPreferences(private val ctx: Context)
     // That allows any component in the app to use the shared preferences as well as the LiveData, just what is
     // more appropriate
     private val sharedPrefs: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(ctx)
+    /* androidx.security:security-crypto is deprecated by Google without a drop-in
+     * replacement, and the SFTP password already stored on users' devices can only be read
+     * back through it. Keeping it is deliberate; migrating the stored secret needs its own
+     * change.
+     */
+    @Suppress("DEPRECATION")
     private val masterKey = MasterKey.Builder(ctx)
         .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
         .build()
 
     // We are not listening on encrypted shared prefs. Need to see how to link it with the config activity
+    @Suppress("DEPRECATION")
     private val encryptedSharedPrefs: SharedPreferences = EncryptedSharedPreferences.create(
         ctx, encryptedSharedPrefsFile, masterKey,
         EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,

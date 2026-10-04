@@ -1,36 +1,37 @@
 package com.stemaker.arbeitsbericht
 
-import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ActivityInfo
-import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
 import android.view.*
 import android.widget.*
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.cardview.widget.CardView
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import com.stemaker.arbeitsbericht.databinding.ActivityLumpSumDefinitionBinding
 import com.stemaker.arbeitsbericht.helpers.SftpProvider
 import com.stemaker.arbeitsbericht.helpers.showConfirmationDialog
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import kotlin.coroutines.Continuation
-import kotlin.coroutines.suspendCoroutine
 
 private const val TAG = "LumpSumDefinitionAct"
-private const val PERMISSION_CODE_REQUEST_INTERNET = 1
-private const val REQUEST_LOAD_LUMP_SUM = 2
 
 class LumpSumDefinitionActivity:
     ArbeitsberichtActivity()
 {
-    private var internetPermissionContinuation: Continuation<Boolean>? = null
     private lateinit var binding: ActivityLumpSumDefinitionBinding
+
+    private val lumpSumFilePicker =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode != RESULT_OK) {
+                Log.d(TAG, "No lump sum file was selected")
+                return@registerForActivityResult
+            }
+            result.data?.data?.also { fileUri -> readLumpSumsFromUri(fileUri) }
+        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         if(!onCreateWrapper(savedInstanceState))
@@ -40,6 +41,8 @@ class LumpSumDefinitionActivity:
         super.onCreate(savedInstanceState)
         binding = ActivityLumpSumDefinitionBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        addBackPressedHandler { save() }
 
         requestedOrientation = when(prefs.lockScreenOrientation.value) {
             true -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
@@ -65,11 +68,6 @@ class LumpSumDefinitionActivity:
 
     override fun onPause() {
         super.onPause()
-        save()
-    }
-
-    override fun onBackPressed() {
-        super.onBackPressed()
         save()
     }
 
@@ -147,78 +145,43 @@ class LumpSumDefinitionActivity:
             .setType("*/*")
             .putExtra(Intent.EXTRA_MIME_TYPES, mimetypes)
             .setAction(Intent.ACTION_GET_CONTENT)
-        startActivityForResult(Intent.createChooser(intent, getString(R.string.lump_sum_file_choose)), REQUEST_LOAD_LUMP_SUM)
+        lumpSumFilePicker.launch(Intent.createChooser(intent, getString(R.string.lump_sum_file_choose)))
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if(requestCode == REQUEST_LOAD_LUMP_SUM && resultCode == RESULT_OK) {
-            data?.data?.also { fileUri ->
-                try {
-                    contentResolver.openInputStream(fileUri)?.also { istream ->
-                        val lumpSumsFileContent = istream.bufferedReader().use { it.readText() }
-                        GlobalScope.launch(Dispatchers.Main) {
-                            loadLumpSums(lumpSumsFileContent)
-                        }
-                    }
-                } catch (e: Exception) {
-                    val toast = Toast.makeText(this@LumpSumDefinitionActivity, "Fehler beim Lesen der Pauschalen: ${e.message}", Toast.LENGTH_LONG)
-                    toast.show()
+    private fun readLumpSumsFromUri(fileUri: android.net.Uri) {
+        try {
+            contentResolver.openInputStream(fileUri)?.also { istream ->
+                val lumpSumsFileContent = istream.bufferedReader().use { it.readText() }
+                GlobalScope.launch(Dispatchers.Main) {
+                    loadLumpSums(lumpSumsFileContent)
                 }
             }
+        } catch (e: Exception) {
+            val toast = Toast.makeText(this@LumpSumDefinitionActivity, "Fehler beim Lesen der Pauschalen: ${e.message}", Toast.LENGTH_LONG)
+            toast.show()
         }
     }
 
     fun onClickSftpLoad(btn: View) {
         GlobalScope.launch(Dispatchers.Main) {
-            if(checkAndObtainInternetPermission()) {
-                findViewById<ProgressBar>(R.id.load_progress).visibility = View.VISIBLE
-                val host = prefs.sFtpHost.value
-                val port = prefs.sFtpPort.value
-                val user = prefs.sFtpUser.value
-                val pwd = prefs.sFtpPassword.value
-                val path = findViewById<EditText>(R.id.lump_sum_ftp_path).text.toString()
-                try {
-                    val sftpProvider = SftpProvider(this@LumpSumDefinitionActivity)
-                    sftpProvider.connect(user, pwd, host, port)
-                    Log.d(TAG, "Connection success")
-                    val lumpSumsFileContent = sftpProvider.getFileContentAsString(path)
-                    loadLumpSums(lumpSumsFileContent)
-                } catch (e: Exception) {
-                    val toast = Toast.makeText(this@LumpSumDefinitionActivity, e.message, Toast.LENGTH_LONG)
-                    toast.show()
-                }
-                findViewById<ProgressBar>(R.id.load_progress).visibility = View.GONE
+            findViewById<ProgressBar>(R.id.load_progress).visibility = View.VISIBLE
+            val host = prefs.sFtpHost.value
+            val port = prefs.sFtpPort.value
+            val user = prefs.sFtpUser.value
+            val pwd = prefs.sFtpPassword.value
+            val path = findViewById<EditText>(R.id.lump_sum_ftp_path).text.toString()
+            try {
+                val sftpProvider = SftpProvider(this@LumpSumDefinitionActivity)
+                sftpProvider.connect(user, pwd, host, port)
+                Log.d(TAG, "Connection success")
+                val lumpSumsFileContent = sftpProvider.getFileContentAsString(path)
+                loadLumpSums(lumpSumsFileContent)
+            } catch (e: Exception) {
+                val toast = Toast.makeText(this@LumpSumDefinitionActivity, e.message, Toast.LENGTH_LONG)
+                toast.show()
             }
+            findViewById<ProgressBar>(R.id.load_progress).visibility = View.GONE
         }
     }
 
-    private suspend fun checkAndObtainInternetPermission(): Boolean {
-        var internetPermissionGranted = true
-        if (ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.INTERNET
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            Log.d(TAG, "No permission for Internet, requesting it")
-            /* TODO Add a Dialog that explains why we need network access */
-            ActivityCompat.requestPermissions(
-                this,
-                arrayOf(Manifest.permission.INTERNET),
-                PERMISSION_CODE_REQUEST_INTERNET
-            )
-            internetPermissionGranted = suspendCoroutine<Boolean> {
-                internetPermissionContinuation = it
-            }
-        }
-        if(internetPermissionGranted) {
-            Log.d(TAG, "Permission for Internet is granted")
-            return true
-        } else {
-            val toast =
-                Toast.makeText(this, R.string.no_internet_access_abort, Toast.LENGTH_LONG)
-            toast.show()
-            return false
-        }
-    }
 }

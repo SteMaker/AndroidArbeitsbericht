@@ -79,7 +79,7 @@ class ReportDatabaseTest {
     fun `an inserted report can be read back by its id`(): Unit = runBlocking {
         dao.insert(report(1, project = "Mueller", extra = "Dach"))
 
-        val row = dao.getReportByCnt(1)
+        val row = dao.getReportByCnt(1)!!
 
         assertThat(row.cnt).isEqualTo(1)
         assertThat(row.project.projectName).isEqualTo("Mueller")
@@ -106,7 +106,7 @@ class ReportDatabaseTest {
         dao.insert(report(1, project = "Second"))
 
         assertThat(dao.getReports()).hasSize(1)
-        assertThat(dao.getReportByCnt(1).project.projectName).isEqualTo("Second")
+        assertThat(dao.getReportByCnt(1)!!.project.projectName).isEqualTo("Second")
     }
 
     @Test
@@ -115,7 +115,7 @@ class ReportDatabaseTest {
 
         dao.update(report(1, project = "Updated"))
 
-        assertThat(dao.getReportByCnt(1).project.projectName).isEqualTo("Updated")
+        assertThat(dao.getReportByCnt(1)!!.project.projectName).isEqualTo("Updated")
     }
 
     @Test
@@ -126,6 +126,13 @@ class ReportDatabaseTest {
         dao.deleteByCnt(1)
 
         assertThat(dao.getReportUids()).containsExactly(2)
+    }
+
+    @Test
+    fun `looking up a report that does not exist returns null`(): Unit = runBlocking {
+        dao.insert(report(1))
+
+        assertThat(dao.getReportByCnt(99)).isNull()
     }
 
     @Test
@@ -246,7 +253,7 @@ class ReportDatabaseTest {
         dao.insert(ReportDb.fromReport(original))
 
         val restored = ReportData.createReport(0, prefs.mock)
-        restored.getReportFromDb(dao.getReportByCnt(1))
+        restored.getReportFromDb(dao.getReportByCnt(1)!!)
 
         assertThat(restored.workItemContainer.map { it.item.value })
             .containsExactly("Ziegel ersetzt")

@@ -16,8 +16,13 @@ interface ReportDao {
     @Query("SELECT * FROM ReportDb")
     suspend fun getReports(): List<ReportDb>
 
+    /* Nullable on purpose: callers can ask for a report whose row is already gone, for
+     * instance when a report list refresh overlaps a delete that has not reached the
+     * database yet. Room throws on a missing row for a non-null return type, which took
+     * the whole app down.
+     */
     @Query("SELECT * FROM ReportDb WHERE cnt = :cnt")
-    suspend fun getReportByCnt(cnt: Int): ReportDb
+    suspend fun getReportByCnt(cnt: Int): ReportDb?
 
     @Query("SELECT cnt FROM ReportDb ORDER BY cnt DESC")
     suspend fun getReportUids(): List<Int>

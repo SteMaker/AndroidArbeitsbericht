@@ -180,6 +180,18 @@ class ReportRepository(
                 val rDb = withContext(Dispatchers.IO) {
                     reportDao.getReportByCnt(cnt)
                 }
+                if (rDb == null) {
+                    /* The row is gone. Drop the placeholder we just cached and take the uid
+                     * out of the visible list, then tell listeners the list changed so the
+                     * report list rebinds against the corrected list instead of asking for
+                     * this uid again.
+                     */
+                    Log.e(TAG, "Error: no report with cnt $cnt in the database")
+                    reports.remove(cnt)
+                    reportUidsMutex.withLock { reportUids.remove(cnt) }
+                    _live.value = ReportListChangeEvent(ReportListChangeEvent.Type.LIST_CHANGE)
+                    return@launch
+                }
                 report.getReportFromDb(rDb)
                 Log.d(TAG, "Loaded report ${report.cnt} with ${report.id.value} from database")
                 onLoaded?.let { it(report) }

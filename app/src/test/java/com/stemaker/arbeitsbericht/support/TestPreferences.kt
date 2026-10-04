@@ -26,6 +26,15 @@ class FakePreferences {
     val lumpSums = configElementOf(emptySet<String>())
     val workItemDictionary = configElementOf(emptySet<String>())
     val materialDictionary = configElementOf(emptySet<String>())
+    val fontSize = configElementOf(12)
+    val logoFile = configElementOf("")
+    val footerFile = configElementOf("")
+    val pdfUseLogo = configElementOf(false)
+    val pdfUseFooter = configElementOf(false)
+    val pdfLogoWidthPercent = configElementOf(100)
+    val pdfFooterWidthPercent = configElementOf(100)
+    val pdfLogoAlignment = configElementOf(AbPreferences.Alignment.CENTER)
+    val pdfFooterAlignment = configElementOf(AbPreferences.Alignment.CENTER)
 
     val mock: AbPreferences = mockk(relaxed = true) {
         every { employeeName } returns this@FakePreferences.employeeName
@@ -38,6 +47,15 @@ class FakePreferences {
         every { lumpSums } returns this@FakePreferences.lumpSums
         every { workItemDictionary } returns this@FakePreferences.workItemDictionary
         every { materialDictionary } returns this@FakePreferences.materialDictionary
+        every { fontSize } returns this@FakePreferences.fontSize
+        every { logoFile } returns this@FakePreferences.logoFile
+        every { footerFile } returns this@FakePreferences.footerFile
+        every { pdfUseLogo } returns this@FakePreferences.pdfUseLogo
+        every { pdfUseFooter } returns this@FakePreferences.pdfUseFooter
+        every { pdfLogoWidthPercent } returns this@FakePreferences.pdfLogoWidthPercent
+        every { pdfFooterWidthPercent } returns this@FakePreferences.pdfFooterWidthPercent
+        every { pdfLogoAlignment } returns this@FakePreferences.pdfLogoAlignment
+        every { pdfFooterAlignment } returns this@FakePreferences.pdfFooterAlignment
         every { allocateReportId() } answers { this@FakePreferences.nextReportId++ }
         every { allocateClientId() } answers { this@FakePreferences.nextClientId++ }
         every { currentId } answers { this@FakePreferences.nextReportId }

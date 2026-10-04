@@ -65,7 +65,8 @@ android {
     }
 
     lint {
-        abortOnError false
+        // Lint currently reports no errors, only warnings, so errors are worth failing on.
+        abortOnError true
         warningsAsErrors false
         sarifReport true
     }

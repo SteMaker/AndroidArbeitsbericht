@@ -19,8 +19,7 @@ class FakeReportDao : ReportDao {
 
     override suspend fun getReports(): List<ReportDb> = rows.values.toList()
 
-    override suspend fun getReportByCnt(cnt: Int): ReportDb =
-        rows[cnt] ?: error("no report with cnt $cnt")
+    override suspend fun getReportByCnt(cnt: Int): ReportDb? = rows[cnt]
 
     // "SELECT cnt FROM ReportDb ORDER BY cnt DESC"
     override suspend fun getReportUids(): List<Int> = rows.keys.sortedDescending()

@@ -86,6 +86,34 @@ Folgende Daten verwenden Feldbefehle für einfache Daten und können beliebig of
   - project_name -> Projektname
   - project_extra1 -> Projektzusatz
 
+# Entwicklung
+
+**Build-Voraussetzungen**
+  - JDK 17 oder neuer. Das mit Android Studio gelieferte JBR genügt; eine reine JRE
+    reicht nicht, Gradle braucht einen Compiler.
+  - Android SDK mit Platform 37 (`platforms;android-37.2`) und Build-Tools 36 oder neuer.
+    Der Pfad gehört in `local.properties` (`sdk.dir=...`) oder in `ANDROID_HOME`.
+  - Der Gradle Wrapper lädt Gradle selbst herunter; AGP, Kotlin und alle
+    Abhängigkeitsversionen stehen zentral in `gradle/libs.versions.toml`.
+
+Die beiden Module `odftoolkit-fat` und `poi-android-fat` verpacken ODF Toolkit und
+Apache POI jeweils in ein einzelnes shaded JAR, weil beide XML-APIs mitbringen, die mit
+denen der Android-Plattform kollidieren. Sie sind normale Projektabhängigkeiten der App
+und werden bei Bedarf automatisch mitgebaut.
+
+**Tests**
+  - `./gradlew :app:testDebugUnitTest` führt die lokalen Tests auf der JVM aus. Die Tests,
+    die echte Android-Klassen brauchen (Room, `LruCache`, `Base64`), laufen unter
+    Robolectric; die dafür verwendete Android-Version steht in
+    `app/src/test/resources/robolectric.properties`.
+  - `./gradlew :app:connectedDebugAndroidTest` führt die Gerätetests auf einem
+    angeschlossenen Gerät oder Emulator aus. Dort liegen die Tests, die ein echtes
+    Android brauchen: die Dokumentenerzeugung (PDF, ODF, XLSX), die
+    Datenbankmigration, `EncryptedSharedPreferences` und die Espresso-Oberflächentests.
+  - Testmethoden in den Gerätetests dürfen keine Namen mit Leerzeichen in Backticks
+    haben. Das setzt DEX 040 und damit minSdk 28 voraus, die App unterstützt aber
+    minSdk 24. In den lokalen Tests ist diese Schreibweise unproblematisch.
+
 # Datenschutz
 **Verwendung der Daten**
 Die App speichert die eingegebenen Berichtsdaten in einer Datenbank (ältere Versionen im json Format) und die erstellten Berichte (pdf, odf oder xlsx) auf dem Gerät. Beides liegt im App-eigenen Ordner, der für andere Apps nicht zugänglich ist. Beim Teilen oder Versenden wird der Bericht an die entsprechende App weitergereicht. Ausserdem werden "Wörterbücher" der bisher verwendeten Eingaben erstellt, um Eingabevorschläge beim Erstellen der Berichte zu machen. Auch diese Wörterbücher werden im App-eigenen Ordner auf dem Gerät gespeichert. Für das Versenden bzw. Teilen der Berichte sind entsprechend weitere Apps nötig. Die App selber versendet/teilt nicht direkt, sondern reicht den Bericht nur an die vom Benutzer ausgewählte App weiter. Falls eine Verschlüsselung der Daten für den Versand notwendig ist, muss diese durch die ausgewählte App durchgeführt werden - die Arbeitsbericht App bietet keine derartige Möglichkeit. Die vorgenommenen Einstellungen im Einstellungsdialog werden wiederum auf dem Gerät abgelegt. Zum Herunterladen von Pauschalenlisten, Vorlagen und Weiterem wird ein SFTP Zugang verwendet, der vom Benutzer zur Verfügung gestellt werden muss.

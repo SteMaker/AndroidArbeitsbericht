@@ -321,6 +321,47 @@ class ReportRepositoryTest {
         assertThat(first!!.cnt).isEqualTo(2)
     }
 
+    @Test
+    fun `asking for a report whose row is gone does not blow up`(): Unit = runBlocking {
+        /* The visible list can name a report that is no longer in the database, for
+         * instance when a list refresh overlaps a delete that has not been written yet.
+         * Room throws on a missing row for a non-null return type, which used to take the
+         * whole app down from a coroutine on the main dispatcher.
+         */
+        seedRow(5, project = "Verschwunden")
+        val repo = repository()
+        repo.initialize()
+        assertThat(repo.isReportVisible(5)).isTrue()
+
+        // The row disappears behind the repository's back
+        dao.rows.remove(5)
+        var loaded: ReportData? = null
+        repo.setActiveReport(5) { loaded = it }
+
+        awaitUntil("the missing report to be dropped from the list") {
+            !repo.isReportVisible(5)
+        }
+        assertThat(loaded).isNull()
+        assertThat(repo.amountOfReports).isEqualTo(0)
+    }
+
+    @Test
+    fun `a vanished report makes the repository announce a list change`(): Unit = runBlocking {
+        seedRow(5)
+        val repo = repository()
+        repo.initialize()
+        val events = mutableListOf<ReportRepository.ReportListChangeEvent>()
+        repo.live.observeForever { events.add(it) }
+        events.clear()
+
+        dao.rows.remove(5)
+        repo.setActiveReport(5) { }
+
+        awaitUntil("a list change event") {
+            events.any { it.type == ReportRepository.ReportListChangeEvent.Type.LIST_CHANGE }
+        }
+    }
+
     // ---------------------------------------------------------------- save
 
     @Test

@@ -7,6 +7,7 @@ import com.stemaker.arbeitsbericht.data.preferences.AbPreferences
 import com.stemaker.arbeitsbericht.helpers.ReportFilter
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.util.concurrent.atomic.AtomicInteger
 
 const val CACHE_SIZE = 50
@@ -84,23 +85,25 @@ class ReportRepository(
     val isJobRunning: Boolean
         get() = runningJobs.get() != 0
 
+    /* Loads the visible report list and reports the highest report id in the database.
+     *
+     * This used to wrap a bare scope.launch in runBlocking. runBlocking does not wait for a
+     * coroutine launched into a *different* scope, and scope is bound to Dispatchers.Main,
+     * which runBlocking was blocking at the time. So the body could not run before
+     * initialize() had already returned, and initialize() always returned 0 with reportUids
+     * still empty. Both results are used by ArbeitsberichtApp right after the call: the
+     * return value recovers the id counter when the preferences were lost, and the report
+     * list decides whether the last active report can be restored. This function is
+     * suspending, so it can simply do the work and await it.
+     */
     suspend fun initialize(): Int {
-        var ret = 0
-        runBlocking {
-            scope.launch {
-                ret = withContext(Dispatchers.IO) {
-                    val usedIds = reportDao.getReportUids()
-                    reportUidsMutex.lock() // most likely not needed here, but doesn't harm
-                    val uids = withContext(Dispatchers.IO) {
-                        reportDao.getFilteredReportIds(filter)
-                    }
-                    reportUids.addAll(uids)
-                    reportUidsMutex.unlock()
-                    usedIds.maxOrNull() ?: 0 // If file didn't exist yet, initial value will be 1
-                }
-            }
+        val usedIds = withContext(Dispatchers.IO) { reportDao.getReportUids() }
+        val uids = withContext(Dispatchers.IO) { reportDao.getFilteredReportIds(filter) }
+        reportUidsMutex.withLock {
+            reportUids.clear()
+            reportUids.addAll(uids)
         }
-        return ret
+        return usedIds.maxOrNull() ?: 0 // 0 if the database is still empty
     }
 
     ////////////////////////////////////////////////////

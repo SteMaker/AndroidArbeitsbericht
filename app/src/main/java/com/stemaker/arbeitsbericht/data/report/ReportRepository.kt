@@ -123,6 +123,14 @@ class ReportRepository(
             _live.value = ReportListChangeEvent(ReportListChangeEvent.Type.LIST_CHANGE)// Trigger event that list has been modified (not only single add / remove)
         }
     }
+    /* The list event has to be emitted in the same main thread turn as the change to
+     * reportUids, and before any suspension. ReportListAdapter.getItemCount() reads
+     * amountOfReports, i.e. reportUids.size, directly, so between mutating the list and
+     * notifying, the adapter reports a count that RecyclerView has not been told about. The
+     * database call in between is a suspension point, which lets the main thread run a
+     * layout pass in exactly that window - RecyclerView then throws "Inconsistency
+     * detected. Invalid view holder adapter position" and the app goes down.
+     */
     private fun _deleteReport(r: ReportData, onDeleted:((r: ReportData)->Unit)? = null) {
         launchAndMaintain {
             reportUidsMutex.lock()
@@ -130,10 +138,11 @@ class ReportRepository(
             val index = reportUids.indexOf(r.cnt)
             reportUids.remove(r.cnt) // Remove from report cnt list
             reportUidsMutex.unlock()
+            // Inform about removal before suspending on the database
+            _live.value = ReportListChangeEvent(ReportListChangeEvent.Type.LIST_REMOVE, r.cnt, index)
             withContext(Dispatchers.IO) {
                 reportDao.deleteByCnt(r.cnt) // Remove from DB
             }
-            _live.value = ReportListChangeEvent(ReportListChangeEvent.Type.LIST_REMOVE, r.cnt, index) // Inform about removal
             onDeleted?.let { it(r) }
         }
     }
@@ -143,11 +152,13 @@ class ReportRepository(
             Log.d(TAG, "Adding new report ${r.cnt} with project ${r.project.name.value} to cache")
             reports.put(r.cnt, r) // Add to cache
             reportUids.add(0, r.cnt) // Add to report cnt list
+            val pos = reportUids.indexOf(r.cnt)
             reportUidsMutex.unlock()
+            // Inform about the addition before suspending on the database, see _deleteReport
+            _live.value = ReportListChangeEvent(ReportListChangeEvent.Type.LIST_ADD, r.cnt, pos)
             withContext(Dispatchers.IO) {
                 reportDao.insert(ReportDb.fromReport(r)) // Add to DB
             }
-            _live.value = ReportListChangeEvent(ReportListChangeEvent.Type.LIST_ADD, r.cnt, reportUids.indexOf(r.cnt))// Inform about addition
             onAdded?.let { it(r) }
         }
     }

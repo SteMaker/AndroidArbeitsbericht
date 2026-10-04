@@ -169,6 +169,7 @@
                         android:onClick="onClickHideEmployeeSignature"
                         />
                 <com.stemaker.arbeitsbericht.LockableSignaturePad
+                        android:saveEnabled="false"
                         android:id="@+id/employee_signature"
                         android:layout_width="match_parent"
                         android:layout_height="200dp"
@@ -248,6 +249,7 @@
                         android:onClick="onClickHideClientSignature"
                         />
                 <com.stemaker.arbeitsbericht.LockableSignaturePad
+                        android:saveEnabled="false"
                         android:id="@+id/client_signature"
                         android:layout_width="match_parent"
                         android:layout_height="200dp"

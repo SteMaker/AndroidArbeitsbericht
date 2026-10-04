@@ -108,17 +108,20 @@ abstract class ReportGenerator(
 
     suspend fun create(files: Array<File>): Boolean {
         if(renderInUiThread) {
-            var cont: Continuation<Boolean>? = null
-            createDoc(files) {
-                progressInfo(100, activity.getString(R.string.status_done))
-                cont!!.resume(it)
+            /* This used to register the createDoc callback first and only afterwards
+             * assign the continuation it resumes, so a generator that reported failure
+             * synchronously - PdfGenerator does when it cannot build a WebView - hit a
+             * null continuation. It also returned a hardcoded true, so a failed PDF was
+             * reported as a success and SummaryActivity went on to share an empty file.
+             */
+            val success = suspendCoroutine<Boolean> { cont ->
+                createDoc(files) {
+                    progressInfo(100, activity.getString(R.string.status_done))
+                    cont.resume(it)
+                }
             }
-            val success = suspendCoroutine<Boolean> {
-                Log.d(TAG, "Suspend create")
-                cont = it
-            }
-            Log.d(TAG, "resume")
-            return true
+            Log.d(TAG, "resume, success=$success")
+            return success
         } else {
             val msg = Message()
             msg.what = MSG_CREATE

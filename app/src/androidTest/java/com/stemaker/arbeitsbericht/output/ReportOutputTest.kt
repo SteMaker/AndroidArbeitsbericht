@@ -28,6 +28,7 @@ import org.junit.runner.RunWith
 import java.io.File
 import java.util.Calendar
 import java.util.GregorianCalendar
+import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.zip.ZipFile
 
@@ -203,6 +204,52 @@ class ReportOutputTest {
         assertThat(pdf.exists()).isTrue()
         assertThat(pdf.length()).isGreaterThan(0L)
         assertThat(pdf.readBytes().take(4).toByteArray().decodeToString()).isEqualTo("%PDF")
+    }
+
+    /* A generator that answers immediately with whatever it is told to answer. */
+    private inner class StubGenerator(
+        act: Activity,
+        private val result: Boolean,
+    ) : ReportGenerator(act, report, app.prefs, null, null, renderInUiThread = true) {
+        override val filePostFixExt = arrayOf(Pair("", "stub"))
+        override fun getHash(files: Array<File>): String? = null
+        override fun createDoc(files: Array<File>, done: (success: Boolean) -> Unit) =
+            done(result)
+    }
+
+    @Test
+    fun aFailedGenerationIsReportedAsAFailure() {
+        /* create() used to return a hardcoded true on the render-in-UI-thread path, so a
+         * failed PDF was reported as a success and the caller went on to share an empty
+         * file. The same path also resumed a continuation that had not been assigned yet,
+         * which a synchronous failure like this one triggers.
+         */
+        val files = arrayOf(outputFile("test_stub_fail.stub"))
+
+        var result: Boolean? = null
+        onMain {
+            kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.Main).launch {
+                result = StubGenerator(activity(), result = false).create(files)
+            }
+        }
+        awaitUntil("the generator to report back") { result != null }
+
+        assertThat(result).isFalse()
+    }
+
+    @Test
+    fun aSuccessfulGenerationIsReportedAsASuccess() {
+        val files = arrayOf(outputFile("test_stub_ok.stub"))
+
+        var result: Boolean? = null
+        onMain {
+            kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.Main).launch {
+                result = StubGenerator(activity(), result = true).create(files)
+            }
+        }
+        awaitUntil("the generator to report back") { result != null }
+
+        assertThat(result).isTrue()
     }
 
     @Test

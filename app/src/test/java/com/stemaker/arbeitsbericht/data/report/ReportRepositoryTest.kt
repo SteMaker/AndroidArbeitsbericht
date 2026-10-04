@@ -231,9 +231,13 @@ class ReportRepositoryTest {
         val repo = repository()
         repo.initialize()
         val report = repo.createReportAndActivate(null)
+        // Wait for the insert first: the repository dispatches insert and delete
+        // independently, so deleting straight away can outrun the insert and leave the
+        // row behind.
+        awaitUntil("the report to be inserted") { dao.rows.containsKey(report.cnt) }
 
         repo.deleteReport(report)
-        awaitUntil("the report to be deleted") { !dao.rows.containsKey(report.cnt) }
+        awaitUntil("the report to be deleted") { dao.deleteCount == 1 }
 
         assertThat(dao.rows).doesNotContainKey(report.cnt)
         assertThat(repo.isReportVisible(report.cnt)).isFalse()
@@ -247,9 +251,10 @@ class ReportRepositoryTest {
         repo.initialize()
         val first = repo.createReportAndActivate(null)
         val second = repo.createReportAndActivate(null)
+        awaitUntil("both reports to be inserted") { dao.rows.size == 2 }
 
         repo.deleteReport(first)
-        awaitUntil("the first report to be deleted") { !dao.rows.containsKey(first.cnt) }
+        awaitUntil("the first report to be deleted") { dao.deleteCount == 1 }
 
         assertThat(repo.isReportVisible(second.cnt)).isTrue()
         assertThat(dao.rows).containsKey(second.cnt)
@@ -266,12 +271,105 @@ class ReportRepositoryTest {
 
         val report = repo.createReportAndActivate(null)
         awaitUntil("the add event") { events.isNotEmpty() }
+        awaitUntil("the report to be inserted") { dao.rows.containsKey(report.cnt) }
         repo.deleteReport(report)
         awaitUntil("the remove event") { events.size == 2 }
 
         assertThat(events.map { it.type }).containsExactly(
             ReportRepository.ReportListChangeEvent.Type.LIST_ADD,
             ReportRepository.ReportListChangeEvent.Type.LIST_REMOVE).inOrder()
+    }
+
+    // ------------------------------------------------- list event ordering
+
+    @Test
+    fun `the add event is emitted before the row is written`(): Unit = runBlocking {
+        /* ReportListAdapter.getItemCount() reads amountOfReports directly, so the visible
+         * count changes the moment reportUids does. If the event came after the database
+         * write, the main thread could lay the list out in between with a count
+         * RecyclerView had not been told about, and RecyclerView then throws
+         * "Inconsistency detected. Invalid view holder adapter position".
+         */
+        val repo = repository()
+        repo.initialize()
+        var insertsWhenAnnounced: Int? = null
+        repo.live.observeForever { event ->
+            if (event.type == ReportRepository.ReportListChangeEvent.Type.LIST_ADD &&
+                insertsWhenAnnounced == null) {
+                insertsWhenAnnounced = dao.insertCount
+            }
+        }
+
+        repo.createReportAndActivate(null)
+        awaitUntil("the add event") { insertsWhenAnnounced != null }
+
+        assertThat(insertsWhenAnnounced).isEqualTo(0)
+    }
+
+    @Test
+    fun `the add event reports the position the report was inserted at`(): Unit = runBlocking {
+        seedRow(1)
+        val repo = repository()
+        repo.initialize()
+        var pos: Int? = null
+        repo.live.observeForever { event ->
+            if (event.type == ReportRepository.ReportListChangeEvent.Type.LIST_ADD) {
+                pos = event.pos
+            }
+        }
+
+        repo.createReportAndActivate(null)
+        awaitUntil("the add event") { pos != null }
+
+        // New reports go to the top of the list
+        assertThat(pos).isEqualTo(0)
+    }
+
+    @Test
+    fun `the remove event is emitted before the row is deleted`(): Unit = runBlocking {
+        val repo = repository()
+        repo.initialize()
+        val report = repo.createReportAndActivate(null)
+        awaitUntil("the report to be inserted") { dao.rows.containsKey(report.cnt) }
+        var deletesWhenAnnounced: Int? = null
+        repo.live.observeForever { event ->
+            if (event.type == ReportRepository.ReportListChangeEvent.Type.LIST_REMOVE &&
+                deletesWhenAnnounced == null) {
+                deletesWhenAnnounced = dao.deleteCount
+            }
+        }
+
+        repo.deleteReport(report)
+        awaitUntil("the remove event") { deletesWhenAnnounced != null }
+
+        assertThat(deletesWhenAnnounced).isEqualTo(0)
+    }
+
+    @Test
+    fun `the visible count matches what the remove event announced`(): Unit = runBlocking {
+        seedRow(1)
+        seedRow(2)
+        val repo = repository()
+        repo.initialize()
+        var countAtEvent: Int? = null
+        var removedPos: Int? = null
+        repo.live.observeForever { event ->
+            if (event.type == ReportRepository.ReportListChangeEvent.Type.LIST_REMOVE) {
+                countAtEvent = repo.amountOfReports
+                removedPos = event.pos
+            }
+        }
+        var toDelete: ReportData? = null
+        repo.getReportByIndex(0) { toDelete = it }
+        awaitUntil("the report to load") { toDelete != null }
+
+        repo.deleteReport(toDelete!!)
+        awaitUntil("the remove event") { countAtEvent != null }
+
+        // The list has already shrunk by the time the adapter is told, and the announced
+        // position is the one the report used to occupy
+        assertThat(countAtEvent).isEqualTo(1)
+        assertThat(removedPos).isEqualTo(0)
     }
 
     // ---------------------------------------------------------------- load

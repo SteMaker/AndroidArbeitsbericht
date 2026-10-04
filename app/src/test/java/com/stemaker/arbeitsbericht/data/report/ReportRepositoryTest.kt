@@ -76,7 +76,7 @@ class ReportRepositoryTest {
     // ---------------------------------------------------------------- initialize
 
     @Test
-    fun `initialize reports the highest report id already in the database`() = runBlocking {
+    fun `initialize reports the highest report id already in the database`(): Unit = runBlocking {
         // ArbeitsberichtApp uses this to recover the id counter if the preferences were
         // lost, so returning 0 for a populated database would silently disable that.
         seedRow(3)
@@ -90,14 +90,14 @@ class ReportRepositoryTest {
     }
 
     @Test
-    fun `initialize reports zero for an empty database`() = runBlocking {
+    fun `initialize reports zero for an empty database`(): Unit = runBlocking {
         val repo = repository()
 
         assertThat(repo.initialize()).isEqualTo(0)
     }
 
     @Test
-    fun `the visible report list is populated by the time initialize returns`() = runBlocking {
+    fun `the visible report list is populated by the time initialize returns`(): Unit = runBlocking {
         // ArbeitsberichtApp calls isReportVisible() right after initialize() to decide
         // whether the last active report can be restored.
         seedRow(5, project = "Mueller")
@@ -110,7 +110,7 @@ class ReportRepositoryTest {
     }
 
     @Test
-    fun `initialize honours the state filter`() = runBlocking {
+    fun `initialize honours the state filter`(): Unit = runBlocking {
         seedRow(1, state = ReportData.ReportState.IN_WORK)
         seedRow(2, state = ReportData.ReportState.ARCHIVED)
         val repo = repository()
@@ -126,7 +126,7 @@ class ReportRepositoryTest {
     // ---------------------------------------------------------------- create
 
     @Test
-    fun `creating a report allocates the next id and writes it to the database`() = runBlocking {
+    fun `creating a report allocates the next id and writes it to the database`(): Unit = runBlocking {
         val repo = repository()
         repo.initialize()
 
@@ -139,7 +139,7 @@ class ReportRepositoryTest {
     }
 
     @Test
-    fun `a created report becomes the active report`() = runBlocking {
+    fun `a created report becomes the active report`(): Unit = runBlocking {
         val repo = repository()
         repo.initialize()
 
@@ -150,7 +150,7 @@ class ReportRepositoryTest {
     }
 
     @Test
-    fun `a created report is immediately visible and counted`() = runBlocking {
+    fun `a created report is immediately visible and counted`(): Unit = runBlocking {
         val repo = repository()
         repo.initialize()
 
@@ -161,7 +161,7 @@ class ReportRepositoryTest {
     }
 
     @Test
-    fun `the onCreated callback receives the new report`() = runBlocking {
+    fun `the onCreated callback receives the new report`(): Unit = runBlocking {
         val repo = repository()
         repo.initialize()
         var seen: ReportData? = null
@@ -173,7 +173,7 @@ class ReportRepositoryTest {
     }
 
     @Test
-    fun `a created report is ready to be used straight away`() = runBlocking {
+    fun `a created report is ready to be used straight away`(): Unit = runBlocking {
         val repo = repository()
         repo.initialize()
 
@@ -183,7 +183,7 @@ class ReportRepositoryTest {
     }
 
     @Test
-    fun `consecutive reports get consecutive ids`() = runBlocking {
+    fun `consecutive reports get consecutive ids`(): Unit = runBlocking {
         val repo = repository()
         repo.initialize()
 
@@ -197,7 +197,7 @@ class ReportRepositoryTest {
     // ---------------------------------------------------------------- duplicate
 
     @Test
-    fun `duplicating a report stores a second row with its own id`() = runBlocking {
+    fun `duplicating a report stores a second row with its own id`(): Unit = runBlocking {
         val repo = repository()
         repo.initialize()
         val origin = repo.createReportAndActivate(null)
@@ -213,7 +213,7 @@ class ReportRepositoryTest {
     }
 
     @Test
-    fun `a duplicate becomes the active report`() = runBlocking {
+    fun `a duplicate becomes the active report`(): Unit = runBlocking {
         val repo = repository()
         repo.initialize()
         val origin = repo.createReportAndActivate(null)
@@ -227,7 +227,7 @@ class ReportRepositoryTest {
     // ---------------------------------------------------------------- delete
 
     @Test
-    fun `deleting a report removes it from the database and the visible list`() = runBlocking {
+    fun `deleting a report removes it from the database and the visible list`(): Unit = runBlocking {
         val repo = repository()
         repo.initialize()
         val report = repo.createReportAndActivate(null)
@@ -242,7 +242,7 @@ class ReportRepositoryTest {
     }
 
     @Test
-    fun `deleting one report leaves the others alone`() = runBlocking {
+    fun `deleting one report leaves the others alone`(): Unit = runBlocking {
         val repo = repository()
         repo.initialize()
         val first = repo.createReportAndActivate(null)
@@ -257,7 +257,7 @@ class ReportRepositoryTest {
     }
 
     @Test
-    fun `a list change event is emitted when a report is added and removed`() = runBlocking {
+    fun `a list change event is emitted when a report is added and removed`(): Unit = runBlocking {
         val repo = repository()
         repo.initialize()
         val events = mutableListOf<ReportRepository.ReportListChangeEvent>()
@@ -277,7 +277,7 @@ class ReportRepositoryTest {
     // ---------------------------------------------------------------- load
 
     @Test
-    fun `a report is loaded from the database on demand`() = runBlocking {
+    fun `a report is loaded from the database on demand`(): Unit = runBlocking {
         seedRow(4, project = "Mueller", extra = "Dach")
         val repo = repository()
         repo.initialize()
@@ -294,7 +294,7 @@ class ReportRepositoryTest {
     }
 
     @Test
-    fun `a report already in the cache is handed back without touching the database`() = runBlocking {
+    fun `a report already in the cache is handed back without touching the database`(): Unit = runBlocking {
         val repo = repository()
         repo.initialize()
         val created = repo.createReportAndActivate(null)
@@ -307,7 +307,7 @@ class ReportRepositoryTest {
     }
 
     @Test
-    fun `getReportByIndex resolves positions in the visible list`() = runBlocking {
+    fun `getReportByIndex resolves positions in the visible list`(): Unit = runBlocking {
         seedRow(1, project = "A")
         seedRow(2, project = "B")
         val repo = repository()
@@ -324,7 +324,7 @@ class ReportRepositoryTest {
     // ---------------------------------------------------------------- save
 
     @Test
-    fun `saving a modified report writes it back`() = runBlocking {
+    fun `saving a modified report writes it back`(): Unit = runBlocking {
         val repo = repository()
         repo.initialize()
         val report = repo.createReportAndActivate(null)
@@ -340,7 +340,7 @@ class ReportRepositoryTest {
     }
 
     @Test
-    fun `saveReports writes every modified cached report`() = runBlocking {
+    fun `saveReports writes every modified cached report`(): Unit = runBlocking {
         val repo = repository()
         repo.initialize()
         val first = repo.createReportAndActivate(null)
@@ -359,7 +359,7 @@ class ReportRepositoryTest {
     }
 
     @Test
-    fun `saveReports skips reports that were not modified`() = runBlocking {
+    fun `saveReports skips reports that were not modified`(): Unit = runBlocking {
         val repo = repository()
         repo.initialize()
         val report = repo.createReportAndActivate(null)
@@ -375,7 +375,7 @@ class ReportRepositoryTest {
     }
 
     @Test
-    fun `isJobRunning reflects whether work is outstanding`() = runBlocking {
+    fun `isJobRunning reflects whether work is outstanding`(): Unit = runBlocking {
         // waitForShutdown() polls this to decide whether pending saves have reached the
         // database, so it must not be a value frozen at construction time.
         val repo = repository()
@@ -388,7 +388,7 @@ class ReportRepositoryTest {
     // ---------------------------------------------------------------- filter
 
     @Test
-    fun `changing the filter rebuilds the visible list`() = runBlocking {
+    fun `changing the filter rebuilds the visible list`(): Unit = runBlocking {
         seedRow(1, project = "Mueller")
         seedRow(2, project = "Schmidt")
         val repo = repository()
@@ -404,7 +404,7 @@ class ReportRepositoryTest {
     }
 
     @Test
-    fun `the project name filter is case insensitive`() = runBlocking {
+    fun `the project name filter is case insensitive`(): Unit = runBlocking {
         seedRow(1, project = "Mueller")
         val repo = repository()
         repo.initialize()
@@ -416,7 +416,7 @@ class ReportRepositoryTest {
     }
 
     @Test
-    fun `enabling the archived state brings archived reports back`() = runBlocking {
+    fun `enabling the archived state brings archived reports back`(): Unit = runBlocking {
         seedRow(1, state = ReportData.ReportState.ARCHIVED)
         val repo = repository()
         repo.initialize()
@@ -429,7 +429,7 @@ class ReportRepositoryTest {
     }
 
     @Test
-    fun `a filter change emits a list change event`() = runBlocking {
+    fun `a filter change emits a list change event`(): Unit = runBlocking {
         seedRow(1, project = "Mueller")
         val repo = repository()
         repo.initialize()

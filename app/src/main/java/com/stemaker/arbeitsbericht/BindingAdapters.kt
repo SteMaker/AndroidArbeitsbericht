@@ -8,6 +8,7 @@ import android.widget.*
 import androidx.databinding.BindingAdapter
 import androidx.databinding.InverseBindingAdapter
 import androidx.databinding.InverseBindingListener
+import com.bumptech.glide.Glide
 import com.google.android.material.textfield.TextInputEditText
 import com.stemaker.arbeitsbericht.data.base.DataElement
 import com.stemaker.arbeitsbericht.data.calendarToDateString
@@ -185,7 +186,7 @@ object BindingAdapters {
         val tmpFile = File(fileName) // because old app version stored the path here as well
         val file = File(imgView.context.getExternalFilesDir(Environment.DIRECTORY_PICTURES), tmpFile.name)
         if(file.exists() && file.isFile)
-            GlideApp.with(imgView.context).load(file).into(imgView)
+            Glide.with(imgView.context).load(file).into(imgView)
     }
 
     /********************************************************/

@@ -6,7 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.fragment.app.DialogFragment
-import com.stemaker.arbeitsbericht.GlideApp
+import com.bumptech.glide.Glide
 import com.stemaker.arbeitsbericht.R
 import java.io.File
 
@@ -22,7 +22,7 @@ class ImageViewFragment : DialogFragment() {
         val v = inflater.inflate(R.layout.fragment_image_view, container, false)
         val imgV: ImageView = v.findViewById(R.id.photo_view)
         imgV.setOnClickListener { dismiss() }
-        GlideApp.with(this).load(file).into(imgV)
+        Glide.with(this).load(file).into(imgV)
         return v
     }
 

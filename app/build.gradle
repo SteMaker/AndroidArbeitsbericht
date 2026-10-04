@@ -1,103 +1,152 @@
 plugins {
-    id('com.android.application')
-    id('kotlin-android')
-    id('kotlinx-serialization')
-    id('kotlin-kapt')
-    id('com.google.gms.google-services')
-    id('com.google.firebase.crashlytics')
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.serialization)
+    // Data binding's annotation processor only sees @BindingAdapter methods declared in
+    // Kotlin via kapt; AGP wires databinding-compiler into the kapt configuration itself.
+    alias(libs.plugins.legacy.kapt)
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.google.services)
+    alias(libs.plugins.crashlytics)
 }
 
 android {
-    compileSdkVersion 33
+    namespace 'com.stemaker.arbeitsbericht'
+    compileSdk libs.versions.compileSdk.get().toInteger()
+    compileSdkMinor libs.versions.compileSdkMinor.get().toInteger()
+
     defaultConfig {
         applicationId "com.stemaker.arbeitsbericht"
-        minSdkVersion 23
-        targetSdkVersion 33
-        versionCode 32
-        versionName "v2.21.0"
+        minSdk libs.versions.minSdk.get().toInteger()
+        targetSdk libs.versions.targetSdk.get().toInteger()
+        versionCode 33
+        versionName "v2.22.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        javaCompileOptions {
-            annotationProcessorOptions {
-                // We store the schema as file in git, so we have a version history. Not a must to do
-                arguments += ["room.schemaLocation": "$projectDir/schemas".toString()]
-            }
-        }
     }
+
     buildTypes {
+        debug {
+            enableUnitTestCoverage true
+            enableAndroidTestCoverage true
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            versionNameSuffix = ''
         }
     }
+
     buildFeatures {
         dataBinding true
         viewBinding true
+        buildConfig true
     }
-    packagingOptions {
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    packaging {
         resources {
-            excludes += ['META-INF/DEPENDENCIES']
+            excludes += [
+                    'META-INF/DEPENDENCIES',
+                    'META-INF/LICENSE*',
+                    'META-INF/NOTICE*',
+                    'META-INF/INDEX.LIST',
+                    'META-INF/*.kotlin_module',
+            ]
         }
     }
-    namespace 'com.stemaker.arbeitsbericht'
+
+    testOptions {
+        unitTests {
+            includeAndroidResources = true
+            returnDefaultValues = true
+        }
+    }
+
+    lint {
+        abortOnError false
+        warningsAsErrors false
+        sarifReport true
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
+    }
+}
+
+// We store the Room schema as a file in git, so we have a version history.
+ksp {
+    arg('room.schemaLocation', "$projectDir/schemas".toString())
+    arg('room.generateKotlin', 'true')
 }
 
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
-    //kotlin
-    //implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    implementation "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
-    //implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    //implementation "org.jetbrains.kotlinx:kotlinx-serialization-runtime:1.0.1"
-    implementation "org.jetbrains.kotlinx:kotlinx-serialization-cbor:1.0.1"
-    implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.0.1"
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.1'
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.1'
+    // Kotlin
+    implementation libs.kotlin.reflect
+    implementation libs.kotlinx.coroutines.core
+    implementation libs.kotlinx.coroutines.android
+    implementation libs.kotlinx.serialization.json
+    implementation libs.kotlinx.serialization.cbor
 
-    implementation 'androidx.appcompat:appcompat:1.5.1'
-    implementation 'androidx.core:core-ktx:1.9.0'
-    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
-    implementation 'androidx.preference:preference-ktx:1.2.0'
-    implementation files('/home/stefan/workspace/android-signaturepad/signature-pad/build/outputs/aar/signature-pad-release.aar')
-    implementation 'androidx.security:security-crypto-ktx:1.1.0-alpha04'
-    testImplementation 'junit:junit:4.12'
-    implementation 'com.google.code.gson:gson:2.8.9'
-    implementation 'com.google.android.material:material:1.7.0'
-    //implementation 'com.github.SteMaker:android-signature-pad:1.3.1'
-    implementation 'com.caverock:androidsvg-aar:1.4'
-    implementation 'androidx.core:core-ktx:1.9.0'
-    implementation 'androidx.legacy:legacy-support-core-utils:1.0.0'
-    implementation 'com.github.bumptech.glide:glide:4.9.0'
-    kapt 'com.github.bumptech.glide:compiler:4.9.0'
-//    implementation 'org.apache.directory.studio:org.apache.commons.io:2.4'
-    //implementation 'androidx.lifecycle:lifecycle-extensions:2.2.0'
-    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.5.1'
-    //implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version"
-    implementation "androidx.fragment:fragment-ktx:1.5.5"
-    // JSCH library for SFTP support
-    implementation 'com.jcraft:jsch:0.1.55'
-    // ODF Toolkit
-    implementation files('../odftoolkit-fat/build/libs/odftoolkit-fat-all.jar')
-    // Google Analytics, crashlytics
-    implementation 'com.google.firebase:firebase-analytics-ktx:21.2.0'
-    implementation 'com.google.firebase:firebase-crashlytics-ktx:18.3.2'
-    // Support for Room database
-    def room_version = "2.4.3"
-    implementation "androidx.room:room-runtime:$room_version"
-    kapt "androidx.room:room-compiler:$room_version"
-    implementation "androidx.room:room-ktx:$room_version"
+    // AndroidX
+    implementation libs.androidx.appcompat
+    implementation libs.androidx.core.ktx
+    implementation libs.androidx.constraintlayout
+    implementation libs.androidx.preference.ktx
+    implementation libs.androidx.security.crypto.ktx
+    implementation libs.androidx.fragment.ktx
+    implementation libs.androidx.lifecycle.viewmodel.ktx
+    implementation libs.androidx.lifecycle.livedata.ktx
+    implementation libs.androidx.lifecycle.runtime.ktx
+    implementation libs.material
 
-    // POI Toolkit
-    implementation files('../poi-android-fat/build/libs/poi-android-fat-all.jar')
+    // Room
+    implementation libs.androidx.room.runtime
+    implementation libs.androidx.room.ktx
+    ksp libs.androidx.room.compiler
 
-    implementation "joda-time:joda-time:2.12.2"
+    // Third party
+    implementation libs.glide
+    implementation libs.gson
+    implementation libs.androidsvg
+    implementation libs.signature.pad
+    implementation libs.jsch
+    implementation libs.joda.time
 
-    // Large tests using Espresso
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.0'
-    androidTestImplementation 'androidx.test:runner:1.5.1'
-    androidTestImplementation 'androidx.test:rules:1.5.0'
-    androidTestImplementation 'androidx.test:core-ktx:1.5.0'
-    androidTestImplementation 'androidx.test.ext:junit-ktx:1.1.4'
-    androidTestImplementation 'androidx.test.espresso:espresso-intents:3.4.0'
+    // ODF Toolkit and Apache POI, repackaged as shaded jars by the sibling modules
+    implementation project(path: ':odftoolkit-fat', configuration: 'shadow')
+    implementation project(path: ':poi-android-fat', configuration: 'shadow')
+
+    // Firebase
+    implementation platform(libs.firebase.bom)
+    implementation libs.firebase.analytics
+    implementation libs.firebase.crashlytics
+
+    // Local unit tests (JVM / Robolectric)
+    testImplementation libs.junit
+    testImplementation libs.robolectric
+    testImplementation libs.mockk
+    testImplementation libs.truth
+    testImplementation libs.androidx.arch.core.testing
+    testImplementation libs.kotlinx.coroutines.test
+    testImplementation libs.androidx.test.core.ktx
+    testImplementation libs.androidx.test.ext.junit.ktx
+    testImplementation libs.androidx.room.testing
+
+    // Instrumented tests (on device / emulator)
+    androidTestImplementation libs.androidx.test.core.ktx
+    androidTestImplementation libs.androidx.test.runner
+    androidTestImplementation libs.androidx.test.rules
+    androidTestImplementation libs.androidx.test.ext.junit.ktx
+    androidTestImplementation libs.espresso.core
+    androidTestImplementation libs.espresso.contrib
+    androidTestImplementation libs.espresso.intents
+    androidTestImplementation libs.uiautomator
+    androidTestImplementation libs.truth
+    androidTestImplementation libs.mockk.android
+    androidTestImplementation libs.kotlinx.coroutines.test
+    androidTestImplementation libs.androidx.room.testing
 }

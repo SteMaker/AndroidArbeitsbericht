@@ -132,8 +132,9 @@ class PdfPreviewDialog : DialogFragment() {
                 return true
             }
 
-            override fun onFling(e1: MotionEvent, e2: MotionEvent, velocityX: Float, velocityY: Float): Boolean {
+            override fun onFling(e1: MotionEvent?, e2: MotionEvent, velocityX: Float, velocityY: Float): Boolean {
                 var result = false
+                if (e1 == null) return false
                 try {
                     val diffY = e2.y - e1.y
                     val diffX = e2.x - e1.x

@@ -1,3 +1,27 @@
+pluginManagement {
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
+dependencyResolutionManagement {
+    repositoriesMode = RepositoriesMode.FAIL_ON_PROJECT_REPOS
+    repositories {
+        google()
+        mavenCentral()
+        // Only needed for com.github.SUPERCILEX.poi-android:poi, which is served anonymously.
+        maven {
+            url = uri('https://jitpack.io')
+            content {
+                includeGroupByRegex 'com\\.github\\.SUPERCILEX.*'
+            }
+        }
+    }
+}
+
+rootProject.name = 'Arbeitsbericht'
 include ':app'
 include ':odftoolkit-fat'
 include ':poi-android-fat'

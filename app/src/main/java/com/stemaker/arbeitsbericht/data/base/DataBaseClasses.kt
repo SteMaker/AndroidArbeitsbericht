@@ -4,7 +4,7 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.Transformations
+import androidx.lifecycle.map
 
 /* Event to be emitted whenever a DataElement, DataObject or DataContainer changes */
 class DataModificationEvent(val type: Type, var elem: DataBasicIf) {
@@ -27,7 +27,7 @@ class DataElement<T>(n: String, initFct: (() -> T) ):
         setValue(initFct())
     }
     override var elementName: String = n
-    override val dataModificationEvent = Transformations.map(this) {
+    override val dataModificationEvent = this.map {
         DataModificationEvent(DataModificationEvent.Type.ELEMENT_CHANGE, this)
     }
     fun copy(origin: DataElement<T>) {
